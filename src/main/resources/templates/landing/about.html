@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Giới thiệu - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Tìm hiểu về English 12 Smart - nền tảng học tiếng Anh THPT với công nghệ AI tiên tiến, giúp học sinh chinh phục kỳ thi THPT Quốc gia.">
+    <meta name="keywords" content="giới thiệu, về chúng tôi, english 12 smart, học tiếng anh AI">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVIGATION BAR -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                    <img th:src="@{/images/logo.png}" alt="English 12 Smart Logo"
+                        class="h-12 w-auto transition-transform group-hover:scale-105">
+                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                    <a href="/" class="hover:text-brand-600 transition-colors">Trang chủ</a>
+                    <a href="/about" class="text-brand-600">Giới thiệu</a>
+                    <a href="/features" class="hover:text-brand-600 transition-colors">Tính năng</a>
+                    <a href="/contact" class="hover:text-brand-600 transition-colors">Liên hệ</a>
+                </nav>
+
+                <!-- Auth Buttons / User Menu -->
+                <div class="hidden md:flex items-center gap-3">
+                    <!-- Nếu CHƯA đăng nhập -->
+                    <div th:if="${!isAuthenticated}" class="flex items-center gap-3">
+                        <a href="/auth/login"
+                            class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Đăng
+                            nhập</a>
+                        <a href="/auth/register"
+                            class="rounded-full bg-brand-500 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-600 transition-all">Đăng
+                            ký</a>
+                    </div>
+
+                    <!-- Nếu ĐÃ đăng nhập -->
+                    <div th:if="${isAuthenticated}" class="relative">
+                        <!-- User Button -->
+                        <button id="user-menu-button"
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white text-sm font-medium">
+                                <span
+                                    th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'U'}">U</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">User</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16"
+                                class="text-slate-500"></iconify-icon>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="user-dropdown"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                            <!-- User Info -->
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-sm font-medium text-slate-900" th:text="${username}">User Name</p>
+                                <p class="text-xs text-slate-500" th:text="${userRole}">Học sinh</p>
+                            </div>
+
+                            <!-- Menu Items -->
+                            <div class="py-1">
+                                <a href="/dashboard/student"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:book-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài đang học</span>
+                                </a>
+                                <a href="/learn"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:notebook-linear" width="18"
+                                        class="text-emerald-500"></iconify-icon>
+                                    <span>Học tập</span>
+                                </a>
+                                <a href="/dashboard/student/progress"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:graph-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Tiến độ học tập</span>
+                                </a>
+                                <a href="/dashboard/student/exercises"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:document-text-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài tập của tôi</span>
+                                </a>
+                            </div>
+
+                            <!-- Common Menu Items -->
+                            <div class="border-t border-slate-100 py-1">
+                                <a href="/profile"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:user-circle-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Thông tin cá nhân</span>
+                                </a>
+                                <a href="/settings"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:settings-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Cài đặt</span>
+                                </a>
+                                <a href="/api/auth/logout"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <iconify-icon icon="solar:logout-2-linear" width="18"
+                                        class="text-red-500"></iconify-icon>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-slate-500" id="mobile-menu-toggle">
+                    <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-16">
+        <!-- HERO SECTION -->
+        <section class="relative bg-hero-gradient overflow-hidden py-20 lg:py-28">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-white mb-6">
+                        Về <span class="text-brand-100">English 12 Smart</span>
+                    </h1>
+                    <p class="text-lg text-brand-100 leading-relaxed font-light">
+                        Nền tảng học tiếng Anh THPT thông minh, ứng dụng công nghệ AI để mang đến trải nghiệm học tập
+                        hiệu quả nhất cho học sinh Việt Nam.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MISSION & VISION -->
+        <section class="py-24 bg-white">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <div class="inline-flex items-center gap-2 rounded-full bg-brand-50 px-4 py-2 mb-6">
+                            <iconify-icon icon="solar:target-linear" class="text-brand-600" width="20"></iconify-icon>
+                            <span class="text-sm font-medium text-brand-700">Sứ mệnh</span>
+                        </div>
+                        <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-6">
+                            Đồng hành cùng học sinh chinh phục tiếng Anh
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed mb-4">
+                            English 12 Smart ra đời với sứ mệnh giúp học sinh THPT Việt Nam tự tin chinh phục môn tiếng
+                            Anh, đặc biệt là kỳ thi THPT Quốc gia.
+                        </p>
+                        <p class="text-slate-600 leading-relaxed">
+                            Chúng tôi tin rằng với công nghệ AI và phương pháp học tập khoa học, mọi học sinh đều có thể
+                            đạt được mục tiêu của mình.
+                        </p>
+                    </div>
+                    <div class="relative">
+                        <div class="bg-gradient-to-br from-brand-500 to-brand-700 rounded-2xl p-8 text-white">
+                            <iconify-icon icon="solar:lightbulb-bolt-linear" width="48" class="mb-4"></iconify-icon>
+                            <h3 class="text-2xl font-medium mb-4">Tầm nhìn</h3>
+                            <p class="text-brand-100 leading-relaxed">
+                                Trở thành nền tảng học tiếng Anh THPT số 1 Việt Nam, được hàng triệu học sinh tin dùng
+                                và yêu thích.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CORE VALUES -->
+        <section class="py-24 bg-slate-50">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-16">
+                    <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-4">Giá Trị Cốt Lõi</h2>
+                    <p class="text-slate-500">Những nguyên tắc định hướng mọi hoạt động của chúng tôi</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <!-- Value 1 -->
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-6">
+                            <iconify-icon icon="solar:user-heart-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-xl font-medium text-slate-900 mb-3">Học sinh là trung tâm</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Mọi tính năng đều được thiết kế dựa trên nhu cầu thực tế của học sinh, đảm bảo trải nghiệm
+                            học tập tốt nhất.
+                        </p>
+                    </div>
+
+                    <!-- Value 2 -->
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-6">
+                            <iconify-icon icon="solar:shield-check-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-xl font-medium text-slate-900 mb-3">Chất lượng hàng đầu</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Nội dung bài học được biên soạn bởi đội ngũ giáo viên giàu kinh nghiệm, bám sát chương trình
+                            SGK.
+                        </p>
+                    </div>
+
+                    <!-- Value 3 -->
+                    <div class="bg-white p-8 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-6">
+                            <iconify-icon icon="solar:rocket-2-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-xl font-medium text-slate-900 mb-3">Đổi mới sáng tạo</h3>
+                        <p class="text-slate-600 leading-relaxed">
+                            Không ngừng ứng dụng công nghệ mới nhất như AI, Machine Learning để nâng cao hiệu quả học
+                            tập.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- TEAM SECTION -->
+        <section class="py-24 bg-white">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="text-center mb-16">
+                    <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-4">Đội Ngũ Của Chúng Tôi</h2>
+                    <p class="text-slate-500">Những người đam mê giáo dục và công nghệ</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                    <!-- Team Member 1 -->
+                    <div class="text-center group">
+                        <div class="mb-4 relative">
+                            <div
+                                class="h-32 w-32 mx-auto rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center text-white text-3xl font-bold group-hover:scale-105 transition-transform">
+                                ND
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900">Nguyễn Văn D</h3>
+                        <p class="text-sm text-brand-600 mb-2">CEO & Founder</p>
+                        <p class="text-xs text-slate-500">10 năm kinh nghiệm giảng dạy</p>
+                    </div>
+
+                    <!-- Team Member 2 -->
+                    <div class="text-center group">
+                        <div class="mb-4 relative">
+                            <div
+                                class="h-32 w-32 mx-auto rounded-full bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center text-white text-3xl font-bold group-hover:scale-105 transition-transform">
+                                LT
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900">Lê Thị T</h3>
+                        <p class="text-sm text-brand-600 mb-2">CTO</p>
+                        <p class="text-xs text-slate-500">Chuyên gia AI & Machine Learning</p>
+                    </div>
+
+                    <!-- Team Member 3 -->
+                    <div class="text-center group">
+                        <div class="mb-4 relative">
+                            <div
+                                class="h-32 w-32 mx-auto rounded-full bg-gradient-to-br from-purple-400 to-purple-600 flex items-center justify-center text-white text-3xl font-bold group-hover:scale-105 transition-transform">
+                                PH
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900">Phạm Văn H</h3>
+                        <p class="text-sm text-brand-600 mb-2">Head of Content</p>
+                        <p class="text-xs text-slate-500">Thạc sĩ Ngôn ngữ Anh</p>
+                    </div>
+
+                    <!-- Team Member 4 -->
+                    <div class="text-center group">
+                        <div class="mb-4 relative">
+                            <div
+                                class="h-32 w-32 mx-auto rounded-full bg-gradient-to-br from-amber-400 to-amber-600 flex items-center justify-center text-white text-3xl font-bold group-hover:scale-105 transition-transform">
+                                TM
+                            </div>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900">Trần Thị M</h3>
+                        <p class="text-sm text-brand-600 mb-2">Product Designer</p>
+                        <p class="text-xs text-slate-500">UX/UI Specialist</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STATS SECTION -->
+        <section class="py-20 bg-brand-50 border-y border-brand-100">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+                    <div>
+                        <div class="text-4xl lg:text-5xl font-semibold text-brand-600 mb-2">1000+</div>
+                        <div class="text-sm font-medium text-slate-600 uppercase tracking-wide">Học sinh</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl lg:text-5xl font-semibold text-brand-600 mb-2">500+</div>
+                        <div class="text-sm font-medium text-slate-600 uppercase tracking-wide">Bài học</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl lg:text-5xl font-semibold text-brand-600 mb-2">50+</div>
+                        <div class="text-sm font-medium text-slate-600 uppercase tracking-wide">Giáo viên</div>
+                    </div>
+                    <div>
+                        <div class="text-4xl lg:text-5xl font-semibold text-brand-600 mb-2">4.8/5</div>
+                        <div class="text-sm font-medium text-slate-600 uppercase tracking-wide">Đánh giá</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION -->
+        <section class="relative py-24 bg-slate-900 overflow-hidden">
+            <div
+                class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-brand-600 rounded-full opacity-20 blur-3xl">
+            </div>
+
+            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                <h2 class="text-3xl sm:text-4xl font-medium tracking-tight text-white mb-6">
+                    Bắt Đầu Hành Trình Của Bạn
+                </h2>
+                <p class="text-lg text-slate-300 mb-10 font-light">
+                    Tham gia cùng hàng ngàn học sinh đang học tập hiệu quả với English 12 Smart
+                </p>
+                <a href="/auth/register"
+                    class="inline-block px-8 py-4 rounded-full bg-white text-slate-900 font-semibold hover:bg-slate-100 shadow-xl transition-all transform hover:-translate-y-1">
+                    Đăng ký miễn phí ngay
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-850 pt-16 pb-8 border-t border-slate-800 text-slate-400 text-sm">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <h4 class="text-white font-medium mb-4">Về chúng tôi</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="hover:text-white transition-colors">Giới thiệu</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Đội ngũ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog giáo dục</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium mb-4">Tính năng</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/features" class="hover:text-white transition-colors">Luyện Listening</a></li>
+                        <li><a href="/features" class="hover:text-white transition-colors">Luyện Speaking AI</a></li>
+                        <li><a href="/features" class="hover:text-white transition-colors">Ngữ pháp THPT</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium mb-4">Hỗ trợ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/contact" class="hover:text-white transition-colors">Liên hệ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">FAQs</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Điều khoản</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium mb-4">Kết nối</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+                                <iconify-icon icon="solar:facebook-linear" width="16"></iconify-icon> Facebook
+                            </a></li>
+                        <li><a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+                                <iconify-icon icon="solar:youtube-linear" width="16"></iconify-icon> YouTube
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="text-xs">© 2026 English 12 Smart. All rights reserved.</div>
+                <div class="flex items-center gap-2 font-medium text-slate-200">
+                    <iconify-icon icon="solar:hat-graduation-linear" width="16"></iconify-icon>
+                    English 12 Smart
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-toggle')?.addEventListener('click', function () {
+            alert('Mobile menu - Coming soon!');
+        });
+
+        // User dropdown menu toggle
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userMenuButton && userDropdown) {
+            userMenuButton.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>

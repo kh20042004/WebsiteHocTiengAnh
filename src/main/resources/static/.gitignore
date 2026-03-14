@@ -1,0 +1,33 @@
+# ============================================
+# Static Assets .gitignore
+# ============================================
+
+# Compiled/minified files
+*.min.css
+*.min.js
+*.map
+
+# Build artifacts
+dist/
+build/
+
+# Temporary files
+*.tmp
+*.temp
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+
+# Node modules (if using npm for frontend build)
+node_modules/
+
+# Package manager files
+package-lock.json
+yarn.lock
+
+# Logs
+*.log
+npm-debug.log*

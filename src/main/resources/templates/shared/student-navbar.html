@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<!-- STUDENT NAVBAR FRAGMENT - Include vào tất cả trang học của student -->
+<!-- Cách sử dụng: <th:block th:replace="shared/student-navbar :: student-navbar(currentPage='dashboard')"></th:block> -->
+
+<body>
+    <th:block th:fragment="student-navbar(currentPage)">
+        <!-- NAVIGATION BAR -->
+        <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 items-center justify-between">
+                    <!-- Logo -->
+                    <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                        <img th:src="@{/images/logo.png}" alt="English 12 Smart Logo"
+                            class="h-12 w-auto transition-transform group-hover:scale-105">
+                        <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                    </a>
+
+                    <!-- Desktop Menu -->
+                    <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                        <a href="/dashboard/student" 
+                            th:classappend="${currentPage == 'dashboard' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Bài đang học</a>
+                        <a href="/dashboard/student/learn" 
+                            th:classappend="${currentPage == 'learn' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Học tập</a>
+                        <a href="/dashboard/student/classes" 
+                            th:classappend="${currentPage == 'classes' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Lớp học</a>
+                        <a href="/dashboard/student/exercises" 
+                            th:classappend="${currentPage == 'exercises' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Bài tập</a>
+                        <a href="/dashboard/student/progress" 
+                            th:classappend="${currentPage == 'progress' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Tiến độ</a>
+                    </nav>
+
+                    <!-- User Menu -->
+                    <div class="hidden md:flex items-center gap-3">
+                        <div class="relative">
+                            <button id="user-menu-button"
+                                class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                                <div
+                                    class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white text-sm font-medium">
+                                    <span
+                                        th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'U'}">U</span>
+                                </div>
+                                <span class="text-sm font-medium text-slate-700" th:text="${username}">User</span>
+                                <iconify-icon icon="solar:alt-arrow-down-linear" width="16"
+                                    class="text-slate-500"></iconify-icon>
+                            </button>
+
+                            <!-- Dropdown Menu -->
+                            <div id="user-dropdown"
+                                class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                                <div class="px-4 py-3 border-b border-slate-100">
+                                    <p class="text-sm font-medium text-slate-900" th:text="${username}">User Name</p>
+                                    <p class="text-xs text-slate-500">Học sinh</p>
+                                </div>
+                                <div class="py-1">
+                                    <a href="/dashboard/student"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700"
+                                        th:classappend="${currentPage == 'dashboard' ? 'bg-slate-50' : 'hover:bg-slate-50'}">
+                                        <iconify-icon icon="solar:book-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span>Bài đang học</span>
+                                    </a>
+                                    <a href="/dashboard/student/learn"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <iconify-icon icon="solar:notebook-linear" width="18"
+                                            class="text-emerald-500"></iconify-icon>
+                                        <span>Học tập</span>
+                                    </a>
+                                    <a href="/dashboard/student/progress"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <iconify-icon icon="solar:graph-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span>Tiến độ học tập</span>
+                                    </a>
+                                    <a href="/dashboard/student/classes"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <iconify-icon icon="solar:users-group-rounded-linear" width="18"
+                                            class="text-brand-500"></iconify-icon>
+                                        <span>Lớp học của tôi</span>
+                                    </a>
+                                    <a href="/dashboard/student/exercises"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <iconify-icon icon="solar:document-text-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span>Bài tập của tôi</span>
+                                    </a>
+                                </div>
+                                <div class="border-t border-slate-100 py-1">
+                                    <a href="/profile"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <iconify-icon icon="solar:user-circle-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span>Thông tin cá nhân</span>
+                                    </a>
+                                    <a href="/settings"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                        <iconify-icon icon="solar:settings-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span>Cài đặt</span>
+                                    </a>
+                                    <a href="/api/auth/logout"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                        <iconify-icon icon="solar:logout-2-linear" width="18"
+                                            class="text-red-500"></iconify-icon>
+                                        <span>Đăng xuất</span>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Mobile Menu Button -->
+                    <button class="md:hidden text-slate-500" id="mobile-menu-toggle">
+                        <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <script th:src="@{/js/navbar-dropdown.js}"></script>
+    </th:block>
+</body>
+
+</html>

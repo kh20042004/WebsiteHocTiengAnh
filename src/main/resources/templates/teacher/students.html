@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Học sinh - English 12 Smart</title>
+    <meta name="description" content="Quản lý học sinh và theo dõi tiến độ">
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+    <!-- NAVIGATION BAR -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                    <img th:src="@{/images/logo.png}" alt="Logo" class="h-12 w-auto transition-transform group-hover:scale-105">
+                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                </a>
+                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                    <a href="/dashboard/teacher" class="hover:text-brand-600 transition-colors">Dashboard</a>
+                    <a href="/dashboard/teacher/content" class="hover:text-brand-600 transition-colors">Nội dung</a>
+                    <a href="/dashboard/teacher/classes" class="hover:text-brand-600 transition-colors">Lớp học</a>
+                    <a href="/dashboard/teacher/students" class="text-brand-600">Học sinh</a>
+                    <a href="/dashboard/teacher/assignments" class="hover:text-brand-600 transition-colors">Bài tập</a>
+                </nav>
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="relative">
+                        <button id="user-menu-button" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white text-sm font-medium">
+                                <span th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'T'}">G</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">Giáo viên</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16" class="text-slate-500"></iconify-icon>
+                        </button>
+                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-sm font-medium text-slate-900" th:text="${username}">Giáo viên</p>
+                                <p class="text-xs text-slate-500">Giáo viên</p>
+                            </div>
+                            <div class="py-1">
+                                <a href="/dashboard/teacher" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:home-2-linear" width="18" class="text-slate-500"></iconify-icon>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="/dashboard/teacher/classes" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" class="text-slate-500"></iconify-icon>
+                                    <span>Lớp học</span>
+                                </a>
+                            </div>
+                            <div class="border-t border-slate-100 py-1">
+                                <a href="/api/auth/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <iconify-icon icon="solar:logout-2-linear" width="18" class="text-red-500"></iconify-icon>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-teal-500 to-teal-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-medium mb-2">Quản Lý Học Sinh</h1>
+                        <p class="text-teal-100">Theo dõi tiến độ và quản lý học sinh trong các lớp của bạn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
+            <!-- Stats -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white p-6 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:users-group-rounded-bold" width="24"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900 mb-1" th:text="${totalStudents}">0</div>
+                    <div class="text-sm text-slate-500">Tổng học sinh</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:check-circle-bold" width="24"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-emerald-600 mb-1" th:text="${activeStudents}">0</div>
+                    <div class="text-sm text-slate-500">Đang hoạt động</div>
+                </div>
+                <div class="bg-white p-6 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="h-12 w-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:notebook-bold" width="24"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-purple-600 mb-1" th:text="${classrooms != null ? classrooms.size() : 0}">0</div>
+                    <div class="text-sm text-slate-500">Lớp học</div>
+                </div>
+            </div>
+
+            <!-- Filters & Search -->
+            <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <iconify-icon icon="solar:magnifer-linear" width="20" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></iconify-icon>
+                            <input id="searchInput" type="text" placeholder="Tìm kiếm học sinh..." oninput="filterStudents()"
+                                class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
+                    <select id="classFilter" onchange="filterStudents()"
+                        class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Tất cả lớp</option>
+                        <th:block th:each="cls : ${classrooms}">
+                            <option th:value="${cls.name}" th:text="${cls.name}">Lớp</option>
+                        </th:block>
+                    </select>
+                    <select id="statusFilter" onchange="filterStudents()"
+                        class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="true">Đang hoạt động</option>
+                        <option value="false">Không hoạt động</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Students Table -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">Học sinh</th>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">Lớp</th>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">Email</th>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">Level</th>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">XP</th>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">Streak</th>
+                                <th class="text-left py-4 px-6 text-sm font-medium text-slate-700">Trạng thái</th>
+                                <th class="text-right py-4 px-6 text-sm font-medium text-slate-700">Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s : ${students}"
+                                class="student-row border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                                th:data-name="${s['fullName']}"
+                                th:data-email="${s['email']}"
+                                th:data-classroom="${s['classroomName']}"
+                                th:data-active="${s['isActive']}"
+                                th:data-xp="${s['totalXP']}"
+                                th:data-level="${s['level']}"
+                                th:data-streak="${s['currentStreak']}"
+                                th:data-minutes="${s['totalLearningMinutes']}"
+                                th:data-initials="${s['initials']}">
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-3">
+                                        <div class="h-10 w-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 text-white flex items-center justify-center text-sm font-medium"
+                                            th:text="${s['initials']}">NV</div>
+                                        <div>
+                                            <div class="font-medium text-slate-900" th:text="${s['fullName']}">Tên</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span class="px-2 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded"
+                                        th:text="${s['classroomName']}">Lớp</span>
+                                </td>
+                                <td class="py-4 px-6 text-sm text-slate-600" th:text="${s['email']}">email</td>
+                                <td class="py-4 px-6">
+                                    <span class="px-2 py-1 bg-purple-50 text-purple-700 text-xs font-medium rounded"
+                                        th:text="${s['level']}">Beginner</span>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-1">
+                                        <iconify-icon icon="solar:star-bold" width="14" class="text-amber-500"></iconify-icon>
+                                        <span class="text-sm font-medium text-slate-900" th:text="${s['totalXP']}">0</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <div class="flex items-center gap-1">
+                                        <iconify-icon icon="solar:fire-bold" width="14" class="text-orange-500"></iconify-icon>
+                                        <span class="text-sm font-medium text-slate-900" th:text="${s['currentStreak']} + ' ngày'">0 ngày</span>
+                                    </div>
+                                </td>
+                                <td class="py-4 px-6">
+                                    <span th:if="${s['isActive'] == true}"
+                                        class="px-2 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded">Hoạt động</span>
+                                    <span th:if="${s['isActive'] != true}"
+                                        class="px-2 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded">Không hoạt động</span>
+                                </td>
+                                <td class="py-4 px-6 text-right">
+                                    <button onclick="openDetailModal(this.closest('.student-row'))"
+                                        class="text-brand-600 hover:text-brand-700 text-sm font-medium">Xem chi tiết</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Empty state -->
+                <div th:if="${students == null || students.isEmpty()}" class="flex flex-col items-center justify-center py-16 text-center">
+                    <div class="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                        <iconify-icon icon="solar:users-group-rounded-linear" width="40" class="text-slate-400"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-medium text-slate-700 mb-1">Chưa có học sinh nào</h3>
+                    <p class="text-sm text-slate-500 mb-4">Học sinh sẽ xuất hiện ở đây khi tham gia lớp của bạn</p>
+                    <a href="/dashboard/teacher/classes"
+                        class="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors text-sm font-medium">
+                        Quản lý lớp học
+                    </a>
+                </div>
+
+                <!-- No filter results -->
+                <div id="noFilterResults" class="hidden flex flex-col items-center justify-center py-16 text-center">
+                    <div class="h-16 w-16 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                        <iconify-icon icon="solar:magnifer-linear" width="32" class="text-slate-400"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-medium text-slate-700 mb-1">Không tìm thấy</h3>
+                    <p class="text-sm text-slate-500 mb-3">Thử thay đổi từ khóa hoặc bộ lọc</p>
+                    <button onclick="resetFilters()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium">Xóa bộ lọc</button>
+                </div>
+
+                <!-- Pagination info -->
+                <div th:if="${students != null && !students.isEmpty()}" class="px-6 py-4 border-t border-slate-200">
+                    <div class="text-sm text-slate-600">
+                        Hiển thị <span class="font-medium" th:text="${totalStudents}">0</span> học sinh
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== STUDENT DETAIL MODAL ==================== -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+         onclick="if(event.target===this)closeDetailModal()">
+        <div class="bg-white rounded-xl max-w-lg w-full animate-scale-in">
+            <div class="h-32 bg-gradient-to-br from-teal-500 to-teal-600 rounded-t-xl relative flex items-center justify-center">
+                <button onclick="closeDetailModal()" class="absolute top-4 right-4 text-white/70 hover:text-white">
+                    <iconify-icon icon="solar:close-circle-linear" width="28"></iconify-icon>
+                </button>
+                <div class="h-20 w-20 rounded-full bg-white/20 backdrop-blur-sm text-white text-2xl font-bold flex items-center justify-center border-2 border-white/30" id="detailAvatar">
+                    NV
+                </div>
+            </div>
+            <div class="p-6 text-center -mt-2">
+                <h2 id="detailName" class="text-xl font-semibold text-slate-900 mb-1">Tên học sinh</h2>
+                <p id="detailEmail" class="text-sm text-slate-500 mb-4">email</p>
+                <div class="flex justify-center gap-2 mb-6">
+                    <span id="detailClassBadge" class="px-3 py-1 bg-blue-50 text-blue-700 text-xs font-medium rounded-full">Lớp</span>
+                    <span id="detailStatusBadge" class="px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full">Hoạt động</span>
+                </div>
+            </div>
+            <div class="px-6 pb-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:star-bold" width="24" class="text-amber-500 mb-1"></iconify-icon>
+                        <p class="text-xl font-bold text-slate-900" id="detailXP">0</p>
+                        <p class="text-xs text-slate-500">XP tích lũy</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:fire-bold" width="24" class="text-orange-500 mb-1"></iconify-icon>
+                        <p class="text-xl font-bold text-slate-900" id="detailStreak">0</p>
+                        <p class="text-xs text-slate-500">Ngày streak</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:medal-ribbon-star-bold" width="24" class="text-purple-500 mb-1"></iconify-icon>
+                        <p class="text-xl font-bold text-slate-900" id="detailLevel">Beginner</p>
+                        <p class="text-xs text-slate-500">Cấp độ</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:clock-circle-bold" width="24" class="text-blue-500 mb-1"></iconify-icon>
+                        <p class="text-xl font-bold text-slate-900" id="detailMinutes">0</p>
+                        <p class="text-xs text-slate-500">Phút học</p>
+                    </div>
+                </div>
+            </div>
+            <div class="p-6 border-t border-slate-200">
+                <button onclick="closeDetailModal()" class="w-full px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .animate-scale-in { animation: scaleIn 0.2s ease-out; }
+        @keyframes scaleIn { from { opacity:0; transform:scale(0.95); } to { opacity:1; transform:scale(1); } }
+    </style>
+
+    <script>
+        // ==================== USER DROPDOWN ====================
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+        if (userMenuButton && userDropdown) {
+            userMenuButton.addEventListener('click', (e) => { e.stopPropagation(); userDropdown.classList.toggle('hidden'); });
+            document.addEventListener('click', (e) => {
+                if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) userDropdown.classList.add('hidden');
+            });
+        }
+
+        // ==================== FILTER ====================
+        function filterStudents() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const classF = document.getElementById('classFilter').value;
+            const statusF = document.getElementById('statusFilter').value;
+
+            const rows = document.querySelectorAll('.student-row');
+            const noResults = document.getElementById('noFilterResults');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const d = row.dataset;
+                const matchSearch = !search || (d.name||'').toLowerCase().includes(search) || (d.email||'').toLowerCase().includes(search);
+                const matchClass = classF === 'all' || d.classroom === classF;
+                const matchStatus = statusF === 'all' || d.active === statusF;
+
+                if (matchSearch && matchClass && matchStatus) {
+                    row.classList.remove('hidden'); visibleCount++;
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+
+            if (noResults) noResults.classList.toggle('hidden', visibleCount > 0 || rows.length === 0);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('classFilter').value = 'all';
+            document.getElementById('statusFilter').value = 'all';
+            filterStudents();
+        }
+
+        // ==================== DETAIL MODAL ====================
+        function openDetailModal(row) {
+            const d = row.dataset;
+            document.getElementById('detailAvatar').textContent = d.initials || '??';
+            document.getElementById('detailName').textContent = d.name || '';
+            document.getElementById('detailEmail').textContent = d.email || '';
+            document.getElementById('detailClassBadge').textContent = d.classroom || '';
+            document.getElementById('detailXP').textContent = d.xp || '0';
+            document.getElementById('detailStreak').textContent = d.streak || '0';
+            document.getElementById('detailLevel').textContent = d.level || 'Beginner';
+            document.getElementById('detailMinutes').textContent = d.minutes || '0';
+
+            const statusBadge = document.getElementById('detailStatusBadge');
+            if (d.active === 'true') {
+                statusBadge.textContent = 'Hoạt động';
+                statusBadge.className = 'px-3 py-1 bg-emerald-50 text-emerald-700 text-xs font-medium rounded-full';
+            } else {
+                statusBadge.textContent = 'Không hoạt động';
+                statusBadge.className = 'px-3 py-1 bg-slate-100 text-slate-600 text-xs font-medium rounded-full';
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() { document.getElementById('detailModal').classList.add('hidden'); }
+
+        // ==================== KEYBOARD ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDetailModal();
+        });
+    </script>
+</body>
+</html>

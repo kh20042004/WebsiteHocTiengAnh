@@ -1,0 +1,594 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tính năng - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description"
+        content="Khám phá các tính năng nổi bật của English 12 Smart: Luyện Listening, Speaking với AI, học theo SGK, quản lý lớp học và theo dõi tiến độ.">
+    <meta name="keywords" content="tính năng, listening AI, speaking AI, học tiếng anh, THPT">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVIGATION BAR -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                    <img th:src="@{/images/logo.png}" alt="English 12 Smart Logo"
+                        class="h-12 w-auto transition-transform group-hover:scale-105">
+                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                    <a href="/" class="hover:text-brand-600 transition-colors">Trang chủ</a>
+                    <a href="/about" class="hover:text-brand-600 transition-colors">Giới thiệu</a>
+                    <a href="/features" class="text-brand-600">Tính năng</a>
+                    <a href="/contact" class="hover:text-brand-600 transition-colors">Liên hệ</a>
+                </nav>
+
+                <!-- Auth Buttons / User Menu -->
+                <div class="hidden md:flex items-center gap-3">
+                    <!-- Nếu CHƯA đăng nhập -->
+                    <div th:if="${!isAuthenticated}" class="flex items-center gap-3">
+                        <a href="/auth/login"
+                            class="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">Đăng
+                            nhập</a>
+                        <a href="/auth/register"
+                            class="rounded-full bg-brand-500 px-5 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-600 transition-all">Đăng
+                            ký</a>
+                    </div>
+
+                    <!-- Nếu ĐÃ đăng nhập -->
+                    <div th:if="${isAuthenticated}" class="relative">
+                        <!-- User Button -->
+                        <button id="user-menu-button"
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white text-sm font-medium">
+                                <span
+                                    th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'U'}">U</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">User</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16"
+                                class="text-slate-500"></iconify-icon>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="user-dropdown"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                            <!-- User Info -->
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-sm font-medium text-slate-900" th:text="${username}">User Name</p>
+                                <p class="text-xs text-slate-500" th:text="${userRole}">Học sinh</p>
+                            </div>
+
+                            <!-- Menu Items -->
+                            <div class="py-1">
+                                <a href="/dashboard/student"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:book-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài đang học</span>
+                                </a>
+                                <a href="/learn"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:notebook-linear" width="18"
+                                        class="text-emerald-500"></iconify-icon>
+                                    <span>Học tập</span>
+                                </a>
+                                <a href="/dashboard/student/progress"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:graph-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Tiến độ học tập</span>
+                                </a>
+                                <a href="/dashboard/student/exercises"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:document-text-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài tập của tôi</span>
+                                </a>
+                            </div>
+
+                            <!-- Common Menu Items -->
+                            <div class="border-t border-slate-100 py-1">
+                                <a href="/profile"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:user-circle-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Thông tin cá nhân</span>
+                                </a>
+                                <a href="/settings"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:settings-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Cài đặt</span>
+                                </a>
+                                <a href="/api/auth/logout"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <iconify-icon icon="solar:logout-2-linear" width="18"
+                                        class="text-red-500"></iconify-icon>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-slate-500" id="mobile-menu-toggle">
+                    <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-16">
+        <!-- HERO SECTION -->
+        <section class="relative bg-hero-gradient overflow-hidden py-20 lg:py-28">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="text-center max-w-3xl mx-auto">
+                    <h1 class="text-4xl sm:text-5xl lg:text-6xl font-medium tracking-tight text-white mb-6">
+                        Tính Năng <span class="text-brand-100">Nổi Bật</span>
+                    </h1>
+                    <p class="text-lg text-brand-100 leading-relaxed font-light">
+                        Khám phá bộ công cụ toàn diện giúp bạn chinh phục tiếng Anh THPT một cách hiệu quả nhất
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- MAIN FEATURES -->
+        <section class="py-24 bg-white">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <!-- Feature 1: Listening AI -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center mb-24">
+                    <div>
+                        <div class="inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 mb-6">
+                            <iconify-icon icon="solar:headphones-round-sound-linear" class="text-blue-600"
+                                width="20"></iconify-icon>
+                            <span class="text-sm font-medium text-blue-700">Luyện Listening</span>
+                        </div>
+                        <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-6">
+                            Luyện Listening với AI
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed mb-6">
+                            Nghe chuẩn với công nghệ Google Text-to-Speech mới nhất. Tùy chỉnh tốc độ đọc từ chậm đến
+                            nhanh, xem transcript đầy đủ và luyện tập với hàng trăm bài nghe theo từng chủ đề.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Điều chỉnh tốc độ đọc (0.5x - 2x)</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Transcript song ngữ Anh - Việt</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Lặp lại từng câu, từng đoạn</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Bài tập trắc nghiệm sau mỗi bài nghe</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-8 border border-blue-200">
+                        <div class="bg-white rounded-xl p-6 shadow-sm">
+                            <div class="flex items-center gap-3 mb-4">
+                                <div class="h-10 w-10 rounded-full bg-blue-500 flex items-center justify-center">
+                                    <iconify-icon icon="solar:play-bold" class="text-white" width="20"></iconify-icon>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="h-2 bg-blue-200 rounded-full overflow-hidden">
+                                        <div class="h-full bg-blue-500 w-2/3"></div>
+                                    </div>
+                                </div>
+                                <span class="text-sm text-slate-500">2:30 / 3:45</span>
+                            </div>
+                            <p class="text-sm text-slate-600 italic mb-4">
+                                "The environment is one of the most important issues facing humanity today..."
+                            </p>
+                            <div class="flex gap-2">
+                                <button
+                                    class="flex-1 py-2 px-4 bg-slate-100 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-200 transition-colors">
+                                    0.5x
+                                </button>
+                                <button class="flex-1 py-2 px-4 bg-blue-500 rounded-lg text-sm font-medium text-white">
+                                    1.0x
+                                </button>
+                                <button
+                                    class="flex-1 py-2 px-4 bg-slate-100 rounded-lg text-sm font-medium text-slate-700 hover:bg-slate-200 transition-colors">
+                                    1.5x
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Feature 2: Speaking AI -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center mb-24">
+                    <div
+                        class="order-2 lg:order-1 bg-gradient-to-br from-indigo-50 to-indigo-100 rounded-2xl p-8 border border-indigo-200">
+                        <div class="bg-white rounded-xl p-6 shadow-sm">
+                            <div class="text-center mb-4">
+                                <div
+                                    class="inline-flex h-24 w-24 rounded-full bg-indigo-500 items-center justify-center mb-4 animate-pulse">
+                                    <iconify-icon icon="solar:microphone-2-bold" class="text-white"
+                                        width="40"></iconify-icon>
+                                </div>
+                                <p class="text-sm text-slate-600 mb-2">Đang ghi âm...</p>
+                                <div class="flex justify-center gap-1">
+                                    <div class="w-1 h-8 bg-indigo-400 rounded-full animate-pulse"></div>
+                                    <div class="w-1 h-12 bg-indigo-500 rounded-full animate-pulse"
+                                        style="animation-delay: 0.1s"></div>
+                                    <div class="w-1 h-6 bg-indigo-400 rounded-full animate-pulse"
+                                        style="animation-delay: 0.2s"></div>
+                                    <div class="w-1 h-10 bg-indigo-500 rounded-full animate-pulse"
+                                        style="animation-delay: 0.3s"></div>
+                                    <div class="w-1 h-8 bg-indigo-400 rounded-full animate-pulse"
+                                        style="animation-delay: 0.4s"></div>
+                                </div>
+                            </div>
+                            <div class="bg-slate-50 rounded-lg p-4">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-medium text-slate-600">Điểm phát âm</span>
+                                    <span class="text-lg font-bold text-indigo-600">8.5/10</span>
+                                </div>
+                                <div class="h-2 bg-slate-200 rounded-full overflow-hidden">
+                                    <div class="h-full bg-indigo-500 w-[85%]"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="order-1 lg:order-2">
+                        <div class="inline-flex items-center gap-2 rounded-full bg-indigo-50 px-4 py-2 mb-6">
+                            <iconify-icon icon="solar:microphone-2-linear" class="text-indigo-600"
+                                width="20"></iconify-icon>
+                            <span class="text-sm font-medium text-indigo-700">Luyện Speaking</span>
+                        </div>
+                        <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-6">
+                            Luyện Speaking với AI
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed mb-6">
+                            Thu âm trực tiếp, nhận chấm điểm phát âm tức thì từ AI. Hệ thống phân tích chi tiết từng âm
+                            tiết, ngữ điệu và đưa ra phản hồi cụ thể để bạn cải thiện.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Chấm điểm phát âm tự động bằng AI</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Phân tích ngữ điệu và nhịp điệu</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">So sánh với phát âm chuẩn</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Gợi ý cải thiện cụ thể từng lỗi</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Feature 3: SGK Content -->
+                <div class="grid lg:grid-cols-2 gap-12 items-center">
+                    <div>
+                        <div class="inline-flex items-center gap-2 rounded-full bg-emerald-50 px-4 py-2 mb-6">
+                            <iconify-icon icon="solar:book-2-linear" class="text-emerald-600" width="20"></iconify-icon>
+                            <span class="text-sm font-medium text-emerald-700">Nội dung SGK</span>
+                        </div>
+                        <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-6">
+                            Học Theo SGK Lớp 12
+                        </h2>
+                        <p class="text-slate-600 leading-relaxed mb-6">
+                            Nội dung bài học, từ vựng và bài tập được biên soạn chuẩn theo từng Unit của SGK Tiếng Anh
+                            12 do Bộ GD&ĐT ban hành. Bám sát chương trình, dễ dàng ôn tập và chuẩn bị cho các kỳ thi.
+                        </p>
+                        <ul class="space-y-3">
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">12 Units theo SGK chính thức</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Từ vựng, ngữ pháp đầy đủ</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Bài tập trắc nghiệm và tự luận</span>
+                            </li>
+                            <li class="flex items-start gap-3">
+                                <iconify-icon icon="solar:check-circle-bold" class="text-brand-500 mt-1"
+                                    width="20"></iconify-icon>
+                                <span class="text-slate-600">Đề thi thử THPT Quốc gia</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div
+                        class="bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-2xl p-8 border border-emerald-200">
+                        <div class="bg-white rounded-xl p-6 shadow-sm">
+                            <h3 class="font-medium text-slate-900 mb-4">Chương trình học</h3>
+                            <div class="space-y-3">
+                                <div
+                                    class="flex items-center gap-3 p-3 bg-emerald-50 rounded-lg border border-emerald-200">
+                                    <div
+                                        class="h-8 w-8 rounded bg-emerald-500 flex items-center justify-center text-white text-sm font-bold">
+                                        1</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-900">Life Stories</p>
+                                        <p class="text-xs text-slate-500">12 bài học</p>
+                                    </div>
+                                    <iconify-icon icon="solar:check-circle-bold" class="text-emerald-500"
+                                        width="20"></iconify-icon>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div
+                                        class="h-8 w-8 rounded bg-slate-300 flex items-center justify-center text-white text-sm font-bold">
+                                        2</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-900">Urbanisation</p>
+                                        <p class="text-xs text-slate-500">10 bài học</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
+                                    <div
+                                        class="h-8 w-8 rounded bg-slate-300 flex items-center justify-center text-white text-sm font-bold">
+                                        3</div>
+                                    <div class="flex-1">
+                                        <p class="text-sm font-medium text-slate-900">The Green Movement</p>
+                                        <p class="text-xs text-slate-500">11 bài học</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ADDITIONAL FEATURES -->
+        <section class="py-24 bg-slate-50">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-16">
+                    <h2 class="text-3xl font-medium tracking-tight text-slate-900 mb-4">Tính Năng Bổ Sung</h2>
+                    <p class="text-slate-500">Những công cụ hỗ trợ giúp bạn học tập hiệu quả hơn</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    <!-- Feature 1 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:users-group-rounded-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-3">Quản lý lớp học</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Giáo viên dễ dàng tạo lớp, giao bài tập và theo dõi tiến độ học tập của từng học sinh.
+                        </p>
+                    </div>
+
+                    <!-- Feature 2 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:chart-square-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-3">Theo dõi tiến độ</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Biểu đồ trực quan phân tích chi tiết điểm số, thời gian học và sự tiến bộ từng ngày.
+                        </p>
+                    </div>
+
+                    <!-- Feature 3 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:target-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-3">Lộ trình cá nhân hóa</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            AI phân tích điểm yếu và tự động gợi ý các bài tập bổ trợ phù hợp nhất cho bạn.
+                        </p>
+                    </div>
+
+                    <!-- Feature 4 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-cyan-50 text-cyan-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:document-text-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-3">Ngân hàng đề thi</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Hàng trăm đề thi thử THPT Quốc gia với đáp án chi tiết và giải thích cụ thể.
+                        </p>
+                    </div>
+
+                    <!-- Feature 5 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:notebook-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-3">Ghi chú thông minh</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Lưu từ vựng, ngữ pháp quan trọng vào sổ tay cá nhân để ôn tập mọi lúc mọi nơi.
+                        </p>
+                    </div>
+
+                    <!-- Feature 6 -->
+                    <div class="bg-white p-6 rounded-2xl border border-slate-200 hover:shadow-lg transition-all">
+                        <div
+                            class="h-12 w-12 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:cup-star-linear" width="28"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-3">Bảng xếp hạng</h3>
+                        <p class="text-sm text-slate-600 leading-relaxed">
+                            Thi đua với bạn bè, nhận huy hiệu và phần thưởng khi hoàn thành mục tiêu học tập.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- CTA SECTION -->
+        <section class="relative py-24 bg-slate-900 overflow-hidden">
+            <div
+                class="absolute top-0 right-0 -translate-y-1/2 translate-x-1/2 w-[600px] h-[600px] bg-brand-600 rounded-full opacity-20 blur-3xl">
+            </div>
+
+            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 text-center relative z-10">
+                <h2 class="text-3xl sm:text-4xl font-medium tracking-tight text-white mb-6">
+                    Trải Nghiệm Ngay Hôm Nay
+                </h2>
+                <p class="text-lg text-slate-300 mb-10 font-light">
+                    Đăng ký miễn phí để khám phá tất cả các tính năng của English 12 Smart
+                </p>
+                <a href="/auth/register"
+                    class="inline-block px-8 py-4 rounded-full bg-white text-slate-900 font-semibold hover:bg-slate-100 shadow-xl transition-all transform hover:-translate-y-1">
+                    Bắt đầu học miễn phí
+                </a>
+            </div>
+        </section>
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="bg-slate-850 pt-16 pb-8 border-t border-slate-800 text-slate-400 text-sm">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-8 mb-12">
+                <div>
+                    <h4 class="text-white font-medium mb-4">Về chúng tôi</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/about" class="hover:text-white transition-colors">Giới thiệu</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Đội ngũ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Blog giáo dục</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium mb-4">Tính năng</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/features" class="hover:text-white transition-colors">Luyện Listening</a></li>
+                        <li><a href="/features" class="hover:text-white transition-colors">Luyện Speaking AI</a></li>
+                        <li><a href="/features" class="hover:text-white transition-colors">Ngữ pháp THPT</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium mb-4">Hỗ trợ</h4>
+                    <ul class="space-y-2">
+                        <li><a href="/contact" class="hover:text-white transition-colors">Liên hệ</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">FAQs</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Điều khoản</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="text-white font-medium mb-4">Kết nối</h4>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+                                <iconify-icon icon="solar:facebook-linear" width="16"></iconify-icon> Facebook
+                            </a></li>
+                        <li><a href="#" class="flex items-center gap-2 hover:text-white transition-colors">
+                                <iconify-icon icon="solar:youtube-linear" width="16"></iconify-icon> YouTube
+                            </a></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4">
+                <div class="text-xs">© 2026 English 12 Smart. All rights reserved.</div>
+                <div class="flex items-center gap-2 font-medium text-slate-200">
+                    <iconify-icon icon="solar:hat-graduation-linear" width="16"></iconify-icon>
+                    English 12 Smart
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JavaScript -->
+    <script>
+        // Mobile menu toggle
+        document.getElementById('mobile-menu-toggle')?.addEventListener('click', function () {
+            alert('Mobile menu - Coming soon!');
+        });
+
+        // User dropdown menu toggle
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+
+        if (userMenuButton && userDropdown) {
+            userMenuButton.addEventListener('click', function (e) {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function (e) {
+                if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+    </script>
+
+</body>
+
+</html>

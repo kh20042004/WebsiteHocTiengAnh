@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<!-- STUDENT FOOTER FRAGMENT - Include vào tất cả trang học của student -->
+<!-- Cách sử dụng: <th:block th:replace="shared/student-footer :: student-footer"></th:block> -->
+
+<body>
+    <th:block th:fragment="student-footer">
+        <!-- FOOTER -->
+        <footer class="bg-slate-900 text-slate-300 mt-16 border-t border-slate-800">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+                    <!-- Brand Section -->
+                    <div>
+                        <a href="/" class="flex items-center gap-2 mb-4">
+                            <img th:src="@{/images/logo.png}" alt="English 12 Smart Logo"
+                                class="h-8 w-auto">
+                            <span class="font-semibold text-white">English 12 Smart</span>
+                        </a>
+                        <p class="text-sm text-slate-400">
+                            Nền tảng học tiếng Anh toàn diện cho học sinh lớp 12 Việt Nam.
+                        </p>
+                    </div>
+
+                    <!-- Học Tập -->
+                    <div>
+                        <h3 class="font-semibold text-white mb-4">Học Tập</h3>
+                        <nav class="space-y-2 text-sm">
+                            <a href="/dashboard/student" class="text-slate-400 hover:text-white transition-colors">
+                                Bài đang học
+                            </a>
+                            <a href="/dashboard/student/learn" class="text-slate-400 hover:text-white transition-colors">
+                                Khóa học
+                            </a>
+                            <a href="/dashboard/student/progress" class="text-slate-400 hover:text-white transition-colors">
+                                Tiến độ học
+                            </a>
+                            <a href="/dashboard/student/exercises" class="text-slate-400 hover:text-white transition-colors">
+                                Bài tập
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Cộng Đồng -->
+                    <div>
+                        <h3 class="font-semibold text-white mb-4">Cộng Đồng</h3>
+                        <nav class="space-y-2 text-sm">
+                            <a href="/dashboard/student/classes" class="text-slate-400 hover:text-white transition-colors">
+                                Lớp học của tôi
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                                Diễn đàn
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                                Hỏi & Trả lời
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                                Trạng thái hệ thống
+                            </a>
+                        </nav>
+                    </div>
+
+                    <!-- Hỗ Trợ -->
+                    <div>
+                        <h3 class="font-semibold text-white mb-4">Hỗ Trợ</h3>
+                        <nav class="space-y-2 text-sm">
+                            <a href="/settings" class="text-slate-400 hover:text-white transition-colors">
+                                Cài đặt tài khoản
+                            </a>
+                            <a href="/profile" class="text-slate-400 hover:text-white transition-colors">
+                                Thông tin cá nhân
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                                Trợ giúp & FAQ
+                            </a>
+                            <a href="#" class="text-slate-400 hover:text-white transition-colors">
+                                Liên hệ chúng tôi
+                            </a>
+                        </nav>
+                    </div>
+                </div>
+
+                <!-- Divider -->
+                <div class="border-t border-slate-800 pt-8 mt-8">
+                    <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-slate-400">
+                        <p>&copy; 2024 English 12 Smart. Bắt tất cả các quyền.</p>
+                        <nav class="flex gap-6">
+                            <a href="#" class="hover:text-white transition-colors">Chính sách bảo mật</a>
+                            <a href="#" class="hover:text-white transition-colors">Điều khoản dịch vụ</a>
+                            <a href="#" class="hover:text-white transition-colors">Công khai</a>
+                        </nav>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </th:block>
+</body>
+
+</html>

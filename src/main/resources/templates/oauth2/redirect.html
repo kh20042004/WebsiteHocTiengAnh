@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang đăng nhập...</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-slate-50 min-h-screen flex items-center justify-center">
+    <div class="text-center">
+        <div class="mb-6">
+            <div
+                class="inline-block h-16 w-16 animate-spin rounded-full border-4 border-solid border-brand-600 border-r-transparent">
+            </div>
+        </div>
+        <h1 class="text-2xl font-semibold text-slate-900 mb-2">Đang đăng nhập...</h1>
+        <p class="text-slate-600">Vui lòng đợi trong giây lát</p>
+    </div>
+
+    <script>
+        // Lấy thông tin từ URL params
+        const urlParams = new URLSearchParams(window.location.search);
+        const email = urlParams.get('email');
+        const name = urlParams.get('name');
+        const token = urlParams.get('token');
+        const role = urlParams.get('role');
+        const avatarUrl = urlParams.get('avatarUrl');
+
+        if (email && token) {
+            // Lưu JWT token vào localStorage
+            localStorage.setItem('token', token);
+            localStorage.setItem('user', JSON.stringify({ email, name, role, avatarUrl }));
+
+            // Redirect đến dashboard
+            setTimeout(() => {
+                window.location.href = '/dashboard';
+            }, 1000);
+        } else {
+            // Nếu không có token, redirect về login
+            setTimeout(() => {
+                window.location.href = '/auth/login?error=oauth2';
+            }, 1000);
+        }
+    </script>
+</body>
+
+</html>

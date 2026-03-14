@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bài đang học - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Quản lý và theo dõi các bài học đang học của bạn trên English 12 Smart">
+    <meta name="keywords" content="bài học, dashboard, học tập, english 12 smart">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- SHARED STUDENT NAVBAR -->
+    <th:block th:replace="shared/student-navbar :: student-navbar(currentPage='dashboard')"></th:block>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-brand-500 to-brand-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-medium mb-2">Bài Đang Học</h1>
+                        <p class="text-brand-100">Tiếp tục hành trình chinh phục tiếng Anh của bạn</p>
+                    </div>
+                    <div class="hidden md:block">
+                        <div class="flex items-center gap-4">
+                            <!-- Thống kê: Bài đã học -->
+                            <div class="text-center">
+                                <div class="text-2xl font-bold" th:text="${completedLessons}">12</div>
+                                <div class="text-xs text-brand-100">Bài đã học</div>
+                            </div>
+                            <div class="w-px h-12 bg-white/20"></div>
+                            <!-- Thống kê: Bài đang học -->
+                            <div class="text-center">
+                                <div class="text-2xl font-bold" th:text="${ongoingLessons}">8</div>
+                                <div class="text-xs text-brand-100">Đang học</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
+            <!-- Quick Stats - Thống kê nhanh -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                <!-- Card 1: Tổng bài học -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:book-2-bold" width="24"></iconify-icon>
+                        </div>
+                        <div>
+                            <!-- Hiển thị tổng bài học từ backend -->
+                            <div class="text-2xl font-bold text-slate-900" th:text="${totalLessons}">20</div>
+                            <div class="text-sm text-slate-500">Tổng bài học</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2: Đã hoàn thành -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4">
+                        <div
+                            class="h-12 w-12 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:check-circle-bold" width="24"></iconify-icon>
+                        </div>
+                        <div>
+                            <!-- Hiển thị số bài đã hoàn thành -->
+                            <div class="text-2xl font-bold text-slate-900" th:text="${completedLessons}">12</div>
+                            <div class="text-sm text-slate-500">Đã hoàn thành</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3: Đang học -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:clock-circle-bold" width="24"></iconify-icon>
+                        </div>
+                        <div>
+                            <!-- Hiển thị số bài đang học -->
+                            <div class="text-2xl font-bold text-slate-900" th:text="${ongoingLessons}">8</div>
+                            <div class="text-sm text-slate-500">Đang học</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4: Ngày streak (liên tục học) -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center gap-4">
+                        <div class="h-12 w-12 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:fire-bold" width="24"></iconify-icon>
+                        </div>
+                        <div>
+                            <!-- Hiển thị số ngày streak -->
+                            <div class="text-2xl font-bold text-slate-900" th:text="${dayStreak}">7</div>
+                            <div class="text-sm text-slate-500">Ngày streak</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lessons Grid - Danh sách bài học từ các Unit -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-medium text-slate-900">Các bài học đang tiếp tục</h2>
+                    <!-- Filter: Chọn Unit -->
+                    <select
+                        class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="">Tất cả Units</option>
+                        <!-- Thymeleaf: Lặp qua tất cả units -->
+                        <option th:each="unit : ${units}" th:value="${unit.id}" 
+                            th:text="${'Unit ' + unit.orderIndex + ': ' + unit.title}">
+                            Unit 1: Life Stories
+                        </option>
+                    </select>
+                </div>
+
+                <!-- Grid: Hiển thị các Lesson cards -->
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Thymeleaf: Lặp qua tất cả units -->
+                    <th:block th:each="unit : ${units}">
+                        <!-- Lặp qua tất cả lessons trong unit -->
+                        <th:block th:each="lesson, stat : ${unit.lessons}" th:if="${unit.lessons != null and unit.lessons.size() > 0}">
+                            <!-- Lesson Card -->
+                            <div class="group border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+                                <!-- Card Header: Hình ảnh/Icon theo type của lesson -->
+                                <div th:switch="${lesson.type}"
+                                    class="h-40 flex items-center justify-center text-white"
+                                    th:classappend="${lesson.type == 'LISTENING' ? 'bg-gradient-to-br from-blue-500 to-blue-700' 
+                                        : lesson.type == 'SPEAKING' ? 'bg-gradient-to-br from-emerald-500 to-emerald-700'
+                                        : lesson.type == 'READING' ? 'bg-gradient-to-br from-purple-500 to-purple-700'
+                                        : lesson.type == 'WRITING' ? 'bg-gradient-to-br from-amber-500 to-amber-700'
+                                        : lesson.type == 'VOCABULARY' ? 'bg-gradient-to-br from-rose-500 to-rose-700'
+                                        : lesson.type == 'GRAMMAR' ? 'bg-gradient-to-br from-indigo-500 to-indigo-700'
+                                        : 'bg-gradient-to-br from-cyan-500 to-cyan-700'}">
+                                    
+                                    <!-- Icon tương ứng với từng loại bài học -->
+                                    <iconify-icon icon="solar:book-2-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'LISTENING'}"></iconify-icon>
+                                    <iconify-icon icon="solar:microphone-2-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'SPEAKING'}"></iconify-icon>
+                                    <iconify-icon icon="solar:document-text-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'READING'}"></iconify-icon>
+                                    <iconify-icon icon="solar:pen-new-square-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'WRITING'}"></iconify-icon>
+                                    <iconify-icon icon="solar:book-bookmark-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'VOCABULARY'}"></iconify-icon>
+                                    <iconify-icon icon="solar:clipboard-check-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'GRAMMAR'}"></iconify-icon>
+                                    <iconify-icon icon="solar:play-circle-bold" width="60" class="opacity-80"
+                                        th:if="${lesson.type == 'GETTING_STARTED'}"></iconify-icon>
+                                </div>
+
+                                <!-- Card Body: Thông tin bài học -->
+                                <div class="p-5">
+                                    <!-- Unit badge và loại bài học -->
+                                    <div class="flex items-center gap-2 mb-2">
+                                        <span class="text-xs font-medium text-brand-600 bg-brand-50 px-2 py-1 rounded"
+                                            th:text="${'Unit ' + unit.orderIndex}">Unit 1</span>
+                                        <span class="text-xs text-slate-500" th:text="${lesson.type}">Listening</span>
+                                    </div>
+
+                                    <!-- Tiêu đề bài học -->
+                                    <h3 class="font-medium text-slate-900 mb-2 group-hover:text-brand-600 transition-colors"
+                                        th:text="${unit.title + ' - ' + lesson.title}">
+                                        Life Stories - Listening Practice
+                                    </h3>
+
+                                    <!-- Mô tả bài học -->
+                                    <p class="text-sm text-slate-500 mb-4"
+                                        th:text="${lesson.description}">
+                                        Luyện nghe về các câu chuyện cuộc sống
+                                    </p>
+
+                                    <!-- Progress Bar -->
+                                    <div class="mb-3">
+                                        <div class="flex items-center justify-between text-xs mb-1">
+                                            <span class="text-slate-500">Tiến độ</span>
+                                            <!-- Tạm thời hardcode 0% vì không có tracking data -->
+                                            <span class="font-medium text-brand-600">0%</span>
+                                        </div>
+                                        <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
+                                            <div class="h-full bg-brand-500 w-[0%]"></div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Button: Tiếp tục học -->
+                                    <a th:href="${'/learn/lesson/' + lesson.id}"
+                                        class="block w-full py-2 px-4 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center">
+                                        Tiếp tục học
+                                    </a>
+                                </div>
+                            </div>
+                        </th:block>
+                    </th:block>
+
+                    <!-- Nếu không có bài học nào, hiển thị thông báo -->
+                    <div th:if="${units == null or units.isEmpty()}" class="col-span-full text-center py-12">
+                        <iconify-icon icon="solar:book-open-bold" width="48" class="text-slate-300 mx-auto mb-4"></iconify-icon>
+                        <p class="text-slate-500">Không có bài học nào để hiển thị hiện tại</p>
+                        <a href="/dashboard/student/learn" class="inline-block mt-4 px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600">
+                            Bắt đầu học
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Assignments - Bài tập gần đây -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-medium text-slate-900">Bài tập gần đây</h2>
+                    <a href="/dashboard/student/exercises" 
+                        class="text-sm text-brand-600 hover:text-brand-700 font-medium">
+                        Xem tất cả
+                    </a>
+                </div>
+
+                <!-- Assignments Table/List -->
+                <div th:if="${recentAssignments != null and recentAssignments.size() > 0}" class="overflow-x-auto">
+                    <table class="w-full text-sm">
+                        <thead class="border-b border-slate-200">
+                            <tr class="text-slate-500">
+                                <th class="text-left font-medium py-3 px-4">Bài tập</th>
+                                <th class="text-left font-medium py-3 px-4">Loại</th>
+                                <th class="text-left font-medium py-3 px-4">Lớp</th>
+                                <th class="text-left font-medium py-3 px-4">Hạn nộp</th>
+                                <th class="text-left font-medium py-3 px-4">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- Lặp qua danh sách assignment -->
+                            <tr class="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                                th:each="assignment : ${recentAssignments}">
+                                <!-- Tiêu đề bài tập -->
+                                <td class="py-4 px-4">
+                                    <p class="font-medium text-slate-900" th:text="${assignment.title}">
+                                        Assignment Title
+                                    </p>
+                                </td>
+                                <!-- Loại bài tập (Badge) -->
+                                <td class="py-4 px-4">
+                                    <!-- Badge hiển thị loại bài tập với màu tương ứng -->
+                                    <span class="inline-block px-3 py-1 rounded-full text-xs font-medium"
+                                        th:classappend="${assignment.type == 'LISTENING' ? 'bg-blue-50 text-blue-700'
+                                            : assignment.type == 'SPEAKING' ? 'bg-purple-50 text-purple-700'
+                                            : assignment.type == 'READING' ? 'bg-emerald-50 text-emerald-700'
+                                            : assignment.type == 'WRITING' ? 'bg-amber-50 text-amber-700'
+                                            : assignment.type == 'GRAMMAR' ? 'bg-rose-50 text-rose-700'
+                                            : 'bg-cyan-50 text-cyan-700'}"
+                                        th:text="${assignment.type}">
+                                        Listening
+                                    </span>
+                                </td>
+                                <!-- Tên lớp học -->
+                                <td class="py-4 px-4 text-slate-600"
+                                    th:text="${assignment.classroomName}">
+                                    Class Name
+                                </td>
+                                <!-- Hạn nộp -->
+                                <td class="py-4 px-4 text-slate-600">
+                                    <!-- Format ngày từ milliseconds -->
+                                    <span th:text="${#dates.format(new java.util.Date(assignment.dueDate), 'dd/MM/yyyy')}">
+                                        01/01/2024
+                                    </span>
+                                </td>
+                                <!-- Nút hành động -->
+                                <td class="py-4 px-4">
+                                    <a th:href="${'/assignment/' + assignment.id}"
+                                        class="text-brand-600 hover:text-brand-700 font-medium text-sm">
+                                        Làm bài
+                                    </a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Nếu không có bài tập nào -->
+                <div th:if="${recentAssignments == null or recentAssignments.isEmpty()}" 
+                    class="text-center py-12">
+                    <iconify-icon icon="solar:file-check-bold" width="48" 
+                        class="text-slate-300 mx-auto mb-4"></iconify-icon>
+                    <p class="text-slate-500 mb-4">Hiện tại bạn không có bài tập nào</p>
+                    <p class="text-sm text-slate-400">
+                        Giáo viên của bạn sẽ giao bài tập tại 
+                        <a href="/dashboard/student/classes" class="text-brand-600 hover:text-brand-700">
+                            các lớp học
+                        </a>
+                    </p>
+                </div>
+            </div>
+
+            <!-- My Classes - Lớp học của tôi (Preview) -->
+            <div th:if="${classroomCount > 0}" class="bg-white rounded-xl border border-slate-200 p-6 mt-8">
+                <div class="flex items-center justify-between mb-6">
+                    <h2 class="text-xl font-medium text-slate-900">Lớp học của tôi</h2>
+                    <a href="/dashboard/student/classes"
+                        class="text-sm text-brand-600 hover:text-brand-700 font-medium">
+                        Xem tất cả
+                    </a>
+                </div>
+
+                <!-- Classrooms Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Lặp qua danh sách classroom -->
+                    <th:block th:each="classroom, stat : ${classrooms}" th:if="${stat.count <= 4}">
+                        <div class="border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all">
+                            <!-- Header: Gradient theo colorTheme -->
+                            <div class="h-24 bg-gradient-to-r p-6 text-white flex items-end justify-between"
+                                th:classappend="${classroom.colorTheme == 'emerald' ? 'from-emerald-500 to-emerald-600'
+                                    : classroom.colorTheme == 'purple' ? 'from-purple-500 to-purple-600'
+                                    : classroom.colorTheme == 'amber' ? 'from-amber-500 to-amber-600'
+                                    : classroom.colorTheme == 'rose' ? 'from-rose-500 to-rose-600'
+                                    : 'from-blue-500 to-blue-600'}">
+                                <div>
+                                    <h3 class="font-medium text-lg" th:text="${classroom.name}">Class Name</h3>
+                                    <p class="text-sm opacity-90">Khối: <span th:text="${classroom.grade}">12</span></p>
+                                </div>
+                            </div>
+
+                            <!-- Body: Thông tin lớp -->
+                            <div class="p-6">
+                                <div class="space-y-3 mb-4">
+                                    <!-- Số học sinh -->
+                                    <div class="flex items-center gap-3">
+                                        <iconify-icon icon="solar:users-group-rounded-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span class="text-sm text-slate-600">
+                                            <span th:text="${classroom.studentIds != null ? classroom.studentIds.size() : 0}">35</span> học sinh
+                                        </span>
+                                    </div>
+
+                                    <!-- Lịch học -->
+                                    <div class="flex items-center gap-3" th:if="${classroom.schedule != null}">
+                                        <iconify-icon icon="solar:calendar-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span class="text-sm text-slate-600" th:text="${classroom.schedule}">
+                                            T2, T4, T6 • 7:00 - 8:30
+                                        </span>
+                                    </div>
+
+                                    <!-- Tổng bài tập -->
+                                    <div class="flex items-center gap-3">
+                                        <iconify-icon icon="solar:document-text-linear" width="18"
+                                            class="text-slate-500"></iconify-icon>
+                                        <span class="text-sm text-slate-600">
+                                            <span th:text="${classroom.totalAssignments}">5</span> bài tập đã giao
+                                        </span>
+                                    </div>
+                                </div>
+
+                                <!-- Button: Vào lớp -->
+                                <a th:href="${'/classroom/' + classroom.id}"
+                                    class="block w-full py-2 px-4 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center">
+                                    Vào lớp
+                                </a>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- SHARED STUDENT FOOTER -->
+    <th:block th:replace="shared/student-footer :: student-footer"></th:block>
+
+</body>
+
+</html>

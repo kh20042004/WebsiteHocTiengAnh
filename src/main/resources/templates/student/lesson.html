@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${lesson.title}">Bài học</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- SHARED STUDENT NAVBAR -->
+    <th:block th:replace="shared/student-navbar :: student-navbar(currentPage='learn')"></th:block>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-16 min-h-screen">
+        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- BREADCRUMB -->
+            <nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+                <a href="/dashboard/student/learn" class="hover:text-emerald-600 transition-colors">Học tập</a>
+                <iconify-icon icon="mdi:chevron-right"></iconify-icon>
+                <a th:href="@{/dashboard/student/learn/units/{id}(id=${lesson.unitId})}" class="hover:text-emerald-600 transition-colors">Unit</a>
+                <iconify-icon icon="mdi:chevron-right"></iconify-icon>
+                <span class="text-slate-700 font-medium" th:text="${lesson.title}">Lesson</span>
+            </nav>
+
+            <!-- HEADER BÀI HỌC -->
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <div class="flex items-start justify-between mb-3">
+                    <div>
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                            th:classappend="${lesson.type == 'VOCABULARY'} ? 'bg-purple-100 text-purple-700' :
+                                           (${lesson.type == 'GRAMMAR'} ? 'bg-blue-100 text-blue-700' :
+                                           (${lesson.type == 'READING'} ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'))"
+                            th:text="${lesson.type}">GRAMMAR</span>
+                    </div>
+                    <span class="text-xs text-emerald-600 font-semibold bg-emerald-50 px-2 py-1 rounded-lg"
+                        th:text="${lesson.xpReward} + ' XP'">10 XP</span>
+                </div>
+                <h1 class="text-2xl font-bold text-slate-900" th:text="${lesson.title}">Tiêu đề bài học</h1>
+                <p class="text-slate-500 mt-1" th:text="${lesson.description}">Mô tả</p>
+                <div class="flex items-center gap-4 mt-3 text-xs text-slate-400">
+                    <span class="flex items-center gap-1">
+                        <iconify-icon icon="mdi:clock-outline"></iconify-icon>
+                        <span th:text="${lesson.estimatedDurationMinutes} + ' phút'">30 phút</span>
+                    </span>
+                    <span class="flex items-center gap-1">
+                        <iconify-icon icon="mdi:clipboard-list-outline"></iconify-icon>
+                        <span th:text="${exercises.size()} + ' bài tập'">0 bài tập</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- NỘI DUNG BÀI HỌC: VOCABULARY FLASHCARDS -->
+            <div th:if="${lesson.type == 'VOCABULARY' and not #lists.isEmpty(lesson.vocabulary)}"
+                class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <iconify-icon icon="mdi:card-text-outline" class="text-purple-500"></iconify-icon>
+                    Từ vựng
+                </h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div th:each="vocab : ${lesson.vocabulary}"
+                        class="border border-slate-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+                        <div class="flex items-start justify-between mb-1">
+                            <span class="font-semibold text-slate-900" th:text="${vocab.word}">word</span>
+                            <span class="text-xs text-slate-400 italic" th:text="${vocab.partOfSpeech}">n.</span>
+                        </div>
+                        <div class="text-xs text-slate-400 mb-2" th:text="${vocab.pronunciation}">/prəˌnʌnsiˈeɪʃn/</div>
+                        <div class="text-sm text-emerald-700 font-medium" th:text="${vocab.meaning}">nghĩa</div>
+                        <div th:if="${vocab.exampleSentence}" class="mt-2 text-xs text-slate-500 italic"
+                            th:text="${vocab.exampleSentence}">Ví dụ</div>
+                        <div th:if="${vocab.exampleTranslation}" class="text-xs text-slate-400"
+                            th:text="${vocab.exampleTranslation}">Dịch</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- NỘI DUNG BÀI HỌC: TEXT/HTML -->
+            <div th:if="${lesson.content}" class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <iconify-icon icon="mdi:text-box-outline" class="text-blue-500"></iconify-icon>
+                    Nội dung bài học
+                </h2>
+                <!-- Hiển thị nội dung an toàn (escaped) -->
+                <div class="prose prose-slate max-w-none text-sm leading-relaxed"
+                    th:text="${lesson.content}">Nội dung bài học</div>
+            </div>
+
+            <!-- AUDIO (nếu có) -->
+            <div th:if="${lesson.audioUrl}" class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
+                    <iconify-icon icon="mdi:volume-high" class="text-green-500"></iconify-icon>
+                    Nghe & Nói
+                </h2>
+                <audio controls class="w-full" th:src="${lesson.audioUrl}">
+                    Trình duyệt của bạn không hỗ trợ audio.
+                </audio>
+            </div>
+
+            <!-- BÀI TẬP -->
+            <div th:unless="${#lists.isEmpty(exercises)}" class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
+                <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                    <iconify-icon icon="mdi:clipboard-check-outline" class="text-blue-500"></iconify-icon>
+                    Bài tập luyện tập
+                </h2>
+                <div class="space-y-3">
+                    <a th:each="ex : ${exercises}"
+                        th:href="@{/dashboard/student/learn/exercises/{id}(id=${ex.id})}"
+                        class="group flex items-center justify-between bg-slate-50 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 rounded-xl p-4 transition-all">
+                        <div>
+                            <div class="font-medium text-slate-900 group-hover:text-emerald-700 transition-colors" th:text="${ex.title}">Bài tập</div>
+                            <div class="text-xs text-slate-400 mt-0.5" th:text="${ex.instruction}">Hướng dẫn</div>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-xs text-slate-500" th:text="${ex.maxScore} + ' điểm'">100</span>
+                            <span class="text-xs text-blue-600 font-medium" th:text="${ex.xpReward} + ' XP'">20 XP</span>
+                            <iconify-icon icon="mdi:chevron-right" class="text-slate-400 group-hover:text-emerald-500"></iconify-icon>
+                        </div>
+                    </a>
+                </div>
+            </div>
+
+            <!-- ĐIỀU HƯỚNG: BÀI TRƯỚC / TIẾP THEO -->
+            <div class="flex items-center justify-between">
+                <a th:href="@{/dashboard/student/learn/units/{id}(id=${lesson.unitId})}"
+                    class="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
+                    <iconify-icon icon="mdi:arrow-left"></iconify-icon>
+                    Quay lại Unit
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- SHARED STUDENT FOOTER -->
+    <th:block th:replace="shared/student-footer :: student-footer"></th:block>
+
+</body>
+</html>

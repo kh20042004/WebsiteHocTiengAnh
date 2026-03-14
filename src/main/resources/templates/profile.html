@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thông tin cá nhân - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Quản lý thông tin cá nhân trên English 12 Smart">
+    <meta name="keywords" content="profile, thông tin cá nhân, english 12 smart">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVIGATION BAR -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                    <img th:src="@{/images/logo.png}" alt="English 12 Smart Logo"
+                        class="h-12 w-auto transition-transform group-hover:scale-105">
+                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                    <a href="/dashboard/student" class="hover:text-brand-600 transition-colors">Bài đang học</a>
+                    <a href="/learn" class="hover:text-brand-600 transition-colors">Học tập</a>
+                    <a href="/dashboard/student/progress" class="hover:text-brand-600 transition-colors">Tiến độ</a>
+                    <a href="/dashboard/student/exercises" class="hover:text-brand-600 transition-colors">Bài tập</a>
+                </nav>
+
+                <!-- User Menu -->
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="relative">
+                        <button id="user-menu-button"
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white text-sm font-medium">
+                                <span
+                                    th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'U'}">N</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">Nguyễn Đình
+                                Khanh</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16"
+                                class="text-slate-500"></iconify-icon>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="user-dropdown"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-sm font-medium text-slate-900" th:text="${username}">Nguyễn Đình Khanh
+                                </p>
+                                <p class="text-xs text-slate-500" th:text="${userRole}">Học sinh</p>
+                            </div>
+                            <div class="py-1">
+                                <a href="/dashboard/student"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:book-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài đang học</span>
+                                </a>
+                                <a href="/learn"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:notebook-linear" width="18"
+                                        class="text-emerald-500"></iconify-icon>
+                                    <span>Học tập</span>
+                                </a>
+                                <a href="/dashboard/student/progress"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:graph-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Tiến độ học tập</span>
+                                </a>
+                                <a href="/dashboard/student/exercises"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:document-text-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài tập của tôi</span>
+                                </a>
+                            </div>
+                            <div class="border-t border-slate-100 py-1">
+                                <a href="/profile"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 bg-slate-50">
+                                    <iconify-icon icon="solar:user-circle-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Thông tin cá nhân</span>
+                                </a>
+                                <a href="/settings"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:settings-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Cài đặt</span>
+                                </a>
+                                <a href="/api/auth/logout"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <iconify-icon icon="solar:logout-2-linear" width="18"
+                                        class="text-red-500"></iconify-icon>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-slate-500" id="mobile-menu-toggle">
+                    <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-medium mb-2">Thông Tin Cá Nhân</h1>
+                <p class="text-indigo-100">Quản lý thông tin và cập nhật hồ sơ của bạn</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 mt-8">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Left Column - Profile Card -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 text-center">
+                        <!-- Avatar -->
+                        <div class="relative inline-block mb-4">
+                            <div
+                                class="h-32 w-32 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center text-white text-4xl font-bold">
+                                N
+                            </div>
+                            <button
+                                class="absolute bottom-0 right-0 h-10 w-10 rounded-full bg-white border-2 border-slate-200 flex items-center justify-center text-slate-600 hover:bg-slate-50 transition-colors">
+                                <iconify-icon icon="solar:camera-linear" width="20"></iconify-icon>
+                            </button>
+                        </div>
+
+                        <!-- Name & Role -->
+                        <h2 class="text-xl font-medium text-slate-900 mb-1" th:text="${username}">Nguyễn Đình Khanh</h2>
+                        <p class="text-sm text-slate-500 mb-4" th:text="${userRole}">Học sinh</p>
+
+                        <!-- Stats -->
+                        <div class="grid grid-cols-3 gap-4 py-4 border-t border-b border-slate-100">
+                            <div>
+                                <div class="text-2xl font-bold text-brand-600">20</div>
+                                <div class="text-xs text-slate-500">Bài học</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-emerald-600">12</div>
+                                <div class="text-xs text-slate-500">Hoàn thành</div>
+                            </div>
+                            <div>
+                                <div class="text-2xl font-bold text-amber-600">8.7</div>
+                                <div class="text-xs text-slate-500">Điểm TB</div>
+                            </div>
+                        </div>
+
+                        <!-- Member Since -->
+                        <div class="mt-4 text-sm text-slate-500">
+                            <iconify-icon icon="solar:calendar-linear" width="16" class="inline"></iconify-icon>
+                            Tham gia từ: 15/01/2026
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Column - Profile Form -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-xl border border-slate-200 p-6">
+                        <h3 class="text-lg font-medium text-slate-900 mb-6">Thông tin chi tiết</h3>
+
+                        <form class="space-y-6">
+                            <!-- Full Name -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Họ và tên <span class="text-red-500">*</span>
+                                </label>
+                                <input type="text" value="Nguyễn Đình Khanh"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Email -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Email <span class="text-red-500">*</span>
+                                </label>
+                                <input type="email" value="khanh.nguyen@example.com"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg bg-slate-50 text-slate-500"
+                                    readonly>
+                                <p class="text-xs text-slate-500 mt-1">Email không thể thay đổi</p>
+                            </div>
+
+                            <!-- Phone -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Số điện thoại
+                                </label>
+                                <input type="tel" value="0123456789"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Date of Birth -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Ngày sinh
+                                </label>
+                                <input type="date" value="2006-05-15"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Gender -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Giới tính
+                                </label>
+                                <select
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                    <option value="male">Nam</option>
+                                    <option value="female">Nữ</option>
+                                    <option value="other">Khác</option>
+                                </select>
+                            </div>
+
+                            <!-- School -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Trường học
+                                </label>
+                                <input type="text" value="THPT Nguyễn Huệ"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Class -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Lớp
+                                </label>
+                                <input type="text" value="12A1"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Bio -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Giới thiệu bản thân
+                                </label>
+                                <textarea rows="4"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500"
+                                    placeholder="Viết vài dòng về bản thân...">Học sinh lớp 12, đam mê học tiếng Anh và công nghệ.</textarea>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="flex gap-3 pt-4">
+                                <button type="submit"
+                                    class="flex-1 px-6 py-3 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-colors">
+                                    Lưu thay đổi
+                                </button>
+                                <button type="button"
+                                    class="px-6 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">
+                                    Hủy
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Change Password Section -->
+                    <div class="bg-white rounded-xl border border-slate-200 p-6 mt-6">
+                        <h3 class="text-lg font-medium text-slate-900 mb-6">Đổi mật khẩu</h3>
+
+                        <form class="space-y-6">
+                            <!-- Current Password -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Mật khẩu hiện tại
+                                </label>
+                                <input type="password"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- New Password -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Mật khẩu mới
+                                </label>
+                                <input type="password"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Confirm Password -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-2">
+                                    Xác nhận mật khẩu mới
+                                </label>
+                                <input type="password"
+                                    class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            </div>
+
+                            <!-- Action Button -->
+                            <div class="pt-4">
+                                <button type="submit"
+                                    class="px-6 py-3 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-colors">
+                                    Cập nhật mật khẩu
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // User dropdown toggle
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            if (userMenuButton && userDropdown) {
+                userMenuButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-toggle')?.addEventListener('click', function () {
+                alert('Mobile menu - Coming soon!');
+            });
+        });
+    </script>
+
+</body>
+
+</html>

@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học tập - English 12 Smart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- SHARED STUDENT NAVBAR -->
+    <th:block th:replace="shared/student-navbar :: student-navbar(currentPage='learn')"></th:block>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-16 min-h-screen">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- TIÊU ĐỀ TRANG -->
+            <div class="mb-8">
+                <h1 class="text-2xl font-bold text-slate-900">Chương trình học</h1>
+                <p class="text-slate-500 mt-1">Tiếng Anh lớp 12 — Chọn unit để bắt đầu học</p>
+            </div>
+
+            <!-- THÔNG BÁO KHI CHƯA CÓ NỘI DUNG -->
+            <div th:if="${#lists.isEmpty(units)}" class="text-center py-16">
+                <iconify-icon icon="mdi:book-open-page-variant-outline" class="text-6xl text-slate-300 mb-4"></iconify-icon>
+                <h2 class="text-lg font-semibold text-slate-400">Chưa có nội dung học</h2>
+                <p class="text-slate-400 text-sm mt-2">Giáo viên chưa tạo bài học nào. Hãy quay lại sau!</p>
+            </div>
+
+            <!-- LƯỚI UNIT -->
+            <div th:unless="${#lists.isEmpty(units)}" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <a th:each="unit : ${units}"
+                    th:href="@{/dashboard/student/learn/units/{id}(id=${unit.id})}"
+                    class="group bg-white rounded-2xl border border-slate-200 p-5 hover:border-emerald-300 hover:shadow-md transition-all cursor-pointer">
+
+                    <!-- Màu cấp độ -->
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="text-xs font-semibold px-2 py-1 rounded-lg"
+                            th:classappend="${unit.level == 'A1'} ? 'bg-green-100 text-green-700' :
+                                           (${unit.level == 'A2'} ? 'bg-teal-100 text-teal-700' :
+                                           (${unit.level == 'B1'} ? 'bg-blue-100 text-blue-700' : 'bg-indigo-100 text-indigo-700'))"
+                            th:text="${unit.level}">B1</span>
+                        <span class="text-xs text-slate-400" th:text="'Unit ' + ${unit.orderIndex}">Unit 1</span>
+                    </div>
+
+                    <!-- Tiêu đề unit -->
+                    <h2 class="font-semibold text-slate-900 group-hover:text-emerald-700 transition-colors mb-2"
+                        th:text="${unit.title}">Tên Unit</h2>
+                    <p class="text-xs text-slate-400 mb-4 line-clamp-2" th:text="${unit.description}">Mô tả</p>
+
+                    <!-- Số bài học -->
+                    <div class="flex items-center gap-1 text-xs text-slate-500">
+                        <iconify-icon icon="mdi:book-multiple-outline" class="text-emerald-500"></iconify-icon>
+                        <span th:text="${unit.totalLessons} + ' bài học'">0 bài học</span>
+                    </div>
+
+                    <!-- Nút bắt đầu -->
+                    <div class="mt-4 flex items-center justify-end">
+                        <span class="text-xs font-medium text-emerald-600 group-hover:underline flex items-center gap-1">
+                            Vào học
+                            <iconify-icon icon="mdi:arrow-right" class="text-sm"></iconify-icon>
+                        </span>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </main>
+
+    <!-- SHARED STUDENT FOOTER -->
+    <th:block th:replace="shared/student-footer :: student-footer"></th:block>
+
+</body>
+</html>

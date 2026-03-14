@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý nội dung - English 12 Smart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVBAR -->
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3">
+                    <span class="text-lg font-semibold text-slate-900">English 12 Smart</span>
+                </a>
+                <!-- Nav Links -->
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="/dashboard/teacher" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Dashboard</a>
+                    <a href="/dashboard/teacher/content" class="text-sm font-medium text-emerald-600 border-b-2 border-emerald-600 pb-0.5">Nội dung</a>
+                    <a href="/dashboard/teacher/classes" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Lớp học</a>
+                    <a href="/dashboard/teacher/students" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Học sinh</a>
+                </nav>
+                <!-- User info -->
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-600" th:text="${username}">Giáo viên</span>
+                    <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 transition-colors cursor-pointer">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-16 min-h-screen">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- HEADER TRANG -->
+            <div class="flex items-center justify-between mb-8">
+                <div>
+                    <h1 class="text-2xl font-bold text-slate-900">Quản lý nội dung</h1>
+                    <p class="text-slate-500 mt-1">Tạo và quản lý các Unit, bài học, bài tập</p>
+                </div>
+                <!-- Nút tạo Unit mới (chỉ admin) -->
+                <button onclick="openCreateUnitModal()"
+                    class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <iconify-icon icon="mdi:plus" class="text-lg"></iconify-icon>
+                    Thêm Unit mới
+                </button>
+            </div>
+
+            <!-- DANH SÁCH UNITS -->
+            <!-- Hiển thị thông báo khi không có Unit nào -->
+            <div th:if="${#lists.isEmpty(units)}" class="text-center py-16">
+                <iconify-icon icon="mdi:book-open-outline" class="text-5xl text-slate-300 mb-4"></iconify-icon>
+                <p class="text-slate-400 text-lg">Chưa có Unit nào. Hãy tạo Unit đầu tiên!</p>
+            </div>
+
+            <!-- Grid hiển thị các Unit -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div th:each="unit : ${units}"
+                    class="bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow overflow-hidden">
+
+                    <!-- Thumbnail / Header màu -->
+                    <div class="h-28 bg-gradient-to-br from-emerald-500 to-teal-600 relative flex items-center justify-center">
+                        <span class="text-4xl font-bold text-white/30" th:text="'U' + ${unit.orderIndex}">U1</span>
+                        <span class="absolute top-3 right-3 text-xs px-2 py-0.5 rounded-full font-medium"
+                            th:classappend="${unit.isActive} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                            th:text="${unit.isActive} ? 'Hiển thị' : 'Ẩn'">Hiển thị</span>
+                    </div>
+
+                    <!-- Nội dung card -->
+                    <div class="p-5">
+                        <div class="flex items-start justify-between mb-2">
+                            <h3 class="font-semibold text-slate-900 text-base leading-snug" th:text="${unit.title}">Unit Title</h3>
+                            <span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full ml-2 shrink-0" th:text="${unit.level}">B1</span>
+                        </div>
+                        <p class="text-sm text-slate-500 mb-4 line-clamp-2" th:text="${unit.description}">Mô tả</p>
+
+                        <!-- Thống kê -->
+                        <div class="flex items-center gap-4 text-xs text-slate-400 mb-4">
+                            <div class="flex items-center gap-1">
+                                <iconify-icon icon="mdi:book-open-variant"></iconify-icon>
+                                <span th:text="${unit.totalLessons} + ' bài học'">0 bài học</span>
+                            </div>
+                        </div>
+
+                        <!-- Nút thao tác -->
+                        <div class="flex gap-2">
+                            <a th:href="@{/dashboard/teacher/content/units/{id}(id=${unit.id})}"
+                                class="flex-1 text-center text-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg transition-colors font-medium">
+                                Quản lý bài học
+                            </a>
+                            <button th:onclick="'editUnit(\'' + ${unit.id} + '\', \'' + ${unit.title} + '\', \'' + ${unit.description} + '\', \'' + ${unit.level} + '\')'"
+                                class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition-colors">
+                                <iconify-icon icon="mdi:pencil"></iconify-icon>
+                            </button>
+                            <button th:onclick="'deleteUnit(\'' + ${unit.id} + '\', \'' + ${unit.title} + '\')'"
+                                class="text-sm bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg transition-colors">
+                                <iconify-icon icon="mdi:delete"></iconify-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: TẠO UNIT MỚI -->
+    <div id="createUnitModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-900">Thêm Unit mới</h2>
+                <button onclick="closeCreateUnitModal()" class="text-slate-400 hover:text-slate-600">
+                    <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <!-- Tiêu đề -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tiêu đề Unit <span class="text-red-500">*</span></label>
+                    <input id="unitTitle" type="text" placeholder="Ví dụ: Life Stories"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none">
+                </div>
+                <!-- Mô tả -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Mô tả</label>
+                    <textarea id="unitDescription" rows="2" placeholder="Mô tả ngắn về nội dung Unit"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
+                </div>
+                <!-- Số thứ tự & Cấp độ -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Số thứ tự</label>
+                        <input id="unitOrder" type="number" min="1" max="10" placeholder="1"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Cấp độ</label>
+                        <select id="unitLevel" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="A1">A1 - Beginner</option>
+                            <option value="A2">A2 - Elementary</option>
+                            <option value="B1" selected>B1 - Intermediate</option>
+                            <option value="B2">B2 - Upper Intermediate</option>
+                        </select>
+                    </div>
+                </div>
+                <!-- Thông báo lỗi -->
+                <p id="createUnitError" class="hidden text-red-500 text-sm"></p>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="closeCreateUnitModal()"
+                    class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+                    Huỷ
+                </button>
+                <button onclick="submitCreateUnit()"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    Tạo Unit
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: SỬA UNIT -->
+    <div id="editUnitModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-900">Chỉnh sửa Unit</h2>
+                <button onclick="closeEditUnitModal()" class="text-slate-400 hover:text-slate-600">
+                    <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input id="editUnitId" type="hidden">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tiêu đề Unit</label>
+                    <input id="editUnitTitle" type="text" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Mô tả</label>
+                    <textarea id="editUnitDescription" rows="2" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-none"></textarea>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Cấp độ</label>
+                    <select id="editUnitLevel" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <option value="A1">A1</option>
+                        <option value="A2">A2</option>
+                        <option value="B1">B1</option>
+                        <option value="B2">B2</option>
+                    </select>
+                </div>
+                <div class="flex items-center gap-2">
+                    <input id="editUnitActive" type="checkbox" class="w-4 h-4 accent-emerald-600">
+                    <label class="text-sm text-slate-700">Hiển thị Unit này</label>
+                </div>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="closeEditUnitModal()"
+                    class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Huỷ</button>
+                <button onclick="submitEditUnit()"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Lưu thay đổi</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST THÔNG BÁO -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-xs">
+        <iconify-icon id="toastIcon" icon="mdi:check-circle" class="text-green-400 text-lg shrink-0"></iconify-icon>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        // Lấy token từ localStorage
+        const token = localStorage.getItem('token');
+
+        // =========================================================
+        //  MODAL: TẠO UNIT
+        // =========================================================
+
+        function openCreateUnitModal() {
+            document.getElementById('createUnitModal').classList.remove('hidden');
+        }
+
+        function closeCreateUnitModal() {
+            document.getElementById('createUnitModal').classList.add('hidden');
+            // Reset form
+            document.getElementById('unitTitle').value = '';
+            document.getElementById('unitDescription').value = '';
+            document.getElementById('unitOrder').value = '';
+            document.getElementById('createUnitError').classList.add('hidden');
+        }
+
+        async function submitCreateUnit() {
+            const title = document.getElementById('unitTitle').value.trim();
+            const description = document.getElementById('unitDescription').value.trim();
+            const orderIndex = parseInt(document.getElementById('unitOrder').value);
+            const level = document.getElementById('unitLevel').value;
+            const errorEl = document.getElementById('createUnitError');
+
+            // Kiểm tra dữ liệu đầu vào
+            if (!title) {
+                errorEl.textContent = 'Vui lòng nhập tiêu đề Unit!';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // Gọi API tạo Unit
+                const res = await fetch('/api/units', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ title, description, orderIndex, level })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('Tạo Unit thành công!', 'success');
+                    closeCreateUnitModal();
+                    // Reload trang để hiển thị Unit mới
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    errorEl.textContent = data.message || 'Có lỗi xảy ra!';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Lỗi kết nối server!';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        // =========================================================
+        //  MODAL: SỬA UNIT
+        // =========================================================
+
+        function editUnit(id, title, description, level) {
+            document.getElementById('editUnitId').value = id;
+            document.getElementById('editUnitTitle').value = title;
+            document.getElementById('editUnitDescription').value = description;
+            document.getElementById('editUnitLevel').value = level;
+            document.getElementById('editUnitActive').checked = true;
+            document.getElementById('editUnitModal').classList.remove('hidden');
+        }
+
+        function closeEditUnitModal() {
+            document.getElementById('editUnitModal').classList.add('hidden');
+        }
+
+        async function submitEditUnit() {
+            const id = document.getElementById('editUnitId').value;
+            const title = document.getElementById('editUnitTitle').value.trim();
+            const description = document.getElementById('editUnitDescription').value.trim();
+            const level = document.getElementById('editUnitLevel').value;
+            const isActive = document.getElementById('editUnitActive').checked;
+
+            try {
+                const res = await fetch(`/api/units/${id}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ title, description, level, isActive })
+                });
+
+                if (res.ok) {
+                    showToast('Cập nhật Unit thành công!', 'success');
+                    closeEditUnitModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast('Cập nhật thất bại!', 'error');
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối server!', 'error');
+            }
+        }
+
+        // =========================================================
+        //  XOÁ UNIT
+        // =========================================================
+
+        async function deleteUnit(id, title) {
+            // Xác nhận trước khi xoá
+            if (!confirm(`Bạn có chắc muốn xoá Unit "${title}"?\nToàn bộ bài học và bài tập bên trong cũng sẽ bị xoá!`)) return;
+
+            try {
+                const res = await fetch(`/api/units/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.ok) {
+                    showToast('Đã xoá Unit!', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast('Xoá thất bại!', 'error');
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối server!', 'error');
+            }
+        }
+
+        // =========================================================
+        //  TOAST THÔNG BÁO
+        // =========================================================
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            const msg = document.getElementById('toastMessage');
+
+            msg.textContent = message;
+            // Đổi icon và màu theo loại thông báo
+            if (type === 'success') {
+                icon.setAttribute('icon', 'mdi:check-circle');
+                icon.className = 'text-green-400 text-lg shrink-0';
+            } else {
+                icon.setAttribute('icon', 'mdi:alert-circle');
+                icon.className = 'text-red-400 text-lg shrink-0';
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // =========================================================
+        //  ĐĂNG XUẤT
+        // =========================================================
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+    </script>
+
+</body>
+</html>

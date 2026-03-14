@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác nhận Email - English 12 Smart</title>
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0fdf4',
+                            100: '#dcfce7',
+                            200: '#bbf7d0',
+                            300: '#86efac',
+                            400: '#4ade80',
+                            500: '#10b981',
+                            600: '#059669',
+                            700: '#047857',
+                            800: '#065f46',
+                            900: '#064e3b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+
+<body class="bg-slate-50 text-slate-900 antialiased font-sans">
+
+    <!-- Gradient Background -->
+    <div class="fixed inset-0 z-0">
+        <div class="absolute inset-0 bg-gradient-to-br from-brand-600 via-brand-500 to-purple-600"></div>
+        <div class="absolute inset-0 opacity-20 mix-blend-soft-light"
+            style="background-image: url('https://grainy-gradients.vercel.app/noise.svg')"></div>
+    </div>
+
+    <!-- Main Container -->
+    <div class="relative z-10 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8 py-12">
+        <div class="w-full max-w-md">
+
+            <!-- Card Container -->
+            <div class="bg-white rounded-2xl shadow-2xl overflow-hidden">
+
+                <!-- Success State -->
+                <div th:if="${status == 'success'}" class="p-8 text-center">
+                    <!-- Success Icon -->
+                    <div class="mb-6">
+                        <div
+                            class="h-20 w-20 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-bounce">
+                            <iconify-icon icon="solar:check-circle-bold" width="48"
+                                class="text-green-600"></iconify-icon>
+                        </div>
+                        <h1 class="text-2xl font-semibold text-slate-900 mb-2">Xác nhận thành công!</h1>
+                        <p class="text-slate-600" th:text="${message}">Email đã được xác nhận thành công!</p>
+                    </div>
+
+                    <!-- Success Message -->
+                    <div class="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-green-800">
+                            🎉 Tài khoản của bạn đã được kích hoạt. Bạn có thể đăng nhập và bắt đầu học ngay bây giờ!
+                        </p>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-3">
+                        <a href="/auth/login"
+                            class="block w-full py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-medium rounded-lg hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/30">
+                            Đăng nhập ngay
+                        </a>
+                        <a href="/"
+                            class="block w-full py-3 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors">
+                            Về trang chủ
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Error State -->
+                <div th:if="${status == 'error'}" class="p-8 text-center">
+                    <!-- Error Icon -->
+                    <div class="mb-6">
+                        <div class="h-20 w-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <iconify-icon icon="solar:close-circle-bold" width="48" class="text-red-600"></iconify-icon>
+                        </div>
+                        <h1 class="text-2xl font-semibold text-slate-900 mb-2">Xác nhận thất bại</h1>
+                        <p class="text-slate-600" th:text="${message}">Token không hợp lệ hoặc đã hết hạn</p>
+                    </div>
+
+                    <!-- Error Message -->
+                    <div class="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                        <p class="text-sm text-red-800 mb-2">
+                            ❌ Không thể xác nhận email của bạn. Có thể do:
+                        </p>
+                        <ul class="text-xs text-red-700 text-left space-y-1 ml-4">
+                            <li>• Link đã hết hạn (quá 24 giờ)</li>
+                            <li>• Link không chính xác</li>
+                            <li>• Email đã được xác nhận trước đó</li>
+                        </ul>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="space-y-3">
+                        <button onclick="resendEmail()"
+                            class="w-full py-3 bg-gradient-to-r from-brand-500 to-brand-600 text-white font-medium rounded-lg hover:from-brand-600 hover:to-brand-700 transition-all shadow-lg shadow-brand-500/30">
+                            Gửi lại email xác nhận
+                        </button>
+                        <a href="/auth/login"
+                            class="block w-full py-3 border border-slate-200 text-slate-700 font-medium rounded-lg hover:bg-slate-50 transition-colors">
+                            Đăng nhập
+                        </a>
+                        <a href="/"
+                            class="block w-full py-3 text-slate-600 hover:text-slate-900 transition-colors text-sm">
+                            Về trang chủ
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Loading State (Default) -->
+                <div th:if="${status == null}" class="p-8 text-center">
+                    <div class="mb-6">
+                        <div class="h-20 w-20 bg-brand-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                            <iconify-icon icon="eos-icons:loading" width="48" class="text-brand-600"></iconify-icon>
+                        </div>
+                        <h1 class="text-2xl font-semibold text-slate-900 mb-2">Đang xác nhận...</h1>
+                        <p class="text-slate-600">Vui lòng đợi trong giây lát</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Back to Home Link -->
+            <div class="text-center mt-8">
+                <a href="/"
+                    class="inline-flex items-center gap-2 text-white hover:text-brand-100 transition-colors font-medium text-sm">
+                    <iconify-icon icon="solar:arrow-left-linear" width="18"></iconify-icon>
+                    Quay lại trang chủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript -->
+    <script>
+        function resendEmail() {
+            alert('Chức năng gửi lại email đang được phát triển!');
+            // TODO: Implement resend email
+            // fetch('/api/auth/resend-verification', {
+            //     method: 'POST',
+            //     headers: { 'Content-Type': 'application/json' },
+            //     body: JSON.stringify({ email: userEmail })
+            // });
+        }
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cài đặt - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Cài đặt tài khoản và tùy chỉnh trải nghiệm học tập trên English 12 Smart">
+    <meta name="keywords" content="settings, cài đặt, preferences, english 12 smart">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVIGATION BAR -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <!-- Logo -->
+                <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                    <img th:src="@{/images/logo.png}" alt="English 12 Smart Logo"
+                        class="h-12 w-auto transition-transform group-hover:scale-105">
+                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                </a>
+
+                <!-- Desktop Menu -->
+                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                    <a href="/dashboard/student" class="hover:text-brand-600 transition-colors">Bài đang học</a>
+                    <a href="/learn" class="hover:text-brand-600 transition-colors">Học tập</a>
+                    <a href="/dashboard/student/progress" class="hover:text-brand-600 transition-colors">Tiến độ</a>
+                    <a href="/dashboard/student/exercises" class="hover:text-brand-600 transition-colors">Bài tập</a>
+                </nav>
+
+                <!-- User Menu -->
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="relative">
+                        <button id="user-menu-button"
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white text-sm font-medium">
+                                <span
+                                    th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'U'}">N</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">Nguyễn Đình
+                                Khanh</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16"
+                                class="text-slate-500"></iconify-icon>
+                        </button>
+
+                        <!-- Dropdown Menu -->
+                        <div id="user-dropdown"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-sm font-medium text-slate-900" th:text="${username}">Nguyễn Đình Khanh
+                                </p>
+                                <p class="text-xs text-slate-500" th:text="${userRole}">Học sinh</p>
+                            </div>
+                            <div class="py-1">
+                                <a href="/dashboard/student"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:book-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài đang học</span>
+                                </a>
+                                <a href="/learn"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:notebook-linear" width="18"
+                                        class="text-emerald-500"></iconify-icon>
+                                    <span>Học tập</span>
+                                </a>
+                                <a href="/dashboard/student/progress"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:graph-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Tiến độ học tập</span>
+                                </a>
+                                <a href="/dashboard/student/exercises"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:document-text-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Bài tập của tôi</span>
+                                </a>
+                            </div>
+                            <div class="border-t border-slate-100 py-1">
+                                <a href="/profile"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:user-circle-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Thông tin cá nhân</span>
+                                </a>
+                                <a href="/settings"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 bg-slate-50">
+                                    <iconify-icon icon="solar:settings-linear" width="18"
+                                        class="text-slate-500"></iconify-icon>
+                                    <span>Cài đặt</span>
+                                </a>
+                                <a href="/api/auth/logout"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <iconify-icon icon="solar:logout-2-linear" width="18"
+                                        class="text-red-500"></iconify-icon>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Menu Button -->
+                <button class="md:hidden text-slate-500" id="mobile-menu-toggle">
+                    <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-slate-700 to-slate-900 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <h1 class="text-3xl font-medium mb-2">Cài Đặt</h1>
+                <p class="text-slate-300">Tùy chỉnh trải nghiệm học tập của bạn</p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mt-8">
+            <!-- Learning Preferences -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                <h3 class="text-lg font-medium text-slate-900 mb-6 flex items-center gap-2">
+                    <iconify-icon icon="solar:book-2-bold" width="24" class="text-brand-500"></iconify-icon>
+                    Tùy chọn học tập
+                </h3>
+
+                <div class="space-y-6">
+                    <!-- Daily Goal -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Mục tiêu hàng ngày</h4>
+                            <p class="text-sm text-slate-500">Số phút học mỗi ngày</p>
+                        </div>
+                        <select
+                            class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="15">15 phút</option>
+                            <option value="30" selected>30 phút</option>
+                            <option value="45">45 phút</option>
+                            <option value="60">60 phút</option>
+                        </select>
+                    </div>
+
+                    <!-- Difficulty Level -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Độ khó bài tập</h4>
+                            <p class="text-sm text-slate-500">Mức độ phù hợp với trình độ</p>
+                        </div>
+                        <select
+                            class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="easy">Dễ</option>
+                            <option value="medium" selected>Trung bình</option>
+                            <option value="hard">Khó</option>
+                        </select>
+                    </div>
+
+                    <!-- Auto-play Audio -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Tự động phát âm thanh</h4>
+                            <p class="text-sm text-slate-500">Phát audio tự động khi học Listening</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Show Translation -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Hiển thị bản dịch</h4>
+                            <p class="text-sm text-slate-500">Hiện nghĩa tiếng Việt khi học từ vựng</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                <h3 class="text-lg font-medium text-slate-900 mb-6 flex items-center gap-2">
+                    <iconify-icon icon="solar:bell-bold" width="24" class="text-brand-500"></iconify-icon>
+                    Thông báo
+                </h3>
+
+                <div class="space-y-6">
+                    <!-- Email Notifications -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Thông báo qua Email</h4>
+                            <p class="text-sm text-slate-500">Nhận thông báo về bài tập mới và deadline</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Daily Reminder -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Nhắc nhở hàng ngày</h4>
+                            <p class="text-sm text-slate-500">Nhắc bạn học tập đều đặn mỗi ngày</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Achievement Notifications -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Thông báo thành tích</h4>
+                            <p class="text-sm text-slate-500">Nhận thông báo khi đạt thành tích mới</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer" checked>
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                            </div>
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Privacy & Security -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                <h3 class="text-lg font-medium text-slate-900 mb-6 flex items-center gap-2">
+                    <iconify-icon icon="solar:shield-check-bold" width="24" class="text-brand-500"></iconify-icon>
+                    Quyền riêng tư & Bảo mật
+                </h3>
+
+                <div class="space-y-6">
+                    <!-- Profile Visibility -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Hiển thị hồ sơ công khai</h4>
+                            <p class="text-sm text-slate-500">Cho phép người khác xem tiến độ của bạn</p>
+                        </div>
+                        <label class="relative inline-flex items-center cursor-pointer">
+                            <input type="checkbox" class="sr-only peer">
+                            <div
+                                class="w-11 h-6 bg-slate-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-brand-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-500">
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Two-Factor Auth -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Xác thực hai yếu tố</h4>
+                            <p class="text-sm text-slate-500">Bảo vệ tài khoản với lớp bảo mật bổ sung</p>
+                        </div>
+                        <button
+                            class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors">
+                            Kích hoạt
+                        </button>
+                    </div>
+
+                    <!-- Data Export -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Xuất dữ liệu</h4>
+                            <p class="text-sm text-slate-500">Tải xuống toàn bộ dữ liệu học tập của bạn</p>
+                        </div>
+                        <button
+                            class="px-4 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors">
+                            Tải xuống
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Appearance -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                <h3 class="text-lg font-medium text-slate-900 mb-6 flex items-center gap-2">
+                    <iconify-icon icon="solar:palette-bold" width="24" class="text-brand-500"></iconify-icon>
+                    Giao diện
+                </h3>
+
+                <div class="space-y-6">
+                    <!-- Theme -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Chế độ hiển thị</h4>
+                            <p class="text-sm text-slate-500">Chọn giao diện sáng hoặc tối</p>
+                        </div>
+                        <select
+                            class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="light" selected>Sáng</option>
+                            <option value="dark">Tối</option>
+                            <option value="auto">Tự động</option>
+                        </select>
+                    </div>
+
+                    <!-- Language -->
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Ngôn ngữ giao diện</h4>
+                            <p class="text-sm text-slate-500">Chọn ngôn ngữ hiển thị</p>
+                        </div>
+                        <select
+                            class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="vi" selected>Tiếng Việt</option>
+                            <option value="en">English</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="bg-white rounded-xl border-2 border-red-200 p-6">
+                <h3 class="text-lg font-medium text-red-600 mb-6 flex items-center gap-2">
+                    <iconify-icon icon="solar:danger-bold" width="24"></iconify-icon>
+                    Vùng nguy hiểm
+                </h3>
+
+                <div class="space-y-4">
+                    <!-- Delete Account -->
+                    <div class="flex items-center justify-between p-4 bg-red-50 rounded-lg">
+                        <div>
+                            <h4 class="font-medium text-slate-900">Xóa tài khoản</h4>
+                            <p class="text-sm text-slate-500">Xóa vĩnh viễn tài khoản và toàn bộ dữ liệu</p>
+                        </div>
+                        <button
+                            class="px-4 py-2 bg-red-600 text-white rounded-lg text-sm font-medium hover:bg-red-700 transition-colors">
+                            Xóa tài khoản
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Save Button -->
+            <div class="mt-8 flex justify-end gap-3">
+                <button
+                    class="px-6 py-3 bg-slate-100 text-slate-600 rounded-lg font-medium hover:bg-slate-200 transition-colors">
+                    Hủy thay đổi
+                </button>
+                <button
+                    class="px-6 py-3 bg-brand-500 text-white rounded-lg font-medium hover:bg-brand-600 transition-colors">
+                    Lưu cài đặt
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- JavaScript -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // User dropdown toggle
+            const userMenuButton = document.getElementById('user-menu-button');
+            const userDropdown = document.getElementById('user-dropdown');
+
+            if (userMenuButton && userDropdown) {
+                userMenuButton.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    userDropdown.classList.toggle('hidden');
+                });
+
+                document.addEventListener('click', function (e) {
+                    if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                        userDropdown.classList.add('hidden');
+                    }
+                });
+            }
+
+            // Mobile menu toggle
+            document.getElementById('mobile-menu-toggle')?.addEventListener('click', function () {
+                alert('Mobile menu - Coming soon!');
+            });
+        });
+    </script>
+
+</body>
+
+</html>

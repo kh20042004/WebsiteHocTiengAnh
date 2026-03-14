@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${lesson.title} + ' - Quản lý bài tập'">Quản lý bài tập</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVBAR -->
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <a href="/" class="flex items-center gap-3">
+                    <span class="text-lg font-semibold text-slate-900">English 12 Smart</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="/dashboard/teacher" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Dashboard</a>
+                    <a href="/dashboard/teacher/content" class="text-sm font-medium text-emerald-600">Nội dung</a>
+                </nav>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-600" th:text="${username}">Giáo viên</span>
+                    <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 cursor-pointer">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-16 min-h-screen">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- BREADCRUMB -->
+            <nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+                <a href="/dashboard/teacher/content" class="hover:text-emerald-600 transition-colors">Quản lý nội dung</a>
+                <iconify-icon icon="mdi:chevron-right"></iconify-icon>
+                <a th:href="@{/dashboard/teacher/content/units/{id}(id=${lesson.unitId})}"
+                    class="hover:text-emerald-600 transition-colors">Unit</a>
+                <iconify-icon icon="mdi:chevron-right"></iconify-icon>
+                <span class="text-slate-700 font-medium" th:text="${lesson.title}">Lesson Title</span>
+            </nav>
+
+            <!-- HEADER BÀI HỌC -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-2 mb-2">
+                            <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                                th:classappend="${lesson.type == 'VOCABULARY'} ? 'bg-purple-100 text-purple-700' :
+                                               (${lesson.type == 'GRAMMAR'} ? 'bg-blue-100 text-blue-700' :
+                                               (${lesson.type == 'READING'} ? 'bg-amber-100 text-amber-700' : 'bg-slate-100 text-slate-700'))"
+                                th:text="${lesson.type}">GRAMMAR</span>
+                            <span class="text-xs" th:text="${lesson.estimatedDurationMinutes} + ' phút'">30 phút</span>
+                            <span class="text-xs text-emerald-600 font-medium" th:text="${lesson.xpReward} + ' XP'">10 XP</span>
+                        </div>
+                        <h1 class="text-2xl font-bold text-slate-900" th:text="${lesson.title}">Lesson Title</h1>
+                        <p class="text-slate-500 mt-1" th:text="${lesson.description}">Mô tả</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold text-blue-600" th:text="${exercises.size()}">0</div>
+                        <div class="text-xs text-slate-400">bài tập</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANH SÁCH BÀI TẬP -->
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-lg font-semibold text-slate-900">Danh sách bài tập</h2>
+                <button th:onclick="'openCreateExerciseModal(\'' + ${lesson.id} + '\', \'' + ${lesson.unitId} + '\')'"
+                    class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <iconify-icon icon="mdi:plus" class="text-lg"></iconify-icon>
+                    Thêm bài tập
+                </button>
+            </div>
+
+            <!-- Thông báo khi chưa có bài tập -->
+            <div th:if="${#lists.isEmpty(exercises)}" class="text-center py-12 bg-white rounded-xl border border-slate-200">
+                <iconify-icon icon="mdi:clipboard-plus-outline" class="text-5xl text-slate-300 mb-3"></iconify-icon>
+                <p class="text-slate-400">Chưa có bài tập nào. Nhấn "Thêm bài tập" để tạo!</p>
+            </div>
+
+            <!-- Lưới bài tập -->
+            <div th:unless="${#lists.isEmpty(exercises)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div th:each="ex : ${exercises}"
+                    class="bg-white rounded-xl border border-slate-200 p-5 hover:border-blue-300 transition-colors">
+                    <div class="flex items-start justify-between mb-3">
+                        <span class="text-xs px-2 py-0.5 rounded-full font-medium"
+                            th:classappend="${ex.type == 'MULTIPLE_CHOICE'} ? 'bg-blue-100 text-blue-700' :
+                                           (${ex.type == 'FILL_IN_BLANK'} ? 'bg-amber-100 text-amber-700' :
+                                           (${ex.type == 'TRUE_FALSE'} ? 'bg-green-100 text-green-700' :
+                                           (${ex.type == 'MATCHING'} ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700')))"
+                            th:text="${ex.type}">MULTIPLE_CHOICE</span>
+                        <button th:onclick="'deleteExercise(\'' + ${ex.id} + '\', \'' + ${ex.title} + '\')'"
+                            class="text-slate-400 hover:text-red-500 transition-colors">
+                            <iconify-icon icon="mdi:delete-outline"></iconify-icon>
+                        </button>
+                    </div>
+                    <h3 class="font-semibold text-slate-900 mb-1" th:text="${ex.title}">Tên bài tập</h3>
+                    <p class="text-xs text-slate-400 mb-3" th:text="${ex.instruction}">Hướng dẫn</p>
+                    <div class="flex items-center justify-between text-xs text-slate-500">
+                        <!-- Số câu hỏi -->
+                        <span th:text="${#lists.size(ex.questions)} + ' câu hỏi'">0 câu hỏi</span>
+                        <span class="text-blue-600 font-medium" th:text="${ex.maxScore} + ' điểm'">100 điểm</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: TẠO BÀI TẬP -->
+    <div id="createExerciseModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 sticky top-0 bg-white z-10">
+                <h2 class="text-lg font-semibold text-slate-900">Thêm bài tập mới</h2>
+                <button onclick="closeCreateExerciseModal()" class="text-slate-400 hover:text-slate-600">
+                    <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input id="exLessonId" type="hidden">
+                <input id="exUnitId" type="hidden">
+
+                <!-- Tiêu đề -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tiêu đề bài tập <span class="text-red-500">*</span></label>
+                    <input id="exTitle" type="text" placeholder="Ví dụ: Exercise 1 - Vocabulary"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- Hướng dẫn -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Hướng dẫn làm bài</label>
+                    <input id="exInstruction" type="text" placeholder="Ví dụ: Choose the correct answer"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <!-- Loại và cài đặt -->
+                <div class="grid grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Loại bài tập</label>
+                        <select id="exType" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                            onchange="updateQuestionForm()">
+                            <option value="MULTIPLE_CHOICE">Trắc nghiệm</option>
+                            <option value="FILL_IN_BLANK">Điền vào chỗ trống</option>
+                            <option value="TRUE_FALSE">Đúng/Sai</option>
+                            <option value="MATCHING">Nối từ</option>
+                            <option value="SHORT_ANSWER">Trả lời ngắn</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Điểm tối đa</label>
+                        <input id="exMaxScore" type="number" min="10" value="100" step="10"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Điểm XP</label>
+                        <input id="exXp" type="number" min="0" value="20"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                    </div>
+                </div>
+
+                <!-- PHẦN CÂU HỎI -->
+                <div class="border-t border-slate-200 pt-4">
+                    <div class="flex items-center justify-between mb-3">
+                        <h3 class="text-sm font-semibold text-slate-700">Danh sách câu hỏi</h3>
+                        <button onclick="addQuestion()"
+                            class="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1">
+                            <iconify-icon icon="mdi:plus"></iconify-icon>
+                            Thêm câu hỏi
+                        </button>
+                    </div>
+                    <div id="questionsContainer" class="space-y-4">
+                        <!-- Câu hỏi sẽ được thêm động bằng JavaScript -->
+                    </div>
+                </div>
+
+                <p id="createExError" class="hidden text-red-500 text-sm"></p>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="closeCreateExerciseModal()"
+                    class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Huỷ</button>
+                <button onclick="submitCreateExercise()"
+                    class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Tạo bài tập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-xs">
+        <iconify-icon id="toastIcon" icon="mdi:check-circle" class="text-green-400 text-lg shrink-0"></iconify-icon>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+        // Đếm số câu hỏi đã thêm
+        let questionCount = 0;
+
+        function openCreateExerciseModal(lessonId, unitId) {
+            document.getElementById('exLessonId').value = lessonId;
+            document.getElementById('exUnitId').value = unitId;
+            document.getElementById('questionsContainer').innerHTML = '';
+            questionCount = 0;
+            // Tự thêm 1 câu hỏi mặc định
+            addQuestion();
+            document.getElementById('createExerciseModal').classList.remove('hidden');
+        }
+
+        function closeCreateExerciseModal() {
+            document.getElementById('createExerciseModal').classList.add('hidden');
+        }
+
+        // Tạo thẻ HTML cho một câu hỏi mới
+        function addQuestion() {
+            questionCount++;
+            const type = document.getElementById('exType').value;
+            const container = document.getElementById('questionsContainer');
+            const qDiv = document.createElement('div');
+            qDiv.id = `question-${questionCount}`;
+            qDiv.className = 'bg-slate-50 rounded-xl p-4 border border-slate-200';
+
+            let optionsHtml = '';
+            if (type === 'MULTIPLE_CHOICE') {
+                // Trắc nghiệm: 4 tuỳ chọn
+                optionsHtml = `
+                    <div class="grid grid-cols-2 gap-2 mt-2">
+                        <input class="q-option border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đáp án A">
+                        <input class="q-option border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đáp án B">
+                        <input class="q-option border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đáp án C">
+                        <input class="q-option border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500" placeholder="Đáp án D">
+                    </div>
+                    <div class="mt-2">
+                        <label class="text-xs text-slate-500">Đáp án đúng (A/B/C/D)</label>
+                        <input class="q-answer w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500 mt-1" placeholder="Ví dụ: A">
+                    </div>`;
+            } else if (type === 'TRUE_FALSE') {
+                // Đúng/Sai
+                optionsHtml = `
+                    <div class="mt-2">
+                        <label class="text-xs text-slate-500">Đáp án đúng</label>
+                        <select class="q-answer w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none mt-1">
+                            <option value="True">True (Đúng)</option>
+                            <option value="False">False (Sai)</option>
+                        </select>
+                    </div>`;
+            } else {
+                // Điền vào chỗ trống / Trả lời ngắn / Nối từ
+                optionsHtml = `
+                    <div class="mt-2">
+                        <label class="text-xs text-slate-500">Đáp án đúng</label>
+                        <input class="q-answer w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500 mt-1" placeholder="Nhập đáp án đúng">
+                    </div>`;
+            }
+
+            qDiv.innerHTML = `
+                <div class="flex items-center justify-between mb-2">
+                    <span class="text-xs font-semibold text-slate-600">Câu hỏi ${questionCount}</span>
+                    <button onclick="removeQuestion(${questionCount})" class="text-slate-400 hover:text-red-500 text-xs">
+                        <iconify-icon icon="mdi:close"></iconify-icon> Xoá
+                    </button>
+                </div>
+                <textarea class="q-text w-full border border-slate-300 rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    rows="2" placeholder="Nội dung câu hỏi ${questionCount}"></textarea>
+                ${optionsHtml}
+                <div class="mt-2">
+                    <label class="text-xs text-slate-500">Giải thích (tuỳ chọn)</label>
+                    <input class="q-explanation w-full border border-slate-300 rounded-lg px-3 py-1.5 text-xs outline-none focus:ring-2 focus:ring-blue-500 mt-1"
+                        placeholder="Giải thích đáp án...">
+                </div>`;
+
+            container.appendChild(qDiv);
+        }
+
+        function removeQuestion(id) {
+            const el = document.getElementById(`question-${id}`);
+            if (el) el.remove();
+        }
+
+        // Làm mới form câu hỏi khi đổi loại bài tập
+        function updateQuestionForm() {
+            document.getElementById('questionsContainer').innerHTML = '';
+            questionCount = 0;
+            addQuestion();
+        }
+
+        // Thu thập dữ liệu các câu hỏi và gửi lên API
+        async function submitCreateExercise() {
+            const lessonId = document.getElementById('exLessonId').value;
+            const unitId = document.getElementById('exUnitId').value;
+            const title = document.getElementById('exTitle').value.trim();
+            const instruction = document.getElementById('exInstruction').value.trim();
+            const type = document.getElementById('exType').value;
+            const maxScore = parseInt(document.getElementById('exMaxScore').value) || 100;
+            const xpReward = parseInt(document.getElementById('exXp').value) || 20;
+            const errorEl = document.getElementById('createExError');
+
+            if (!title) {
+                errorEl.textContent = 'Vui lòng nhập tiêu đề bài tập!';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            // Thu thập câu hỏi từ DOM
+            const questionDivs = document.querySelectorAll('#questionsContainer > div');
+            const questions = [];
+            let questionIdx = 1;
+
+            questionDivs.forEach(div => {
+                const questionText = div.querySelector('.q-text')?.value?.trim();
+                if (!questionText) return;
+
+                const answerEl = div.querySelector('.q-answer');
+                const correctAnswer = answerEl ? (answerEl.tagName === 'SELECT' ? answerEl.value : answerEl.value.trim()) : '';
+                const explanation = div.querySelector('.q-explanation')?.value?.trim() || '';
+                const optionEls = div.querySelectorAll('.q-option');
+                const options = Array.from(optionEls).map(o => o.value.trim()).filter(v => v);
+
+                questions.push({
+                    questionIndex: questionIdx++,
+                    questionText,
+                    options,
+                    correctAnswer,
+                    explanation,
+                    score: Math.round(maxScore / Math.max(questionDivs.length, 1))
+                });
+            });
+
+            if (questions.length === 0) {
+                errorEl.textContent = 'Vui lòng thêm ít nhất một câu hỏi!';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/exercises', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ lessonId, unitId, title, instruction, type, maxScore, xpReward, questions })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('Tạo bài tập thành công!', 'success');
+                    closeCreateExerciseModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    errorEl.textContent = data.message || 'Có lỗi xảy ra!';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Lỗi kết nối server!';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function deleteExercise(id, title) {
+            if (!confirm(`Xoá bài tập "${title}"?`)) return;
+
+            try {
+                const res = await fetch(`/api/exercises/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.ok) {
+                    showToast('Đã xoá bài tập!', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast('Xoá thất bại!', 'error');
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối server!', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            document.getElementById('toastMessage').textContent = message;
+            icon.setAttribute('icon', type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle');
+            icon.className = type === 'success' ? 'text-green-400 text-lg shrink-0' : 'text-red-400 text-lg shrink-0';
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+    </script>
+
+</body>
+</html>

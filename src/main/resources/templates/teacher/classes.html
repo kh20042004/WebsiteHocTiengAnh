@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Lớp học - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Quản lý lớp học - Tạo và quản lý các lớp học của bạn">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- QR Code Library (QRious - reliable browser-side QR) -->
+    <script src="https://cdn.jsdelivr.net/npm/qrious@4.0.2/dist/qrious.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVIGATION BAR -->
+    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                    <img th:src="@{/images/logo.png}" alt="Logo"
+                        class="h-12 w-auto transition-transform group-hover:scale-105">
+                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+                </a>
+
+                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                    <a href="/dashboard/teacher" class="hover:text-brand-600 transition-colors">Dashboard</a>
+                    <a href="/dashboard/teacher/content" class="hover:text-brand-600 transition-colors">Nội dung</a>
+                    <a href="/dashboard/teacher/classes" class="text-brand-600">Lớp học</a>
+                    <a href="/dashboard/teacher/students" class="hover:text-brand-600 transition-colors">Học sinh</a>
+                    <a href="/dashboard/teacher/assignments" class="hover:text-brand-600 transition-colors">Bài tập</a>
+                </nav>
+
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="relative">
+                        <button id="user-menu-button"
+                            class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div
+                                class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white text-sm font-medium">
+                                <span
+                                    th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'T'}">G</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">Giáo viên</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16"
+                                class="text-slate-500"></iconify-icon>
+                        </button>
+
+                        <div id="user-dropdown"
+                            class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
+                            <div class="px-4 py-3 border-b border-slate-100">
+                                <p class="text-sm font-medium text-slate-900" th:text="${username}">Giáo viên</p>
+                                <p class="text-xs text-slate-500">Giáo viên</p>
+                            </div>
+                            <div class="py-1">
+                                <a href="/dashboard/teacher"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:home-2-linear" width="18" class="text-slate-500"></iconify-icon>
+                                    <span>Dashboard</span>
+                                </a>
+                                <a href="/dashboard/teacher/content"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:book-bookmark-linear" width="18" class="text-emerald-500"></iconify-icon>
+                                    <span>Quản lý nội dung</span>
+                                </a>
+                                <a href="/dashboard/teacher/assignments"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:document-text-linear" width="18" class="text-slate-500"></iconify-icon>
+                                    <span>Quản lý bài tập</span>
+                                </a>
+                            </div>
+                            <div class="border-t border-slate-100 py-1">
+                                <a href="/profile"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:user-circle-linear" width="18" class="text-slate-500"></iconify-icon>
+                                    <span>Thông tin cá nhân</span>
+                                </a>
+                                <a href="/settings"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
+                                    <iconify-icon icon="solar:settings-linear" width="18" class="text-slate-500"></iconify-icon>
+                                    <span>Cài đặt</span>
+                                </a>
+                                <a href="/api/auth/logout"
+                                    class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                                    <iconify-icon icon="solar:logout-2-linear" width="18" class="text-red-500"></iconify-icon>
+                                    <span>Đăng xuất</span>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-medium mb-2">Quản Lý Lớp Học</h1>
+                        <p class="text-emerald-100">Tạo và quản lý các lớp học của bạn</p>
+                    </div>
+                    <div class="hidden md:block">
+                        <button onclick="openCreateClassModal()"
+                            class="px-6 py-3 bg-white text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center gap-2">
+                            <iconify-icon icon="solar:add-circle-linear" width="20"></iconify-icon>
+                            <span>Tạo lớp học mới</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
+            <!-- Filters -->
+            <div class="bg-white rounded-xl border border-slate-200 p-4 mb-6">
+                <div class="flex flex-col md:flex-row gap-4">
+                    <div class="flex-1">
+                        <div class="relative">
+                            <iconify-icon icon="solar:magnifer-linear" width="20"
+                                class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></iconify-icon>
+                            <input id="searchInput" type="text" placeholder="Tìm kiếm lớp học..."
+                                oninput="filterClasses()"
+                                class="w-full pl-10 pr-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
+                    <select id="statusFilter" onchange="filterClasses()"
+                        class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="UPCOMING">Sắp bắt đầu</option>
+                        <option value="COMPLETED">Đã kết thúc</option>
+                    </select>
+                    <select id="gradeFilter" onchange="filterClasses()"
+                        class="px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        <option value="all">Tất cả khối</option>
+                        <option value="12">Khối 12</option>
+                        <option value="11">Khối 11</option>
+                        <option value="10">Khối 10</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Stats bar -->
+            <div class="flex gap-4 mb-6 text-sm text-slate-600">
+                <span>Tổng: <strong th:text="${totalClasses}" class="text-slate-900">0</strong> lớp</span>
+                <span>•</span>
+                <span>Đang hoạt động: <strong th:text="${activeClasses}" class="text-emerald-600">0</strong> lớp</span>
+            </div>
+
+            <!-- Classes Grid -->
+            <div id="classesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+
+                <!-- Dynamic Class Cards -->
+                <div th:each="cls : ${classrooms}"
+                    class="class-card bg-white rounded-xl border border-slate-200 overflow-hidden hover:shadow-lg transition-all"
+                    th:data-name="${cls.name}"
+                    th:data-status="${cls.status}"
+                    th:data-grade="${cls.grade}"
+                    th:data-id="${cls.id}"
+                    th:data-description="${cls.description}"
+                    th:data-schedule="${cls.schedule}"
+                    th:data-color="${cls.colorTheme}"
+                    th:data-maxstudents="${cls.maxStudents}"
+                    th:data-studentcount="${cls.studentCount}"
+                    th:data-totalassignments="${cls.totalAssignments}"
+                    th:data-ungradedassignments="${cls.ungradedAssignments}"
+                    th:data-statusdisplay="${cls.statusDisplay}"
+                    th:data-gradientclass="${cls.gradientClass}"
+                    th:data-descriptioncolorclass="${cls.descriptionColorClass}"
+                    th:data-classcode="${cls.classCode}">
+                    <div th:class="'h-32 bg-gradient-to-br ' + (${cls.gradientClass} ?: 'from-blue-500 to-blue-600') + ' p-6 text-white'">
+                        <div class="flex items-start justify-between">
+                            <div>
+                                <h3 class="text-xl font-medium mb-1" th:text="${cls.name}">Tên lớp</h3>
+                                <p th:class="'text-sm ' + (${cls.descriptionColorClass} ?: 'text-blue-100')"
+                                    th:text="${cls.description} ?: ''">Mô tả</p>
+                            </div>
+                            <span class="px-3 py-1 bg-white/20 backdrop-blur-sm text-xs font-medium rounded-full"
+                                th:text="${cls.statusDisplay ?: 'Đang hoạt động'}">Trạng thái</span>
+                        </div>
+                    </div>
+                    <div class="p-6">
+                        <div class="space-y-3 mb-4">
+                            <div class="flex items-center gap-3 text-sm text-slate-600">
+                                <iconify-icon icon="solar:users-group-rounded-linear" width="18"
+                                    class="text-slate-400"></iconify-icon>
+                                <span th:text="(${cls.studentCount} ?: 0) + ' / ' + (${cls.maxStudents} ?: 40) + ' học sinh'">0 học sinh</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-slate-600"
+                                th:if="${cls.schedule != null and !#strings.isEmpty(cls.schedule)}">
+                                <iconify-icon icon="solar:calendar-linear" width="18"
+                                    class="text-slate-400"></iconify-icon>
+                                <span th:text="${cls.schedule}">Lịch học</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-slate-600">
+                                <iconify-icon icon="solar:document-text-linear" width="18"
+                                    class="text-slate-400"></iconify-icon>
+                                <span th:text="(${cls.totalAssignments} ?: 0) + ' bài tập • ' + (${cls.ungradedAssignments} ?: 0) + ' chưa chấm'">0 bài tập</span>
+                            </div>
+                            <div class="flex items-center gap-3 text-sm text-slate-500"
+                                th:if="${cls.grade != null}">
+                                <iconify-icon icon="solar:diploma-linear" width="18"
+                                    class="text-slate-400"></iconify-icon>
+                                <span th:text="'Khối ' + (${cls.grade} ?: '12')">Khối 12</span>
+                            </div>
+                        </div>
+                        <div class="flex gap-2">
+                            <button onclick="openDetailModal(this.closest('.class-card'))"
+                                class="flex-1 px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors text-sm font-medium">
+                                Xem chi tiết
+                            </button>
+                            <button onclick="openEditClassModal(this.closest('.class-card'))"
+                                class="px-4 py-2 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
+                                <iconify-icon icon="solar:pen-linear" width="18"
+                                    class="text-slate-600"></iconify-icon>
+                            </button>
+                            <button onclick="confirmDeleteClass(this.closest('.class-card').dataset.id, this.closest('.class-card').dataset.name)"
+                                class="px-4 py-2 border border-red-100 rounded-lg hover:bg-red-50 transition-colors">
+                                <iconify-icon icon="solar:trash-bin-trash-linear" width="18"
+                                    class="text-red-400"></iconify-icon>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty state khi chưa có lớp -->
+                <div th:if="${#lists.isEmpty(classrooms)}" id="emptyState"
+                    class="col-span-full flex flex-col items-center justify-center py-16 text-center">
+                    <div class="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                        <iconify-icon icon="solar:users-group-rounded-linear" width="40" class="text-slate-400"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-medium text-slate-700 mb-1">Chưa có lớp học nào</h3>
+                    <p class="text-sm text-slate-500 mb-4">Tạo lớp học đầu tiên của bạn để bắt đầu quản lý</p>
+                    <button onclick="openCreateClassModal()"
+                        class="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors text-sm font-medium">
+                        Tạo lớp học ngay
+                    </button>
+                </div>
+
+                <!-- No results from filter -->
+                <div id="noFilterResults" class="hidden col-span-full flex flex-col items-center justify-center py-16 text-center">
+                    <div class="h-20 w-20 rounded-full bg-slate-100 flex items-center justify-center mb-4">
+                        <iconify-icon icon="solar:magnifer-linear" width="40" class="text-slate-400"></iconify-icon>
+                    </div>
+                    <h3 class="text-lg font-medium text-slate-700 mb-1">Không tìm thấy lớp học</h3>
+                    <p class="text-sm text-slate-500 mb-4">Thử thay đổi bộ lọc hoặc từ khóa tìm kiếm</p>
+                    <button onclick="resetFilters()"
+                        class="px-6 py-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors text-sm font-medium">
+                        Xóa bộ lọc
+                    </button>
+                </div>
+
+                <!-- Add New Class Card -->
+                <div th:if="${!#lists.isEmpty(classrooms)}" id="addNewCard"
+                    class="bg-white rounded-xl border-2 border-dashed border-slate-300 overflow-hidden hover:border-brand-400 hover:bg-brand-50/30 transition-all cursor-pointer"
+                    onclick="openCreateClassModal()">
+                    <div class="h-full flex flex-col items-center justify-center p-6 min-h-[320px]">
+                        <div
+                            class="h-16 w-16 rounded-full bg-brand-50 text-brand-600 flex items-center justify-center mb-4">
+                            <iconify-icon icon="solar:add-circle-linear" width="32"></iconify-icon>
+                        </div>
+                        <h3 class="text-lg font-medium text-slate-900 mb-1">Tạo lớp học mới</h3>
+                        <p class="text-sm text-slate-500 text-center">Nhấn để tạo lớp học mới</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ==================== CREATE CLASS MODAL ==================== -->
+    <div id="createClassModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+         onclick="if(event.target===this)closeCreateClassModal()">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+            <div class="p-6 border-b border-slate-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-medium text-slate-900">Tạo lớp học mới</h2>
+                    <button onclick="closeCreateClassModal()" class="text-slate-400 hover:text-slate-600">
+                        <iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <form id="createClassForm" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Tên lớp học <span class="text-red-500">*</span></label>
+                        <input id="createName" type="text" placeholder="VD: 12A1" required
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Mô tả</label>
+                        <input id="createDescription" type="text" placeholder="VD: English Advanced"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Khối</label>
+                            <select id="createGrade"
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="12">Khối 12</option>
+                                <option value="11">Khối 11</option>
+                                <option value="10">Khối 10</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Sĩ số tối đa</label>
+                            <input id="createMaxStudents" type="number" placeholder="40" value="40"
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Lịch học</label>
+                        <input id="createSchedule" type="text" placeholder="VD: T2, T4, T6 • 7:00 - 8:30"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Màu chủ đề</label>
+                        <div id="createColorPicker" class="flex gap-3">
+                            <button type="button" data-color="blue"
+                                class="color-btn h-10 w-10 rounded-lg bg-blue-500 ring-2 ring-offset-2 ring-blue-400"></button>
+                            <button type="button" data-color="emerald"
+                                class="color-btn h-10 w-10 rounded-lg bg-emerald-500"></button>
+                            <button type="button" data-color="purple"
+                                class="color-btn h-10 w-10 rounded-lg bg-purple-500"></button>
+                            <button type="button" data-color="amber"
+                                class="color-btn h-10 w-10 rounded-lg bg-amber-500"></button>
+                            <button type="button" data-color="rose"
+                                class="color-btn h-10 w-10 rounded-lg bg-rose-500"></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-6 border-t border-slate-200 flex gap-3">
+                <button onclick="closeCreateClassModal()"
+                    class="flex-1 px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">
+                    Hủy
+                </button>
+                <button type="button" onclick="submitCreateClass()" id="createSubmitBtn"
+                    class="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors flex items-center justify-center gap-2">
+                    <span>Tạo lớp học</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== EDIT CLASS MODAL ==================== -->
+    <div id="editClassModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+         onclick="if(event.target===this)closeEditClassModal()">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+            <div class="p-6 border-b border-slate-200">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-xl font-medium text-slate-900">Chỉnh sửa lớp học</h2>
+                    <button onclick="closeEditClassModal()" class="text-slate-400 hover:text-slate-600">
+                        <iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+            <div class="p-6">
+                <form id="editClassForm" class="space-y-4">
+                    <input type="hidden" id="editId">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Tên lớp học <span class="text-red-500">*</span></label>
+                        <input id="editName" type="text" placeholder="VD: 12A1" required
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Mô tả</label>
+                        <input id="editDescription" type="text" placeholder="VD: English Advanced"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Khối</label>
+                            <select id="editGrade"
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                                <option value="12">Khối 12</option>
+                                <option value="11">Khối 11</option>
+                                <option value="10">Khối 10</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">Sĩ số tối đa</label>
+                            <input id="editMaxStudents" type="number" placeholder="40"
+                                class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Lịch học</label>
+                        <input id="editSchedule" type="text" placeholder="VD: T2, T4, T6 • 7:00 - 8:30"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Trạng thái</label>
+                        <select id="editStatus"
+                            class="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="ACTIVE">Đang hoạt động</option>
+                            <option value="UPCOMING">Sắp bắt đầu</option>
+                            <option value="COMPLETED">Đã kết thúc</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Màu chủ đề</label>
+                        <div id="editColorPicker" class="flex gap-3">
+                            <button type="button" data-color="blue"
+                                class="edit-color-btn h-10 w-10 rounded-lg bg-blue-500"></button>
+                            <button type="button" data-color="emerald"
+                                class="edit-color-btn h-10 w-10 rounded-lg bg-emerald-500"></button>
+                            <button type="button" data-color="purple"
+                                class="edit-color-btn h-10 w-10 rounded-lg bg-purple-500"></button>
+                            <button type="button" data-color="amber"
+                                class="edit-color-btn h-10 w-10 rounded-lg bg-amber-500"></button>
+                            <button type="button" data-color="rose"
+                                class="edit-color-btn h-10 w-10 rounded-lg bg-rose-500"></button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="p-6 border-t border-slate-200 flex gap-3">
+                <button onclick="closeEditClassModal()"
+                    class="flex-1 px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">
+                    Hủy
+                </button>
+                <button type="button" onclick="submitEditClass()" id="editSubmitBtn"
+                    class="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors flex items-center justify-center gap-2">
+                    <span>Lưu thay đổi</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== CLASS DETAIL MODAL ==================== -->
+    <div id="detailModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+         onclick="if(event.target===this)closeDetailModal()">
+        <div class="bg-white rounded-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
+            <!-- Detail header with gradient -->
+            <div id="detailHeader" class="h-40 bg-gradient-to-br from-blue-500 to-blue-600 p-6 text-white rounded-t-xl relative">
+                <button onclick="closeDetailModal()" class="absolute top-4 right-4 text-white/70 hover:text-white">
+                    <iconify-icon icon="solar:close-circle-linear" width="28"></iconify-icon>
+                </button>
+                <div class="flex items-start justify-between mt-4">
+                    <div>
+                        <h2 id="detailName" class="text-2xl font-semibold mb-1">Tên lớp</h2>
+                        <p id="detailDescription" class="text-white/80">Mô tả</p>
+                    </div>
+                    <span id="detailStatus" class="px-4 py-1.5 bg-white/20 backdrop-blur-sm text-sm font-medium rounded-full">
+                        Đang hoạt động
+                    </span>
+                </div>
+            </div>
+
+            <!-- Detail body -->
+            <div class="p-6">
+                <!-- Stats cards -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:users-group-rounded-linear" width="28" class="text-blue-500 mb-2"></iconify-icon>
+                        <p class="text-2xl font-bold text-slate-900" id="detailStudentCount">0</p>
+                        <p class="text-xs text-slate-500">Học sinh</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:users-group-rounded-linear" width="28" class="text-emerald-500 mb-2"></iconify-icon>
+                        <p class="text-2xl font-bold text-slate-900" id="detailMaxStudents">40</p>
+                        <p class="text-xs text-slate-500">Sĩ số tối đa</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:document-text-linear" width="28" class="text-amber-500 mb-2"></iconify-icon>
+                        <p class="text-2xl font-bold text-slate-900" id="detailTotalAssignments">0</p>
+                        <p class="text-xs text-slate-500">Bài tập</p>
+                    </div>
+                    <div class="bg-slate-50 rounded-xl p-4 text-center">
+                        <iconify-icon icon="solar:clipboard-check-linear" width="28" class="text-red-500 mb-2"></iconify-icon>
+                        <p class="text-2xl font-bold text-slate-900" id="detailUngradedAssignments">0</p>
+                        <p class="text-xs text-slate-500">Chưa chấm</p>
+                    </div>
+                </div>
+
+                <!-- Info rows -->
+                <div class="space-y-4">
+                    <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                        <iconify-icon icon="solar:diploma-linear" width="22" class="text-slate-400"></iconify-icon>
+                        <div>
+                            <p class="text-xs text-slate-500">Khối</p>
+                            <p class="text-sm font-medium text-slate-900" id="detailGrade">12</p>
+                        </div>
+                    </div>
+                    <div id="detailScheduleRow" class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                        <iconify-icon icon="solar:calendar-linear" width="22" class="text-slate-400"></iconify-icon>
+                        <div>
+                            <p class="text-xs text-slate-500">Lịch học</p>
+                            <p class="text-sm font-medium text-slate-900" id="detailSchedule">Chưa cập nhật</p>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4 p-3 bg-slate-50 rounded-lg">
+                        <iconify-icon icon="solar:palette-linear" width="22" class="text-slate-400"></iconify-icon>
+                        <div>
+                            <p class="text-xs text-slate-500">Màu chủ đề</p>
+                            <p class="text-sm font-medium text-slate-900 capitalize" id="detailColor">blue</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== Mã lớp học & QR Code ===== -->
+                <div class="mt-6 p-5 bg-gradient-to-br from-slate-50 to-blue-50 border border-blue-100 rounded-xl">
+                    <h4 class="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+                        <iconify-icon icon="solar:share-circle-linear" width="20" class="text-blue-500"></iconify-icon>
+                        Chia sẻ lớp học cho học sinh
+                    </h4>
+                    <div class="flex flex-col md:flex-row gap-6 items-center">
+                        <!-- QR Code -->
+                        <div class="flex-shrink-0 bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                            <canvas id="detailQrCode" class="mx-auto"></canvas>
+                            <p class="text-xs text-slate-400 text-center mt-2">Quét mã QR để tham gia</p>
+                        </div>
+                        <!-- Code & Link -->
+                        <div class="flex-1 space-y-4 w-full">
+                            <!-- Mã lớp -->
+                            <div>
+                                <label class="text-xs font-medium text-slate-500 block mb-1">Mã lớp học</label>
+                                <div class="flex items-center gap-2">
+                                    <div class="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-3 font-mono text-2xl font-bold text-center tracking-[0.3em] text-slate-800 select-all" id="detailClassCode">
+                                        ------
+                                    </div>
+                                    <button onclick="copyClassCode()" id="copyCodeBtn"
+                                        class="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2 font-medium text-sm">
+                                        <iconify-icon icon="solar:copy-linear" width="18"></iconify-icon>
+                                        <span>Sao chép</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <!-- Link tham gia -->
+                            <div>
+                                <label class="text-xs font-medium text-slate-500 block mb-1">Link tham gia</label>
+                                <div class="flex items-center gap-2">
+                                    <input id="detailJoinLink" readonly
+                                        class="flex-1 bg-white border border-slate-200 rounded-lg px-4 py-2.5 text-sm text-slate-600 font-mono select-all"
+                                        value="">
+                                    <button onclick="copyJoinLink()" id="copyLinkBtn"
+                                        class="px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-colors flex items-center gap-2 text-sm font-medium border border-slate-200">
+                                        <iconify-icon icon="solar:link-linear" width="18"></iconify-icon>
+                                        <span>Sao chép</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Detail footer -->
+            <div class="p-6 border-t border-slate-200 flex gap-3">
+                <button onclick="closeDetailModal()"
+                    class="flex-1 px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">
+                    Đóng
+                </button>
+                <button onclick="closeDetailModal(); openEditClassModalById(currentDetailId)"
+                    class="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors flex items-center justify-center gap-2">
+                    <iconify-icon icon="solar:pen-linear" width="18"></iconify-icon>
+                    <span>Chỉnh sửa</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== DELETE CONFIRM MODAL ==================== -->
+    <div id="deleteModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
+         onclick="if(event.target===this)closeDeleteModal()">
+        <div class="bg-white rounded-xl max-w-md w-full animate-scale-in">
+            <div class="p-6 text-center">
+                <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
+                    <iconify-icon icon="solar:trash-bin-trash-linear" width="32" class="text-red-500"></iconify-icon>
+                </div>
+                <h3 class="text-lg font-semibold text-slate-900 mb-2">Xóa lớp học?</h3>
+                <p class="text-sm text-slate-500">Bạn có chắc muốn xóa lớp <strong id="deleteClassName" class="text-slate-700"></strong>?<br>Hành động này không thể hoàn tác.</p>
+            </div>
+            <div class="p-6 border-t border-slate-200 flex gap-3">
+                <button onclick="closeDeleteModal()"
+                    class="flex-1 px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">
+                    Hủy bỏ
+                </button>
+                <button onclick="executeDeleteClass()" id="deleteSubmitBtn"
+                    class="flex-1 px-6 py-3 bg-red-600 text-white rounded-lg font-medium hover:bg-red-700 transition-colors flex items-center justify-center gap-2">
+                    <iconify-icon icon="solar:trash-bin-trash-linear" width="18"></iconify-icon>
+                    <span>Xóa lớp học</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast notification -->
+    <div id="toast"
+        class="hidden fixed bottom-6 right-6 z-[100] px-5 py-3 rounded-lg shadow-lg text-sm font-medium text-white transition-all">
+    </div>
+
+    <style>
+        .animate-scale-in {
+            animation: scaleIn 0.2s ease-out;
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+    </style>
+
+    <script>
+        // ==================== GLOBALS ====================
+        let createSelectedColor = 'blue';
+        let editSelectedColor = 'blue';
+        let pendingDeleteId = null;
+        let currentDetailId = null;
+
+        // ==================== USER DROPDOWN ====================
+        const userMenuButton = document.getElementById('user-menu-button');
+        const userDropdown = document.getElementById('user-dropdown');
+        if (userMenuButton && userDropdown) {
+            userMenuButton.addEventListener('click', (e) => {
+                e.stopPropagation();
+                userDropdown.classList.toggle('hidden');
+            });
+            document.addEventListener('click', (e) => {
+                if (!userMenuButton.contains(e.target) && !userDropdown.contains(e.target)) {
+                    userDropdown.classList.add('hidden');
+                }
+            });
+        }
+
+        // ==================== TOAST ====================
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'fixed bottom-6 right-6 z-[100] px-5 py-3 rounded-lg shadow-lg text-sm font-medium text-white transition-all '
+                + (type === 'success' ? 'bg-emerald-600' : 'bg-red-500');
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        // ==================== JWT TOKEN ====================
+        function getTokenFromCookie() {
+            const match = document.cookie.match(/(?:^|;\s*)token=([^;]+)/);
+            return match ? match[1] : null;
+        }
+
+        function authHeaders() {
+            const token = getTokenFromCookie();
+            const headers = { 'Content-Type': 'application/json' };
+            if (token) headers['Authorization'] = 'Bearer ' + token;
+            return headers;
+        }
+
+        // ==================== COLOR PICKER ====================
+        // Create modal colors
+        document.querySelectorAll('#createColorPicker .color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                createSelectedColor = btn.dataset.color;
+                document.querySelectorAll('#createColorPicker .color-btn').forEach(b =>
+                    b.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-400', 'ring-emerald-400', 'ring-purple-400', 'ring-amber-400', 'ring-rose-400'));
+                btn.classList.add('ring-2', 'ring-offset-2', 'ring-' + btn.dataset.color + '-400');
+            });
+        });
+
+        // Edit modal colors
+        document.querySelectorAll('#editColorPicker .edit-color-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                editSelectedColor = btn.dataset.color;
+                document.querySelectorAll('#editColorPicker .edit-color-btn').forEach(b =>
+                    b.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-400', 'ring-emerald-400', 'ring-purple-400', 'ring-amber-400', 'ring-rose-400'));
+                btn.classList.add('ring-2', 'ring-offset-2', 'ring-' + btn.dataset.color + '-400');
+            });
+        });
+
+        function selectEditColor(color) {
+            editSelectedColor = color;
+            document.querySelectorAll('#editColorPicker .edit-color-btn').forEach(b => {
+                b.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-400', 'ring-emerald-400', 'ring-purple-400', 'ring-amber-400', 'ring-rose-400');
+                if (b.dataset.color === color) {
+                    b.classList.add('ring-2', 'ring-offset-2', 'ring-' + color + '-400');
+                }
+            });
+        }
+
+        // ==================== SEARCH & FILTER ====================
+        function filterClasses() {
+            const search = document.getElementById('searchInput').value.toLowerCase().trim();
+            const status = document.getElementById('statusFilter').value;
+            const grade = document.getElementById('gradeFilter').value;
+
+            const cards = document.querySelectorAll('.class-card');
+            const addCard = document.getElementById('addNewCard');
+            const noResults = document.getElementById('noFilterResults');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const cardName = (card.dataset.name || '').toLowerCase();
+                const cardDescription = (card.dataset.description || '').toLowerCase();
+                const cardStatus = card.dataset.status || '';
+                const cardGrade = card.dataset.grade || '';
+
+                const matchSearch = !search || cardName.includes(search) || cardDescription.includes(search);
+                const matchStatus = status === 'all' || cardStatus === status;
+                const matchGrade = grade === 'all' || cardGrade === grade;
+
+                if (matchSearch && matchStatus && matchGrade) {
+                    card.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    card.classList.add('hidden');
+                }
+            });
+
+            // Show/hide no results message
+            if (noResults) {
+                if (visibleCount === 0 && cards.length > 0) {
+                    noResults.classList.remove('hidden');
+                    if (addCard) addCard.classList.add('hidden');
+                } else {
+                    noResults.classList.add('hidden');
+                    if (addCard) addCard.classList.remove('hidden');
+                }
+            }
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('statusFilter').value = 'all';
+            document.getElementById('gradeFilter').value = 'all';
+            filterClasses();
+        }
+
+        // ==================== CREATE CLASS ====================
+        function openCreateClassModal() {
+            document.getElementById('createClassModal').classList.remove('hidden');
+            document.getElementById('createName').focus();
+        }
+
+        function closeCreateClassModal() {
+            document.getElementById('createClassModal').classList.add('hidden');
+            document.getElementById('createClassForm').reset();
+            createSelectedColor = 'blue';
+            // Reset color highlight
+            document.querySelectorAll('#createColorPicker .color-btn').forEach(b =>
+                b.classList.remove('ring-2', 'ring-offset-2', 'ring-blue-400', 'ring-emerald-400', 'ring-purple-400', 'ring-amber-400', 'ring-rose-400'));
+            document.querySelector('#createColorPicker .color-btn[data-color="blue"]')
+                .classList.add('ring-2', 'ring-offset-2', 'ring-blue-400');
+        }
+
+        async function submitCreateClass() {
+            const name = document.getElementById('createName').value.trim();
+            const description = document.getElementById('createDescription').value.trim();
+            const grade = document.getElementById('createGrade').value;
+            const maxStudents = parseInt(document.getElementById('createMaxStudents').value) || 40;
+            const schedule = document.getElementById('createSchedule').value.trim();
+
+            if (!name) {
+                showToast('Vui lòng nhập tên lớp', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('createSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin"></iconify-icon> <span>Đang tạo...</span>';
+
+            try {
+                const res = await fetch('/api/classrooms', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ name, description, grade, maxStudents, schedule, colorTheme: createSelectedColor })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Tạo lớp học thành công!', 'success');
+                    closeCreateClassModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.message || 'Có lỗi xảy ra', 'error');
+                }
+            } catch (e) {
+                showToast('Không thể kết nối server', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Tạo lớp học</span>';
+            }
+        }
+
+        // ==================== EDIT CLASS ====================
+        function openEditClassModal(cardEl) {
+            const d = cardEl.dataset;
+            document.getElementById('editId').value = d.id;
+            document.getElementById('editName').value = d.name || '';
+            document.getElementById('editDescription').value = d.description || '';
+            document.getElementById('editGrade').value = d.grade || '12';
+            document.getElementById('editMaxStudents').value = d.maxstudents || 40;
+            document.getElementById('editSchedule').value = d.schedule || '';
+            document.getElementById('editStatus').value = d.status || 'ACTIVE';
+
+            selectEditColor(d.color || 'blue');
+
+            document.getElementById('editClassModal').classList.remove('hidden');
+        }
+
+        function openEditClassModalById(id) {
+            const card = document.querySelector('.class-card[data-id="' + id + '"]');
+            if (card) openEditClassModal(card);
+        }
+
+        function closeEditClassModal() {
+            document.getElementById('editClassModal').classList.add('hidden');
+        }
+
+        async function submitEditClass() {
+            const id = document.getElementById('editId').value;
+            const name = document.getElementById('editName').value.trim();
+            const description = document.getElementById('editDescription').value.trim();
+            const grade = document.getElementById('editGrade').value;
+            const maxStudents = parseInt(document.getElementById('editMaxStudents').value) || 40;
+            const schedule = document.getElementById('editSchedule').value.trim();
+            const status = document.getElementById('editStatus').value;
+
+            if (!name) {
+                showToast('Vui lòng nhập tên lớp', 'error');
+                return;
+            }
+
+            const btn = document.getElementById('editSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin"></iconify-icon> <span>Đang lưu...</span>';
+
+            try {
+                const res = await fetch('/api/classrooms/' + id, {
+                    method: 'PUT',
+                    headers: authHeaders(),
+                    credentials: 'include',
+                    body: JSON.stringify({ name, description, grade, maxStudents, schedule, colorTheme: editSelectedColor, status })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Cập nhật lớp học thành công!', 'success');
+                    closeEditClassModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast(data.message || 'Có lỗi xảy ra', 'error');
+                }
+            } catch (e) {
+                showToast('Không thể kết nối server', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<span>Lưu thay đổi</span>';
+            }
+        }
+
+        // ==================== DELETE CLASS ====================
+        function confirmDeleteClass(id, name) {
+            pendingDeleteId = id;
+            document.getElementById('deleteClassName').textContent = name;
+            document.getElementById('deleteModal').classList.remove('hidden');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            pendingDeleteId = null;
+        }
+
+        async function executeDeleteClass() {
+            if (!pendingDeleteId) return;
+
+            const btn = document.getElementById('deleteSubmitBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin"></iconify-icon> <span>Đang xóa...</span>';
+
+            try {
+                const res = await fetch('/api/classrooms/' + pendingDeleteId, {
+                    method: 'DELETE',
+                    credentials: 'include',
+                    headers: authHeaders()
+                });
+                if (res.ok) {
+                    showToast('Đã xóa lớp học thành công', 'success');
+                    closeDeleteModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    const data = await res.json();
+                    showToast(data.message || 'Xóa thất bại', 'error');
+                }
+            } catch (e) {
+                showToast('Không thể kết nối server', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<iconify-icon icon="solar:trash-bin-trash-linear" width="18"></iconify-icon> <span>Xóa lớp học</span>';
+            }
+        }
+
+        // ==================== CLASS DETAIL ====================
+        const GRADIENT_MAP = {
+            blue: 'from-blue-500 to-blue-600',
+            emerald: 'from-emerald-500 to-emerald-600',
+            purple: 'from-purple-500 to-purple-600',
+            amber: 'from-amber-500 to-amber-600',
+            rose: 'from-rose-500 to-rose-600'
+        };
+        const COLOR_NAMES = { blue: 'Xanh dương', emerald: 'Xanh lá', purple: 'Tím', amber: 'Cam', rose: 'Hồng' };
+
+        function openDetailModal(cardEl) {
+            const d = cardEl.dataset;
+            currentDetailId = d.id;
+
+            // Header gradient
+            const header = document.getElementById('detailHeader');
+            const color = d.color || 'blue';
+            const gradient = GRADIENT_MAP[color] || GRADIENT_MAP.blue;
+            header.className = 'h-40 bg-gradient-to-br ' + gradient + ' p-6 text-white rounded-t-xl relative';
+
+            // Fill data
+            document.getElementById('detailName').textContent = d.name || 'Lớp học';
+            document.getElementById('detailDescription').textContent = d.description || 'Chưa có mô tả';
+            document.getElementById('detailStatus').textContent = d.statusdisplay || 'Đang hoạt động';
+            document.getElementById('detailStudentCount').textContent = d.studentcount || '0';
+            document.getElementById('detailMaxStudents').textContent = d.maxstudents || '40';
+            document.getElementById('detailTotalAssignments').textContent = d.totalassignments || '0';
+            document.getElementById('detailUngradedAssignments').textContent = d.ungradedassignments || '0';
+            document.getElementById('detailGrade').textContent = 'Khối ' + (d.grade || '12');
+            document.getElementById('detailSchedule').textContent = d.schedule || 'Chưa cập nhật';
+            document.getElementById('detailColor').textContent = COLOR_NAMES[color] || 'Xanh dương';
+
+            // Class code
+            const classCode = d.classcode || '------';
+            document.getElementById('detailClassCode').textContent = classCode;
+
+            // Join link
+            const joinLink = window.location.origin + '/join/' + classCode;
+            document.getElementById('detailJoinLink').value = joinLink;
+
+            // Generate QR Code
+            const canvas = document.getElementById('detailQrCode');
+            if (typeof QRious !== 'undefined' && classCode !== '------') {
+                new QRious({
+                    element: canvas,
+                    value: joinLink,
+                    size: 160,
+                    foreground: '#1e293b',
+                    background: '#ffffff',
+                    level: 'M'
+                });
+            } else {
+                // Fallback nếu chưa có thư viện QR hoặc chưa có classCode
+                const ctx = canvas.getContext('2d');
+                canvas.width = 160;
+                canvas.height = 160;
+                ctx.fillStyle = '#f1f5f9';
+                ctx.fillRect(0, 0, 160, 160);
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '12px Inter, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Chưa có mã QR', 80, 85);
+            }
+
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+
+        function closeDetailModal() {
+            document.getElementById('detailModal').classList.add('hidden');
+            currentDetailId = null;
+        }
+
+        // ==================== COPY FUNCTIONS ====================
+        function copyClassCode() {
+            const code = document.getElementById('detailClassCode').textContent.trim();
+            navigator.clipboard.writeText(code).then(() => {
+                const btn = document.getElementById('copyCodeBtn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<iconify-icon icon="solar:check-circle-linear" width="18"></iconify-icon> <span>Đã sao chép!</span>';
+                btn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                btn.classList.add('bg-emerald-500');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-emerald-500');
+                    btn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                }, 2000);
+                showToast('Đã sao chép mã lớp: ' + code, 'success');
+            });
+        }
+
+        function copyJoinLink() {
+            const link = document.getElementById('detailJoinLink').value;
+            navigator.clipboard.writeText(link).then(() => {
+                const btn = document.getElementById('copyLinkBtn');
+                const originalHTML = btn.innerHTML;
+                btn.innerHTML = '<iconify-icon icon="solar:check-circle-linear" width="18"></iconify-icon> <span>Đã sao chép!</span>';
+                btn.classList.add('bg-emerald-100', 'text-emerald-700', 'border-emerald-200');
+                setTimeout(() => {
+                    btn.innerHTML = originalHTML;
+                    btn.classList.remove('bg-emerald-100', 'text-emerald-700', 'border-emerald-200');
+                }, 2000);
+                showToast('Đã sao chép link tham gia', 'success');
+            });
+        }
+
+        // ==================== KEYBOARD SHORTCUTS ====================
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closeCreateClassModal();
+                closeEditClassModal();
+                closeDetailModal();
+                closeDeleteModal();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

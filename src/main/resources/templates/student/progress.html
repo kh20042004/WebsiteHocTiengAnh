@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tiến độ học tập - English 12 Smart</title>
+
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Theo dõi tiến độ học tập và thống kê chi tiết của bạn trên English 12 Smart">
+    <meta name="keywords" content="tiến độ, thống kê, học tập, english 12 smart">
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+
+    <!-- Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS -->
+    <script>
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Iconify -->
+    <script>
+        window.IconifyPreload = window.IconifyPreload || [];
+        window.IconifyProviders = {
+            '': {
+                resources: ['https://api.iconify.design'],
+                maxURL: 500,
+                rotate: 750,
+                timeout: 5000,
+                localStorage: false,
+                sessionStorage: false
+            }
+        };
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+    <!-- Tailwind Config -->
+    <script th:src="@{/js/tailwind-config.js}"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- SHARED STUDENT NAVBAR -->
+    <th:block th:replace="shared/student-navbar :: student-navbar(currentPage='progress')"></th:block>
+                <div class="hidden md:flex items-center gap-3">
+                    <div class="relative">
+                        <button id="user-menu-button" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
+                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-brand-500 text-white text-sm font-medium">
+                                <span th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'U'}">U</span>
+                            </div>
+                            <span class="text-sm font-medium text-slate-700" th:text="${username}">Học sinh</span>
+                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16" class="text-slate-500"></iconify-icon>
+                        </button>
+                        <!-- Dropdown removed - using shared navbar -->
+                    </div>
+                </div>
+                <button class="md:hidden text-slate-500" id="mobile-menu-toggle">
+                    <iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>
+                </button>
+            </div>
+        </div>
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="hidden md:hidden border-t border-slate-200 bg-white">
+            <nav class="px-4 py-3 flex flex-col gap-1">
+                <a href="/dashboard/student" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                    <iconify-icon icon="solar:book-linear" width="18" class="text-slate-500"></iconify-icon>Bài đang học
+                </a>
+                <a href="/dashboard/student/learn" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                    <iconify-icon icon="solar:notebook-linear" width="18" class="text-emerald-500"></iconify-icon>Học tập
+                </a>
+                <a href="/dashboard/student/classes" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" class="text-brand-500"></iconify-icon>Lớp học
+                </a>
+                <a href="/dashboard/student/exercises" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                    <iconify-icon icon="solar:document-text-linear" width="18" class="text-slate-500"></iconify-icon>Bài tập
+                </a>
+                <a href="/dashboard/student/progress" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium text-brand-600 bg-brand-50">
+                    <iconify-icon icon="solar:graph-linear" width="18" class="text-brand-500"></iconify-icon>Tiến độ
+                </a>
+            </nav>
+            <div class="px-4 py-3 border-t border-slate-100 flex flex-col gap-1">
+                <a href="/profile" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                    <iconify-icon icon="solar:user-circle-linear" width="18" class="text-slate-500"></iconify-icon>Thông tin cá nhân
+                </a>
+                <a href="/settings" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-slate-700 hover:bg-slate-50">
+                    <iconify-icon icon="solar:settings-linear" width="18" class="text-slate-500"></iconify-icon>Cài đặt
+                </a>
+                <a href="/api/auth/logout" class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-red-600 hover:bg-red-50">
+                    <iconify-icon icon="solar:logout-2-linear" width="18" class="text-red-500"></iconify-icon>Đăng xuất
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-purple-500 to-purple-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-3xl font-medium mb-2">Tiến Độ Học Tập</h1>
+                        <p class="text-purple-100">Theo dõi sự tiến bộ và thành tích của bạn</p>
+                    </div>
+                    <!-- XP & Level Card -->
+                    <div class="hidden md:block bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-6 py-4 min-w-[260px]">
+                        <div class="flex items-center justify-between mb-2">
+                            <div>
+                                <div class="text-xs text-purple-200 mb-0.5">Cấp độ hiện tại</div>
+                                <div class="text-lg font-bold" th:text="${level}">Beginner</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-xs text-purple-200 mb-0.5">Tổng XP</div>
+                                <div class="text-lg font-bold text-amber-300" th:text="${totalXP} + ' XP'">0 XP</div>
+                            </div>
+                        </div>
+                        <div class="h-2 bg-white/20 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-400 rounded-full transition-all" th:style="'width:' + ${xpPercent} + '%'"></div>
+                        </div>
+                        <div class="flex justify-between text-xs text-purple-200 mt-1">
+                            <span th:text="${totalXP} + ' XP'">0 XP</span>
+                            <span th:text="${nextLevelXP} + ' XP → ' + ${nextLevel}">500 XP → Elementary</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
+
+            <!-- Overview Stats -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                <!-- Streak -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="h-11 w-11 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:fire-bold" width="22"></iconify-icon>
+                        </div>
+                        <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-1 rounded">🔥 Streak</span>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900 mb-0.5" th:text="${currentStreak} + ' ngày'">0 ngày</div>
+                    <div class="text-xs text-slate-500">Streak hiện tại</div>
+                    <div class="mt-2 text-xs text-slate-400">Dài nhất: <span class="font-medium text-slate-600" th:text="${longestStreak} + ' ngày'">0 ngày</span></div>
+                </div>
+
+                <!-- Tổng giờ học -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="h-11 w-11 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:clock-circle-bold" width="22"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900 mb-0.5" th:text="${totalHours} + 'h'">0.0h</div>
+                    <div class="text-xs text-slate-500">Tổng giờ học</div>
+                    <div class="mt-2 text-xs text-slate-400"><span th:text="${totalMinutes}">0</span> phút tích lũy</div>
+                </div>
+
+                <!-- Tỷ lệ hoàn thành -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="h-11 w-11 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:chart-2-bold" width="22"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900 mb-0.5" th:text="${completionRate} + '%'">0%</div>
+                    <div class="text-xs text-slate-500">Tỷ lệ hoàn thành</div>
+                    <div class="mt-2 text-xs text-slate-400">
+                        <span th:text="${completedAssignments}">0</span>/<span th:text="${totalAssignments}">0</span> bài tập
+                    </div>
+                </div>
+
+                <!-- Lớp học -->
+                <div class="bg-white p-5 rounded-xl border border-slate-200 hover:shadow-lg transition-all">
+                    <div class="flex items-center justify-between mb-3">
+                        <div class="h-11 w-11 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
+                            <iconify-icon icon="solar:users-group-rounded-bold" width="22"></iconify-icon>
+                        </div>
+                    </div>
+                    <div class="text-2xl font-bold text-slate-900 mb-0.5" th:text="${totalClasses}">0</div>
+                    <div class="text-xs text-slate-500">Lớp đã tham gia</div>
+                    <div class="mt-2 text-xs text-slate-400">Thành viên từ <span th:text="${memberSince}">N/A</span></div>
+                </div>
+            </div>
+
+            <!-- XP Level Bar (mobile) -->
+            <div class="md:hidden bg-white rounded-xl border border-slate-200 p-5 mb-6">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <div class="text-xs text-slate-500 mb-0.5">Cấp độ</div>
+                        <div class="text-lg font-bold text-slate-900" th:text="${level}">Beginner</div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xs text-slate-500 mb-0.5">Tổng XP</div>
+                        <div class="text-xl font-bold text-amber-500" th:text="${totalXP} + ' XP'">0 XP</div>
+                    </div>
+                </div>
+                <div class="h-3 bg-slate-100 rounded-full overflow-hidden">
+                    <div class="h-full bg-gradient-to-r from-amber-400 to-amber-500 rounded-full" th:style="'width:' + ${xpPercent} + '%'"></div>
+                </div>
+                <div class="flex justify-between text-xs text-slate-400 mt-1">
+                    <span th:text="${totalXP} + ' XP'">0 XP</span>
+                    <span th:text="${nextLevelXP} + ' XP'">500 XP</span>
+                </div>
+                <div class="text-xs text-center text-slate-500 mt-1">Tiếp theo: <span class="font-medium text-purple-600" th:text="${nextLevel}">Elementary</span></div>
+            </div>
+
+            <!-- Charts Row -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <!-- Weekly Activity Chart -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-medium text-slate-900">Hoạt động trong tuần</h3>
+                        <span class="text-xs text-slate-400">Phút học mỗi ngày</span>
+                    </div>
+                    <div class="relative" style="height: 240px;">
+                        <canvas id="progressChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Skills Breakdown -->
+                <div class="bg-white p-6 rounded-xl border border-slate-200">
+                    <div class="flex items-center justify-between mb-4">
+                        <h3 class="text-base font-medium text-slate-900">Phân tích kỹ năng</h3>
+                        <span class="text-xs text-slate-400">% hoàn thành</span>
+                    </div>
+                    <div class="relative" style="height: 240px;">
+                        <canvas id="skillsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Skills Progress Bars -->
+            <div class="bg-white rounded-xl border border-slate-200 p-6 mb-8">
+                <h3 class="text-base font-medium text-slate-900 mb-5">Kỹ năng chi tiết</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-5">
+                    <!-- Listening -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <iconify-icon icon="solar:headphones-round-sound-bold" width="16" class="text-amber-500"></iconify-icon>
+                                <span class="text-sm font-medium text-slate-700">Listening</span>
+                            </div>
+                            <span class="text-sm font-semibold text-amber-600">85%</span>
+                        </div>
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-amber-400 rounded-full" style="width: 85%"></div>
+                        </div>
+                    </div>
+                    <!-- Speaking -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <iconify-icon icon="solar:microphone-2-bold" width="16" class="text-emerald-500"></iconify-icon>
+                                <span class="text-sm font-medium text-slate-700">Speaking</span>
+                            </div>
+                            <span class="text-sm font-semibold text-emerald-600">75%</span>
+                        </div>
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-emerald-400 rounded-full" style="width: 75%"></div>
+                        </div>
+                    </div>
+                    <!-- Reading -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <iconify-icon icon="solar:document-text-bold" width="16" class="text-blue-500"></iconify-icon>
+                                <span class="text-sm font-medium text-slate-700">Reading</span>
+                            </div>
+                            <span class="text-sm font-semibold text-blue-600">90%</span>
+                        </div>
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-blue-400 rounded-full" style="width: 90%"></div>
+                        </div>
+                    </div>
+                    <!-- Writing -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <iconify-icon icon="solar:pen-new-square-bold" width="16" class="text-purple-500"></iconify-icon>
+                                <span class="text-sm font-medium text-slate-700">Writing</span>
+                            </div>
+                            <span class="text-sm font-semibold text-purple-600">70%</span>
+                        </div>
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-purple-400 rounded-full" style="width: 70%"></div>
+                        </div>
+                    </div>
+                    <!-- Grammar -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <iconify-icon icon="solar:notebook-bookmark-bold" width="16" class="text-rose-500"></iconify-icon>
+                                <span class="text-sm font-medium text-slate-700">Grammar</span>
+                            </div>
+                            <span class="text-sm font-semibold text-rose-600">80%</span>
+                        </div>
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-rose-400 rounded-full" style="width: 80%"></div>
+                        </div>
+                    </div>
+                    <!-- Vocabulary -->
+                    <div>
+                        <div class="flex items-center justify-between mb-1.5">
+                            <div class="flex items-center gap-2">
+                                <iconify-icon icon="solar:book-bookmark-bold" width="16" class="text-indigo-500"></iconify-icon>
+                                <span class="text-sm font-medium text-slate-700">Vocabulary</span>
+                            </div>
+                            <span class="text-sm font-semibold text-indigo-600">88%</span>
+                        </div>
+                        <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                            <div class="h-full bg-indigo-400 rounded-full" style="width: 88%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bottom Row: Activity + Achievements -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <!-- Activity Timeline -->
+                <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6">
+                    <h3 class="text-base font-medium text-slate-900 mb-5">Hoạt động gần đây</h3>
+                    <div class="space-y-5">
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                <iconify-icon icon="solar:check-circle-bold" width="20"></iconify-icon>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
+                                    <h4 class="font-medium text-slate-900 text-sm">Hoàn thành Listening - Unit 3</h4>
+                                    <span class="text-xs text-slate-400 flex-shrink-0">2 giờ trước</span>
+                                </div>
+                                <p class="text-xs text-slate-500">Điểm: 9.5/10 • 25 phút</p>
+                                <div class="mt-1.5 flex items-center gap-2">
+                                    <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">+50 XP</span>
+                                    <span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded">🏆 Perfect Score</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                                <iconify-icon icon="solar:book-2-bold" width="20"></iconify-icon>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
+                                    <h4 class="font-medium text-slate-900 text-sm">Học từ vựng mới - Unit 2</h4>
+                                    <span class="text-xs text-slate-400 flex-shrink-0">5 giờ trước</span>
+                                </div>
+                                <p class="text-xs text-slate-500">25/30 từ • Độ chính xác: 88%</p>
+                                <div class="mt-1.5"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">+30 XP</span></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
+                                <iconify-icon icon="solar:microphone-2-bold" width="20"></iconify-icon>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
+                                    <h4 class="font-medium text-slate-900 text-sm">Luyện Speaking - Unit 1</h4>
+                                    <span class="text-xs text-slate-400 flex-shrink-0">1 ngày trước</span>
+                                </div>
+                                <p class="text-xs text-slate-500">Điểm phát âm: 8.0/10 • 15 phút</p>
+                                <div class="mt-1.5"><span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-medium">+40 XP</span></div>
+                            </div>
+                        </div>
+                        <div class="flex gap-4">
+                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
+                                <iconify-icon icon="solar:document-text-bold" width="20"></iconify-icon>
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
+                                    <h4 class="font-medium text-slate-900 text-sm">Làm bài Reading - Unit 2</h4>
+                                    <span class="text-xs text-slate-400 flex-shrink-0">2 ngày trước</span>
+                                </div>
+                                <p class="text-xs text-slate-500">Điểm: 7.5/10 • 30 phút</p>
+                                <div class="mt-1.5"><span class="text-xs bg-rose-50 text-rose-700 px-2 py-0.5 rounded font-medium">+35 XP</span></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Achievements -->
+                <div class="bg-white rounded-xl border border-slate-200 p-6">
+                    <h3 class="text-base font-medium text-slate-900 mb-5">Thành tích</h3>
+                    <div class="space-y-3">
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200">
+                            <div class="text-2xl flex-shrink-0">🏆</div>
+                            <div>
+                                <div class="font-medium text-slate-900 text-sm">First Steps</div>
+                                <div class="text-xs text-slate-500">Hoàn thành bài đầu tiên</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200">
+                            <div class="text-2xl flex-shrink-0">📚</div>
+                            <div>
+                                <div class="font-medium text-slate-900 text-sm">Bookworm</div>
+                                <div class="text-xs text-slate-500">Học 10 bài liên tiếp</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-emerald-50 to-emerald-100 border border-emerald-200">
+                            <div class="text-2xl flex-shrink-0">🔥</div>
+                            <div>
+                                <div class="font-medium text-slate-900 text-sm">On Fire</div>
+                                <div class="text-xs text-slate-500">Streak 7 ngày</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-purple-100 border border-purple-200">
+                            <div class="text-2xl flex-shrink-0">⭐</div>
+                            <div>
+                                <div class="font-medium text-slate-900 text-sm">Perfect Score</div>
+                                <div class="text-xs text-slate-500">Đạt 10/10 lần đầu</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 opacity-40">
+                            <div class="text-2xl flex-shrink-0 grayscale">🎯</div>
+                            <div>
+                                <div class="font-medium text-slate-700 text-sm">Sharp Shooter</div>
+                                <div class="text-xs text-slate-400">Trả lời đúng 50 câu liên tục</div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 p-3 rounded-lg border border-slate-200 opacity-40">
+                            <div class="text-2xl flex-shrink-0 grayscale">👑</div>
+                            <div>
+                                <div class="font-medium text-slate-700 text-sm">Top Learner</div>
+                                <div class="text-xs text-slate-400">Xếp hạng top 10 lớp</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // Mobile menu
+        const mobileToggle = document.getElementById('mobile-menu-toggle');
+        const mobileMenu = document.getElementById('mobile-menu');
+        if (mobileToggle && mobileMenu) {
+            mobileToggle.addEventListener('click', () => {
+                const isHidden = mobileMenu.classList.toggle('hidden');
+                mobileToggle.innerHTML = isHidden
+                    ? '<iconify-icon icon="solar:hamburger-menu-linear" width="24"></iconify-icon>'
+                    : '<iconify-icon icon="solar:close-circle-linear" width="24"></iconify-icon>';
+            });
+        }
+
+        // Charts
+        document.addEventListener('DOMContentLoaded', function () {
+            // Weekly progress chart
+            const progressCtx = document.getElementById('progressChart');
+            if (progressCtx) {
+                new Chart(progressCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                        datasets: [{
+                            label: 'Thời gian học (phút)',
+                            data: [45, 60, 30, 75, 90, 50, 65],
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            borderColor: 'rgb(139, 92, 246)',
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
+                            x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+                        }
+                    }
+                });
+            }
+
+            // Skills radar/doughnut chart
+            const skillsCtx = document.getElementById('skillsChart');
+            if (skillsCtx) {
+                new Chart(skillsCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Listening', 'Speaking', 'Reading', 'Writing', 'Grammar', 'Vocabulary'],
+                        datasets: [{
+                            label: '% Kỹ năng',
+                            data: [85, 75, 90, 70, 80, 88],
+                            backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                            borderColor: 'rgb(139, 92, 246)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgb(139, 92, 246)',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: { display: false, stepSize: 25 },
+                                grid: { color: 'rgba(0,0,0,0.07)' },
+                                pointLabels: { font: { size: 11 } }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+    <!-- SHARED STUDENT FOOTER -->
+    <th:block th:replace="shared/student-footer :: student-footer"></th:block>
+
+</body>
+
+</html>

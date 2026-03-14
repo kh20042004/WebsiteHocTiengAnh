@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${unit.title} + ' - Quản lý bài học'">Quản lý bài học</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- NAVBAR -->
+    <header class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="flex h-16 items-center justify-between">
+                <a href="/" class="flex items-center gap-3">
+                    <span class="text-lg font-semibold text-slate-900">English 12 Smart</span>
+                </a>
+                <nav class="hidden md:flex items-center gap-6">
+                    <a href="/dashboard/teacher" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Dashboard</a>
+                    <a href="/dashboard/teacher/content" class="text-sm font-medium text-emerald-600">Nội dung</a>
+                    <a href="/dashboard/teacher/classes" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Lớp học</a>
+                </nav>
+                <div class="flex items-center gap-3">
+                    <span class="text-sm text-slate-600" th:text="${username}">Giáo viên</span>
+                    <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 cursor-pointer">Đăng xuất</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-16 min-h-screen">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
+
+            <!-- BREADCRUMB  -->
+            <nav class="flex items-center gap-2 text-sm text-slate-400 mb-6">
+                <a href="/dashboard/teacher/content" class="hover:text-emerald-600 transition-colors">Quản lý nội dung</a>
+                <iconify-icon icon="mdi:chevron-right"></iconify-icon>
+                <span class="text-slate-700 font-medium" th:text="${unit.title}">Unit Title</span>
+            </nav>
+
+            <!-- HEADER UNIT -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+                <div class="flex items-start justify-between">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-xs bg-emerald-100 text-emerald-700 px-2 py-0.5 rounded-full font-medium"
+                                th:text="'Unit ' + ${unit.orderIndex}">Unit 1</span>
+                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full"
+                                th:text="${unit.level}">B1</span>
+                            <span class="text-xs px-2 py-0.5 rounded-full"
+                                th:classappend="${unit.isActive} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                th:text="${unit.isActive} ? 'Đang hiển thị' : 'Đang ẩn'">Hiển thị</span>
+                        </div>
+                        <h1 class="text-2xl font-bold text-slate-900" th:text="${unit.title}">Unit Title</h1>
+                        <p class="text-slate-500 mt-1" th:text="${unit.description}">Mô tả</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-3xl font-bold text-emerald-600" th:text="${unit.totalLessons}">0</div>
+                        <div class="text-xs text-slate-400">bài học</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DANH SÁCH BÀI HỌC -->
+            <div class="flex items-center justify-between mb-5">
+                <h2 class="text-lg font-semibold text-slate-900">Danh sách bài học</h2>
+                <button th:onclick="'openCreateLessonModal(\'' + ${unit.id} + '\')'"
+                    class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                    <iconify-icon icon="mdi:plus" class="text-lg"></iconify-icon>
+                    Thêm bài học
+                </button>
+            </div>
+
+            <!-- Thông báo khi chưa có bài học -->
+            <div th:if="${#lists.isEmpty(lessons)}" class="text-center py-12 bg-white rounded-xl border border-slate-200">
+                <iconify-icon icon="mdi:book-plus-outline" class="text-5xl text-slate-300 mb-3"></iconify-icon>
+                <p class="text-slate-400">Chưa có bài học nào. Nhấn "Thêm bài học" để bắt đầu!</p>
+            </div>
+
+            <!-- Bảng danh sách bài học -->
+            <div th:unless="${#lists.isEmpty(lessons)}" class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <table class="w-full text-sm">
+                    <thead class="bg-slate-50 border-b border-slate-200">
+                        <tr>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">STT</th>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Tiêu đề</th>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Loại</th>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Thời gian</th>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Bài tập</th>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Trạng thái</th>
+                            <th class="text-left px-5 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wider">Thao tác</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        <tr th:each="lesson : ${lessons}" class="hover:bg-slate-50 transition-colors">
+                            <td class="px-5 py-4 text-xs text-slate-400" th:text="${lesson.orderIndex}">1</td>
+                            <td class="px-5 py-4">
+                                <div class="font-medium text-slate-900" th:text="${lesson.title}">Tên bài</div>
+                                <div class="text-xs text-slate-400 mt-0.5" th:text="${lesson.description}">Mô tả</div>
+                            </td>
+                            <td class="px-5 py-4">
+                                <span class="text-xs px-2 py-1 rounded-full font-medium"
+                                    th:classappend="${lesson.type == 'VOCABULARY'} ? 'bg-purple-100 text-purple-700' :
+                                                   (${lesson.type == 'GRAMMAR'} ? 'bg-blue-100 text-blue-700' :
+                                                   (${lesson.type == 'READING'} ? 'bg-amber-100 text-amber-700' :
+                                                   (${lesson.type == 'LISTENING'} ? 'bg-green-100 text-green-700' :
+                                                   (${lesson.type == 'WRITING'} ? 'bg-red-100 text-red-700' : 'bg-slate-100 text-slate-700'))))"
+                                    th:text="${lesson.type}">GRAMMAR</span>
+                            </td>
+                            <td class="px-5 py-4 text-slate-600" th:text="${lesson.estimatedDurationMinutes} + ' phút'">30 phút</td>
+                            <td class="px-5 py-4 text-slate-600" th:text="${lesson.totalExercises} + ' bài'">0 bài</td>
+                            <td class="px-5 py-4">
+                                <span class="text-xs px-2 py-0.5 rounded-full"
+                                    th:classappend="${lesson.isActive} ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'"
+                                    th:text="${lesson.isActive} ? 'Hiển thị' : 'Ẩn'">Hiển thị</span>
+                            </td>
+                            <td class="px-5 py-4">
+                                <div class="flex items-center gap-2">
+                                    <!-- Nút quản lý bài tập -->
+                                    <a th:href="@{/dashboard/teacher/content/lessons/{id}(id=${lesson.id})}"
+                                        class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md transition-colors">
+                                        Bài tập
+                                    </a>
+                                    <!-- Nút xoá -->
+                                    <button th:onclick="'deleteLesson(\'' + ${lesson.id} + '\', \'' + ${lesson.title} + '\')'"
+                                        class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded-md transition-colors">
+                                        <iconify-icon icon="mdi:delete"></iconify-icon>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </main>
+
+    <!-- MODAL: TẠO BÀI HỌC -->
+    <div id="createLessonModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg max-h-screen overflow-y-auto">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100 sticky top-0 bg-white">
+                <h2 class="text-lg font-semibold text-slate-900">Thêm bài học mới</h2>
+                <button onclick="closeCreateLessonModal()" class="text-slate-400 hover:text-slate-600">
+                    <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <input id="lessonUnitId" type="hidden">
+                <!-- Tiêu đề -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Tiêu đề bài học <span class="text-red-500">*</span></label>
+                    <input id="lessonTitle" type="text" placeholder="Ví dụ: Getting Started"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <!-- Mô tả -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Mô tả ngắn</label>
+                    <input id="lessonDescription" type="text" placeholder="Mô tả ngắn về bài học"
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                </div>
+                <!-- Loại bài học & Số thứ tự -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Loại bài học</label>
+                        <select id="lessonType" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="GETTING_STARTED">Getting Started</option>
+                            <option value="VOCABULARY">Vocabulary</option>
+                            <option value="GRAMMAR">Grammar</option>
+                            <option value="READING">Reading</option>
+                            <option value="LISTENING">Listening</option>
+                            <option value="SPEAKING">Speaking</option>
+                            <option value="WRITING">Writing</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Số thứ tự</label>
+                        <input id="lessonOrder" type="number" min="1" placeholder="1"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+                <!-- Nội dung bài học -->
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-1">Nội dung bài học</label>
+                    <textarea id="lessonContent" rows="5" placeholder="Nhập nội dung bài học (HTML hoặc text)..."
+                        class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-y"></textarea>
+                </div>
+                <!-- Thời gian & XP -->
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Thời gian (phút)</label>
+                        <input id="lessonDuration" type="number" min="5" value="30"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Điểm XP</label>
+                        <input id="lessonXp" type="number" min="0" value="10"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+                <!-- Thông báo lỗi -->
+                <p id="createLessonError" class="hidden text-red-500 text-sm"></p>
+            </div>
+            <div class="flex gap-3 p-6 pt-0">
+                <button onclick="closeCreateLessonModal()"
+                    class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Huỷ</button>
+                <button onclick="submitCreateLesson()"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Tạo bài học</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST -->
+    <div id="toast" class="hidden fixed bottom-6 right-6 z-50 flex items-center gap-3 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-lg text-sm max-w-xs">
+        <iconify-icon id="toastIcon" icon="mdi:check-circle" class="text-green-400 text-lg shrink-0"></iconify-icon>
+        <span id="toastMessage"></span>
+    </div>
+
+    <script>
+        const token = localStorage.getItem('token');
+
+        function openCreateLessonModal(unitId) {
+            document.getElementById('lessonUnitId').value = unitId;
+            document.getElementById('createLessonModal').classList.remove('hidden');
+        }
+
+        function closeCreateLessonModal() {
+            document.getElementById('createLessonModal').classList.add('hidden');
+        }
+
+        async function submitCreateLesson() {
+            const unitId = document.getElementById('lessonUnitId').value;
+            const title = document.getElementById('lessonTitle').value.trim();
+            const description = document.getElementById('lessonDescription').value.trim();
+            const type = document.getElementById('lessonType').value;
+            const orderIndex = parseInt(document.getElementById('lessonOrder').value) || 1;
+            const content = document.getElementById('lessonContent').value.trim();
+            const estimatedDurationMinutes = parseInt(document.getElementById('lessonDuration').value) || 30;
+            const xpReward = parseInt(document.getElementById('lessonXp').value) || 10;
+            const errorEl = document.getElementById('createLessonError');
+
+            if (!title) {
+                errorEl.textContent = 'Vui lòng nhập tiêu đề bài học!';
+                errorEl.classList.remove('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch('/api/lessons', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: JSON.stringify({ unitId, title, description, type, orderIndex, content, estimatedDurationMinutes, xpReward })
+                });
+
+                const data = await res.json();
+
+                if (res.ok) {
+                    showToast('Tạo bài học thành công!', 'success');
+                    closeCreateLessonModal();
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    errorEl.textContent = data.message || 'Có lỗi xảy ra!';
+                    errorEl.classList.remove('hidden');
+                }
+            } catch (err) {
+                errorEl.textContent = 'Lỗi kết nối server!';
+                errorEl.classList.remove('hidden');
+            }
+        }
+
+        async function deleteLesson(id, title) {
+            if (!confirm(`Xoá bài học "${title}"?\nCác bài tập bên trong cũng sẽ bị xoá!`)) return;
+
+            try {
+                const res = await fetch(`/api/lessons/${id}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': 'Bearer ' + token }
+                });
+
+                if (res.ok) {
+                    showToast('Đã xoá bài học!', 'success');
+                    setTimeout(() => location.reload(), 800);
+                } else {
+                    showToast('Xoá thất bại!', 'error');
+                }
+            } catch (err) {
+                showToast('Lỗi kết nối server!', 'error');
+            }
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            const icon = document.getElementById('toastIcon');
+            document.getElementById('toastMessage').textContent = message;
+            icon.setAttribute('icon', type === 'success' ? 'mdi:check-circle' : 'mdi:alert-circle');
+            icon.className = type === 'success' ? 'text-green-400 text-lg shrink-0' : 'text-red-400 text-lg shrink-0';
+            toast.classList.remove('hidden');
+            setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+
+        function logout() {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = '/auth/login';
+        }
+    </script>
+
+</body>
+</html>
