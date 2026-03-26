@@ -51,14 +51,14 @@
             <h2 class="text-lg font-semibold text-slate-900 mb-4">Các bài học</h2>
 
             <!-- Chưa có bài học -->
-            <div th:if="${#lists.isEmpty(lessons)}" class="text-center py-12 bg-white rounded-xl border border-slate-200">
+            <div th:if="${#lists.isEmpty(unit.lessons)}" class="text-center py-12 bg-white rounded-xl border border-slate-200">
                 <iconify-icon icon="mdi:book-open-outline" class="text-5xl text-slate-300 mb-3"></iconify-icon>
                 <p class="text-slate-400">Chưa có bài học nào trong unit này.</p>
             </div>
 
             <!-- Danh sách bài học dạng list -->
-            <div th:unless="${#lists.isEmpty(lessons)}" class="space-y-3">
-                <a th:each="lesson, stat : ${lessons}"
+            <div th:unless="${#lists.isEmpty(unit.lessons)}" class="space-y-3">
+                <a th:each="lesson, stat : ${unit.lessons}"
                     th:href="@{/learn/lessons/{id}(id=${lesson.id})}"
                     class="group flex items-center gap-4 bg-white border border-slate-200 rounded-xl p-4 hover:border-emerald-300 hover:shadow-sm transition-all">
 
@@ -86,6 +86,10 @@
                     <div class="flex items-center gap-3 shrink-0">
                         <span class="text-xs text-slate-400" th:text="${lesson.totalExercises} + ' bài tập'">0 bài tập</span>
                         <iconify-icon icon="mdi:chevron-right" class="text-slate-400 group-hover:text-emerald-500 transition-colors"></iconify-icon>
+                    </div>
+                </a>
+            </div>
+        </div>
     </main>
 
     <!-- SHARED STUDENT FOOTER -->

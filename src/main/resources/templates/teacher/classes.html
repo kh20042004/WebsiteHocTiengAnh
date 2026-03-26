@@ -17,8 +17,12 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Tailwind CSS -->
-    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <!-- Tailwind CSS (Development mode - will need CLI build for production) -->
+    <script>
+        // Tắt cảnh báo Tailwind CDN trong development
+        window.tailwindConfig = { theme: { extend: {} } };
+        window.process = { env: { NODE_ENV: 'development' } };
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
 
     <!-- Iconify -->
@@ -951,6 +955,9 @@
                 closeDetailModal();
                 closeDeleteModal();
             }
+        });
+    </script>
+
     <!-- SHARED FOOTER -->
     <th:block th:insert="teacher/shared/footer"></th:block>
 

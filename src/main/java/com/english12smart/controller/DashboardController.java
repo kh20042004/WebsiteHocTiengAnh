@@ -18,6 +18,7 @@ import com.english12smart.service.AssignmentService;
 import com.english12smart.service.ClassroomService;
 import com.english12smart.service.ContentService;
 import com.english12smart.service.ExamService;
+import com.english12smart.service.ProgressService;
 import com.english12smart.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -58,6 +59,7 @@ public class DashboardController {
     private final AssignmentService assignmentService;
     private final ContentService contentService;
     private final ExamService examService;
+    private final ProgressService progressService;
     private final ClassroomRepository classroomRepository;
     private final AssignmentRepository assignmentRepository;
     private final ExamRepository examRepository;
@@ -155,6 +157,9 @@ public class DashboardController {
 
             log.info("User đang đăng nhập: {} ({})", currentUser.getFullName(), currentUser.getId());
 
+            // Lấy studentId cho các bước tiếp theo
+            String studentId = currentUser.getId();
+
             // ========== 2. Lấy danh sách Unit active (chương) ==========
             log.info("Đang lấy danh sách Unit...");
             List<ContentDTO.UnitResponse> allUnits = new ArrayList<>();
@@ -166,6 +171,21 @@ public class DashboardController {
                 // Load Lessons cho mỗi Unit
                 for (ContentDTO.UnitResponse unit : unitList) {
                     ContentDTO.UnitResponse unitWithLessons = contentService.getUnitWithLessons(unit.getId());
+                    
+                    // ========== CALCULATE PROGRESS cho mỗi lesson ==========
+                    if (unitWithLessons.getLessons() != null) {
+                        for (ContentDTO.LessonResponse lesson : unitWithLessons.getLessons()) {
+                            try {
+                                int progressPercent = progressService.getLessonProgressPercent(lesson.getId(), studentId);
+                                lesson.setProgressPercent(progressPercent);
+                                log.debug("Tiến độ bài học {}: {}%", lesson.getTitle(), progressPercent);
+                            } catch (Exception e) {
+                                log.warn("Lỗi tính tiến độ bài học {}: {}", lesson.getId(), e.getMessage());
+                                lesson.setProgressPercent(0);  // Default 0% nếu có lỗi
+                            }
+                        }
+                    }
+                    
                     allUnits.add(unitWithLessons);
                 }
                 
@@ -194,7 +214,6 @@ public class DashboardController {
 
             // ========== 3. Lấy danh sách lớp học của student ==========
             log.info("Đang lấy danh sách lớp học của học sinh...");
-            String studentId = currentUser.getId();
             
             // Tìm tất cả classroom có chứa studentId này
             List<Classroom> studentClassrooms = classroomRepository.findByStudentIdsContaining(studentId);

@@ -84,11 +84,21 @@
                                 class="flex-1 text-center text-sm bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-3 py-2 rounded-lg transition-colors font-medium">
                                 Quản lý bài học
                             </a>
-                            <button th:onclick="'editUnit(\'' + ${unit.id} + '\', \'' + ${unit.title} + '\', \'' + ${unit.description} + '\', \'' + ${unit.level} + '\')'"
+                            <!-- Sửa nút Edit: Sử dụng data-* attributes thay vì nối chuỗi trong th:onclick -->
+                            <button type="button"
+                                th:data-unit-id="${unit.id}"
+                                th:data-unit-title="${unit.title}"
+                                th:data-unit-description="${unit.description}"
+                                th:data-unit-level="${unit.level}"
+                                onclick="editUnitFromButton(this)"
                                 class="text-sm bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-2 rounded-lg transition-colors">
                                 <iconify-icon icon="mdi:pencil"></iconify-icon>
                             </button>
-                            <button th:onclick="'deleteUnit(\'' + ${unit.id} + '\', \'' + ${unit.title} + '\')'"
+                            <!-- Sửa nút Delete: Sử dụng data-* attributes thay vì nối chuỗi trong th:onclick -->
+                            <button type="button"
+                                th:data-unit-id="${unit.id}"
+                                th:data-unit-title="${unit.title}"
+                                onclick="deleteUnitFromButton(this)"
                                 class="text-sm bg-red-50 hover:bg-red-100 text-red-600 px-3 py-2 rounded-lg transition-colors">
                                 <iconify-icon icon="mdi:delete"></iconify-icon>
                             </button>
@@ -268,6 +278,20 @@
         // =========================================================
         //  MODAL: SỬA UNIT
         // =========================================================
+        //  CHỈNH SỬA UNIT
+        // =========================================================
+
+        /**
+         * Wrapper function để lấy dữ liệu từ data-* attributes của button
+         * Được gọi từ onclick="editUnitFromButton(this)"
+         */
+        function editUnitFromButton(button) {
+            const id = button.getAttribute('data-unit-id');
+            const title = button.getAttribute('data-unit-title');
+            const description = button.getAttribute('data-unit-description');
+            const level = button.getAttribute('data-unit-level');
+            editUnit(id, title, description, level);
+        }
 
         function editUnit(id, title, description, level) {
             document.getElementById('editUnitId').value = id;
@@ -314,6 +338,16 @@
         // =========================================================
         //  XOÁ UNIT
         // =========================================================
+
+        /**
+         * Wrapper function để lấy dữ liệu từ data-* attributes của button
+         * Được gọi từ onclick="deleteUnitFromButton(this)"
+         */
+        function deleteUnitFromButton(button) {
+            const id = button.getAttribute('data-unit-id');
+            const title = button.getAttribute('data-unit-title');
+            deleteUnit(id, title);
+        }
 
         async function deleteUnit(id, title) {
             // Xác nhận trước khi xoá

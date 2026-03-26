@@ -239,6 +239,10 @@ public class ContentDTO {
 
         /** Số bài tập trong lesson này */
         private Long totalExercises;
+
+        /** Tiến độ học (%) - từ ProgressService */
+        @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+        private Integer progressPercent;
     }
 
     // =======================================================

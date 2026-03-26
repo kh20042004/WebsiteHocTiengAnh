@@ -221,16 +221,16 @@
                                     <div class="mb-3">
                                         <div class="flex items-center justify-between text-xs mb-1">
                                             <span class="text-slate-500">Tiến độ</span>
-                                            <!-- Tạm thời hardcode 0% vì không có tracking data -->
-                                            <span class="font-medium text-brand-600">0%</span>
+                                            <span class="font-medium text-brand-600" th:text="${lesson.progressPercent != null ? lesson.progressPercent : 0} + '%'">0%</span>
                                         </div>
                                         <div class="h-2 bg-slate-100 rounded-full overflow-hidden">
-                                            <div class="h-full bg-brand-500 w-[0%]"></div>
+                                            <div class="h-full bg-brand-500 transition-all duration-300" 
+                                                th:style="${'width: ' + (lesson.progressPercent != null ? lesson.progressPercent : 0) + '%'}"></div>
                                         </div>
                                     </div>
 
                                     <!-- Button: Tiếp tục học -->
-                                    <a th:href="${'/learn/lesson/' + lesson.id}"
+                                    <a th:href="${'/learn/lessons/' + lesson.id}"
                                         class="block w-full py-2 px-4 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors text-center">
                                         Tiếp tục học
                                     </a>

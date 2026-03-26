@@ -69,7 +69,11 @@
             <!-- DANH SÁCH BÀI TẬP -->
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-lg font-semibold text-slate-900">Danh sách bài tập</h2>
-                <button th:onclick="'openCreateExerciseModal(\'' + ${lesson.id} + '\', \'' + ${lesson.unitId} + '\')'"
+                <!-- Sửa: Dùng data-lesson-id và data-unit-id thay vì nối chuỗi trong th:onclick -->
+                <button type="button"
+                    th:data-lesson-id="${lesson.id}"
+                    th:data-unit-id="${lesson.unitId}"
+                    onclick="openCreateExerciseModalFromButton(this)"
                     class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     <iconify-icon icon="mdi:plus" class="text-lg"></iconify-icon>
                     Thêm bài tập
@@ -93,7 +97,11 @@
                                            (${ex.type == 'TRUE_FALSE'} ? 'bg-green-100 text-green-700' :
                                            (${ex.type == 'MATCHING'} ? 'bg-purple-100 text-purple-700' : 'bg-slate-100 text-slate-700')))"
                             th:text="${ex.type}">MULTIPLE_CHOICE</span>
-                        <button th:onclick="'deleteExercise(\'' + ${ex.id} + '\', \'' + ${ex.title} + '\')'"
+                        <!-- Sửa: Dùng data-* attributes thay vì nối chuỗi trong th:onclick -->
+                        <button type="button"
+                            th:data-exercise-id="${ex.id}"
+                            th:data-exercise-title="${ex.title}"
+                            onclick="deleteExerciseFromButton(this)"
                             class="text-slate-400 hover:text-red-500 transition-colors">
                             <iconify-icon icon="mdi:delete-outline"></iconify-icon>
                         </button>
@@ -198,6 +206,16 @@
         const token = localStorage.getItem('token');
         // Đếm số câu hỏi đã thêm
         let questionCount = 0;
+
+        /**
+         * Wrapper function để lấy dữ liệu từ data-lesson-id và data-unit-id attributes
+         * Được gọi từ onclick="openCreateExerciseModalFromButton(this)"
+         */
+        function openCreateExerciseModalFromButton(button) {
+            const lessonId = button.getAttribute('data-lesson-id');
+            const unitId = button.getAttribute('data-unit-id');
+            openCreateExerciseModal(lessonId, unitId);
+        }
 
         function openCreateExerciseModal(lessonId, unitId) {
             document.getElementById('exLessonId').value = lessonId;
@@ -358,6 +376,16 @@
                 errorEl.textContent = 'Lỗi kết nối server!';
                 errorEl.classList.remove('hidden');
             }
+        }
+
+        /**
+         * Wrapper function để lấy dữ liệu từ data-* attributes của button
+         * Được gọi từ onclick="deleteExerciseFromButton(this)"
+         */
+        function deleteExerciseFromButton(button) {
+            const id = button.getAttribute('data-exercise-id');
+            const title = button.getAttribute('data-exercise-title');
+            deleteExercise(id, title);
         }
 
         async function deleteExercise(id, title) {

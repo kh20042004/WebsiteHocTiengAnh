@@ -66,7 +66,10 @@
             <!-- DANH SÁCH BÀI HỌC -->
             <div class="flex items-center justify-between mb-5">
                 <h2 class="text-lg font-semibold text-slate-900">Danh sách bài học</h2>
-                <button th:onclick="'openCreateLessonModal(\'' + ${unit.id} + '\')'"
+                <!-- Sửa: Dùng data-unit-id thay vì nối chuỗi trong th:onclick -->
+                <button type="button"
+                    th:data-unit-id="${unit.id}"
+                    onclick="openCreateLessonModalFromButton(this)"
                     class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
                     <iconify-icon icon="mdi:plus" class="text-lg"></iconify-icon>
                     Thêm bài học
@@ -123,8 +126,11 @@
                                         class="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 px-2 py-1 rounded-md transition-colors">
                                         Bài tập
                                     </a>
-                                    <!-- Nút xoá -->
-                                    <button th:onclick="'deleteLesson(\'' + ${lesson.id} + '\', \'' + ${lesson.title} + '\')'"
+                                    <!-- Nút xoá: Sửa dùng data-* attributes -->
+                                    <button type="button"
+                                        th:data-lesson-id="${lesson.id}"
+                                        th:data-lesson-title="${lesson.title}"
+                                        onclick="deleteLessonFromButton(this)"
                                         class="text-xs bg-red-50 hover:bg-red-100 text-red-600 px-2 py-1 rounded-md transition-colors">
                                         <iconify-icon icon="mdi:delete"></iconify-icon>
                                     </button>
@@ -220,6 +226,15 @@
     <script>
         const token = localStorage.getItem('token');
 
+        /**
+         * Wrapper function để lấy dữ liệu từ data-unit-id attribute của button
+         * Được gọi từ onclick="openCreateLessonModalFromButton(this)"
+         */
+        function openCreateLessonModalFromButton(button) {
+            const unitId = button.getAttribute('data-unit-id');
+            openCreateLessonModal(unitId);
+        }
+
         function openCreateLessonModal(unitId) {
             document.getElementById('lessonUnitId').value = unitId;
             document.getElementById('createLessonModal').classList.remove('hidden');
@@ -270,6 +285,16 @@
                 errorEl.textContent = 'Lỗi kết nối server!';
                 errorEl.classList.remove('hidden');
             }
+        }
+
+        /**
+         * Wrapper function để lấy dữ liệu từ data-* attributes của button
+         * Được gọi từ onclick="deleteLessonFromButton(this)"
+         */
+        function deleteLessonFromButton(button) {
+            const id = button.getAttribute('data-lesson-id');
+            const title = button.getAttribute('data-lesson-title');
+            deleteLesson(id, title);
         }
 
         async function deleteLesson(id, title) {

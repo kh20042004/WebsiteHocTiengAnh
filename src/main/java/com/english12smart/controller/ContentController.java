@@ -4,6 +4,7 @@ import com.english12smart.dto.ContentDTO;
 import com.english12smart.entity.User;
 import com.english12smart.repository.UserRepository;
 import com.english12smart.service.ContentService;
+import com.english12smart.service.ProgressService;
 import com.english12smart.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class ContentController {
 
     // ========== Dependencies ==========
     private final ContentService contentService;
+    private final ProgressService progressService;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
 
@@ -150,6 +152,27 @@ public class ContentController {
         // Lấy bài tập của bài học
         List<ContentDTO.ExerciseResponse> exercises = contentService.getExercisesByLesson(lessonId);
         model.addAttribute("exercises", exercises);
+
+        // ========== TRACKING PROGRESS ==========
+        // Lấy token từ cookie và ghi nhận xem bài học
+        try {
+            String token = extractTokenFromRequest(request);
+            if (token != null && jwtTokenProvider.validateToken(token)) {
+                String email = jwtTokenProvider.getEmailFromToken(token);
+                User user = userRepository.findByEmail(email);
+                if (user != null) {
+                    // Ghi nhận xem bài học
+                    progressService.markLessonViewed(lessonId, user.getId());
+                    
+                    // Tính tiến độ và add vào model
+                    var progress = progressService.calculateLessonProgress(lessonId, user.getId());
+                    model.addAttribute("progress", progress);
+                    log.info("Tiến độ bài học {}: {}%", lessonId, progress.getProgressPercent());
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Lỗi khi tracking progress: {}", e.getMessage());
+        }
 
         addUserInfoToModel(model, request);
 

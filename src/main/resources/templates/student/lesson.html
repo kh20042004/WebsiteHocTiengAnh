@@ -66,26 +66,62 @@
                         <span th:text="${exercises.size()} + ' bài tập'">0 bài tập</span>
                     </span>
                 </div>
+
+                <!-- PROGRESS BAR -->
+                <div th:if="${progress != null}" class="mt-4 pt-4 border-t border-slate-200">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-semibold text-slate-700">Tiến độ bài học</span>
+                        <span class="text-xs font-semibold"
+                            th:text="${progress != null && progress.progressPercent != null ? progress.progressPercent : 0} + '%'"
+                            th:classappend="${progress != null && progress.progressPercent == 100 ? 'text-emerald-600' : 'text-slate-600'}">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                        <div class="bg-emerald-500 h-full transition-all duration-300 rounded-full"
+                            th:style="${'width: ' + (progress != null && progress.progressPercent != null ? progress.progressPercent : 0) + '%'}"></div>
+                    </div>
+                    <div class="text-xs text-slate-500 mt-2">
+                        <span th:text="${progress != null && progress.completedExercises != null ? progress.completedExercises : 0}"></span> /
+                        <span th:text="${progress != null && progress.totalExercises != null ? progress.totalExercises : 0}"></span> bài tập hoàn thành
+                    </div>
+                </div>
             </div>
 
             <!-- NỘI DUNG BÀI HỌC: VOCABULARY FLASHCARDS -->
+            <!-- Hiển thị danh sách từ vựng dưới dạng flashcard grid nếu bài học loại VOCABULARY -->
             <div th:if="${lesson.type == 'VOCABULARY' and not #lists.isEmpty(lesson.vocabulary)}"
                 class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
                 <h2 class="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
                     <iconify-icon icon="mdi:card-text-outline" class="text-purple-500"></iconify-icon>
                     Từ vựng
                 </h2>
+                <!-- Grid 2 cột (1 cột trên mobile, 2 cột trên desktop) -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <!-- Lặp qua từng từ vựng -->
                     <div th:each="vocab : ${lesson.vocabulary}"
                         class="border border-slate-200 rounded-xl p-4 hover:border-purple-300 transition-colors">
+                        <!-- Hàng 1: Từ tiếng Anh + Nút phát âm + Loại từ (n., v., adj, etc) -->
                         <div class="flex items-start justify-between mb-1">
-                            <span class="font-semibold text-slate-900" th:text="${vocab.word}">word</span>
+                            <!-- Nhóm từ + icon loa -->
+                            <div class="flex items-center gap-2">
+                                <span class="font-semibold text-slate-900" th:text="${vocab.word}">word</span>
+                                <!-- Nút phát âm: Click để nghe từ được đọc bằng giọng Anh Mỹ -->
+                                <button onclick="speakWord(this)" th:data-word="${vocab.word}" 
+                                    class="text-purple-500 hover:text-purple-700 transition-colors flex items-center justify-center w-5 h-5"
+                                    title="Phát âm">
+                                    <iconify-icon icon="mdi:volume-high"></iconify-icon>
+                                </button>
+                            </div>
+                            <!-- Loại từ: noun (n.), verb (v.), adjective (adj), etc -->
                             <span class="text-xs text-slate-400 italic" th:text="${vocab.partOfSpeech}">n.</span>
                         </div>
+                        <!-- Hàng 2: Phiên âm IPA (cách đọc) -->
                         <div class="text-xs text-slate-400 mb-2" th:text="${vocab.pronunciation}">/prəˌnʌnsiˈeɪʃn/</div>
+                        <!-- Hàng 3: Nghĩa tiếng Việt (màu xanh) -->
                         <div class="text-sm text-emerald-700 font-medium" th:text="${vocab.meaning}">nghĩa</div>
+                        <!-- Hàng 4: Câu ví dụ tiếng Anh (nếu có) -->
                         <div th:if="${vocab.exampleSentence}" class="mt-2 text-xs text-slate-500 italic"
                             th:text="${vocab.exampleSentence}">Ví dụ</div>
+                        <!-- Hàng 5: Dịch câu ví dụ sang tiếng Việt (nếu có) -->
                         <div th:if="${vocab.exampleTranslation}" class="text-xs text-slate-400"
                             th:text="${vocab.exampleTranslation}">Dịch</div>
                     </div>
@@ -98,9 +134,9 @@
                     <iconify-icon icon="mdi:text-box-outline" class="text-blue-500"></iconify-icon>
                     Nội dung bài học
                 </h2>
-                <!-- Hiển thị nội dung an toàn (escaped) -->
+                <!-- Hiển thị nội dung HTML được render -->
                 <div class="prose prose-slate max-w-none text-sm leading-relaxed"
-                    th:text="${lesson.content}">Nội dung bài học</div>
+                    th:utext="${lesson.content}">Nội dung bài học</div>
             </div>
 
             <!-- AUDIO (nếu có) -->
@@ -139,6 +175,7 @@
 
             <!-- ĐIỀU HƯỚNG: BÀI TRƯỚC / TIẾP THEO -->
             <div class="flex items-center justify-between">
+
                 <a th:href="@{/dashboard/student/learn/units/{id}(id=${lesson.unitId})}"
                     class="flex items-center gap-2 text-sm text-slate-500 hover:text-emerald-600 transition-colors">
                     <iconify-icon icon="mdi:arrow-left"></iconify-icon>
@@ -150,6 +187,289 @@
 
     <!-- SHARED STUDENT FOOTER -->
     <th:block th:replace="shared/student-footer :: student-footer"></th:block>
+
+    <!-- TOAST NOTIFICATION CONTAINER -->
+    <div id="toast-container" class="fixed top-4 right-4 z-50 space-y-2"></div>
+
+    <!-- COMPLETION MODAL -->
+    <div id="completion-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-3xl p-8 max-w-md w-full mx-4 animate-bounce-in shadow-2xl">
+            <!-- Confetti animation container -->
+            <div id="confetti-container"></div>
+
+            <div class="text-center">
+                <!-- Success Icon -->
+                <div class="mb-4 flex justify-center">
+                    <div class="w-16 h-16 bg-gradient-to-br from-emerald-400 to-emerald-600 rounded-full flex items-center justify-center animate-pulse">
+                        <iconify-icon icon="mdi:check-circle" class="text-white text-4xl"></iconify-icon>
+                    </div>
+                </div>
+
+                <!-- Congratulations Message -->
+                <h2 class="text-2xl font-bold text-slate-900 mb-2">Chúc mừng!</h2>
+                <p class="text-slate-600 mb-6">
+                    Bạn đã hoàn thành <strong th:text="${lesson.title}">bài học</strong> thành công!
+                </p>
+
+                <!-- Stats -->
+                <div class="bg-slate-50 rounded-xl p-4 mb-6 space-y-2">
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-600">Bài tập hoàn thành:</span>
+                        <span class="font-semibold text-slate-900" th:text="${(progress != null && progress.completedExercises != null ? progress.completedExercises : 0)} + '/' + ${(progress != null && progress.totalExercises != null ? progress.totalExercises : 0)}">0/0</span>
+                    </div>
+                    <div class="flex items-center justify-between text-sm">
+                        <span class="text-slate-600">XP nhận được:</span>
+                        <span class="font-semibold text-emerald-600" th:text="${lesson.xpReward} + ' XP'">0 XP</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="space-y-3">
+                    <a href="/dashboard/student/learn" 
+                        class="block w-full bg-gradient-to-r from-emerald-500 to-emerald-600 text-white font-semibold py-3 rounded-xl hover:shadow-lg transition-all">
+                        Quay lại Dashboard
+                    </a>
+                    <button onclick="closeCompletionModal()"
+                        class="w-full bg-slate-100 text-slate-700 font-semibold py-3 rounded-xl hover:bg-slate-200 transition-colors">
+                        Tiếp tục học
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT FOR NOTIFICATIONS -->
+    <script>
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            checkLessonCompletion();
+        });
+
+        // Check if lesson progress is 100% and show completion modal
+        function checkLessonCompletion() {
+            const progressValue = '[[${progress != null ? progress.progressPercent : 0}]]';
+            const progressPercent = parseInt(progressValue) || 0;
+            
+            if (progressPercent === 100) {
+                // Show modal with brief delay for UX
+                setTimeout(() => {
+                    showCompletionModal();
+                    playConfetti();
+                    showToast('Chúc mừng! Bạn đã hoàn thành bài học! 🎉', 'success');
+                }, 500);
+            }
+        }
+
+        // Phát âm từ vựng sử dụng Web Speech API
+        // Tham số: button - nút được click
+        function speakWord(button) {
+            // Lấy từ tiếng Anh từ thuộc tính data-word của button
+            const word = button.getAttribute('data-word');
+            if (!word) return;
+
+            // Dừng bất kỳ âm thanh nào đang phát
+            window.speechSynthesis.cancel();
+
+            // Tạo object SpeechSynthesisUtterance để phát âm
+            const utterance = new SpeechSynthesisUtterance(word);
+            utterance.lang = 'en-US';  // Đặt ngôn ngữ là tiếng Anh Mỹ (chuẩn Mỹ)
+            utterance.rate = 0.9;      // Tốc độ phát: 0.9 (chậm hơn 1 chút để rõ ràng)
+            utterance.pitch = 1.0;     // Cao độ bình thường
+            utterance.volume = 1.0;    // Âm lượng tối đa
+
+            // Thêm hiệu ứng visual: nhấp nháy và đổi màu xanh khi đang phát
+            button.classList.add('animate-pulse', 'text-blue-600');
+
+            // Khi phát âm kết thúc: xóa hiệu ứng
+            utterance.onend = function() {
+                button.classList.remove('animate-pulse', 'text-blue-600');
+            };
+
+            // Nếu có lỗi: xóa hiệu ứng và hiển thị thông báo lỗi
+            utterance.onerror = function() {
+                button.classList.remove('animate-pulse', 'text-blue-600');
+                showToast('Lỗi: Không thể phát âm từ này', 'error');
+            };
+
+            // Khởi động phát âm
+            window.speechSynthesis.speak(utterance);
+        }
+
+        // ============ HÀM QUẢN LÝ MODAL HOÀN THÀNH BÀI HỌC ============
+        
+        // Hiển thị modal chúc mừng hoàn thành bài học
+        // Modal sẽ hiển thị thành tích, số bài tập hoàn thành, XP nhận được
+        function showCompletionModal() {
+            const modal = document.getElementById('completion-modal');
+            modal.classList.remove('hidden');        // Ẩn → Hiển thị
+            modal.classList.add('flex');             // Canh giữa (flexbox)
+            document.body.style.overflow = 'hidden'; // Chặn cuộn trang để user tập trung vào modal
+        }
+
+        // Đóng modal hoàn thành bài học
+        // Quay trở lại trang bình thường cho phép cuộn
+        function closeCompletionModal() {
+            const modal = document.getElementById('completion-modal');
+            modal.classList.add('hidden');            // Hiển thị → Ẩn
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';    // Cho phép cuộn trang lại bình thường
+        }
+
+        // Đóng modal nếu user click vào background (màu đen bán trong)
+        // Nhưng KHÔNG đóng nếu click vào nội dung modal
+        document.getElementById('completion-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {  // e.target là background, không phải nội dung modal
+                closeCompletionModal();
+            }
+        });
+
+        // ============ HÀM HIỂN THỊ THÔNG BÁO TOAST ============
+        
+        // Hiển thị thông báo nhỏ (toast) ở góc trên phải
+        // Tham số: 
+        //   - message: nội dung thông báo
+        //   - type: loại thông báo ('success', 'error', 'warning', 'info')
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            // Chọn màu nền dựa trên loại thông báo
+            const bgColor = {
+                'success': 'bg-emerald-500',    // Xanh lá: thành công
+                'error': 'bg-red-500',          // Đỏ: lỗi
+                'warning': 'bg-amber-500',      // Cam: cảnh báo
+                'info': 'bg-blue-500'           // Xanh dương: thông tin
+            }[type] || 'bg-slate-500';
+
+            // Tạo CSS class với animation slide-in
+            toast.className = `${bgColor} text-white px-6 py-3 rounded-lg shadow-lg animate-slide-in flex items-center gap-3`;
+            
+            // Chọn icon phù hợp với loại thông báo
+            const icon = {
+                'success': 'mdi:check-circle',     // Dấu tick
+                'error': 'mdi:alert-circle',       // Dấu cảnh báo
+                'warning': 'mdi:alert',            // Dấu chú ý
+                'info': 'mdi:information'          // Dấu (i)
+            }[type] || 'mdi:information';
+
+            // Tạo HTML: icon + message
+            toast.innerHTML = `
+                <iconify-icon icon="${icon}" class="text-lg"></iconify-icon>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);  // Thêm toast vào container (góc phải)
+
+            // Tự động xóa toast sau 4 giây
+            setTimeout(() => {
+                toast.classList.add('animate-fade-out');  // Thêm animation fade-out
+                setTimeout(() => toast.remove(), 300);    // Xóa toast sau animation kết thúc
+            }, 4000);
+        }
+
+        // ============ HÀM HIỆU ỨNG PHÁO HOA (CONFETTI) ============
+        
+        // Phát hiệu ứng pháo hoa: những quả bóng rơi từ trên xuống
+        // Dùng để kỉ niệm khi học sinh hoàn thành bài học
+        function playConfetti() {
+            const container = document.getElementById('confetti-container');
+            if (!container) return;  // Nếu không tìm thấy container thì thoát
+
+            // Tạo 50 quả confetti (bóng rơi)
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.style.position = 'fixed';                   // Vị trí cố định trên màn hình
+                confetti.style.left = Math.random() * 100 + '%';     // Vị trí ngang: ngẫu nhiên
+                confetti.style.top = '-10px';                        // Vị trí dọc: phía trên ngoài màn hình
+                confetti.style.width = Math.random() * 10 + 5 + 'px';   // Kích thước: 5-15px
+                confetti.style.height = confetti.style.width;        // Là hình tròn (width = height)
+                // Chọn 1 trong 5 màu sắc ngẫu nhiên
+                confetti.style.background = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6'][Math.floor(Math.random() * 5)];
+                confetti.style.borderRadius = '50%';                 // Hình tròn
+                confetti.style.opacity = '0.8';                      // Độ trong suốt
+                confetti.style.zIndex = '40';                        // Hiển thị phía trên
+                confetti.style.pointerEvents = 'none';               // Không bị click
+
+                document.body.appendChild(confetti);  // Thêm confetti vào trang
+
+                // Animate confetti falling (rơi xuống từ trên xuống)
+                const duration = Math.random() * 2 + 2;    // Thời gian rơi: 2-4 giây (ngẫu nhiên)
+                const xOffset = (Math.random() - 0.5) * 400;  // Độ lệch ngang: -200 đến +200px
+                
+                // Animation từ trên xuống dưới với quay vòng
+                confetti.animate([
+                    // Trạng thái bắt đầu: ở vị trí ban đầu, không quay, không trong suốt
+                    { transform: 'translateY(0) translateX(0) rotate(0deg)', opacity: 1 },
+                    // Trạng thái kết thúc: rơi xuống dưới, lệch sang ngang, quay vòng, biến mất
+                    { transform: `translateY(${window.innerHeight + 20}px) translateX(${xOffset}px) rotate(${Math.random() * 360}deg)`, opacity: 0 }
+                ], {
+                    duration: duration * 1000,                       // Thời gian animation (ms)
+                    easing: 'cubic-bezier(0.25, 0.46, 0.45, 0.94)' // Hiệu ứng ease-in-out (tự nhiên)
+                }).onfinish = () => confetti.remove();  // Xóa element sau khi animation kết thúc
+            }
+        }
+    </script>
+
+    <!-- TAILWIND ANIMATIONS (add to global styles if not present) -->
+    <!-- Định nghĩa các animation dùng trong bài học -->
+    <style>
+        /* Animation: slide-in từ phải sang trái (dùng cho toast) */
+        @keyframes slide-in {
+            from {
+                opacity: 0;
+                transform: translateX(400px);          /* Bắt đầu ngoài màn hình bên phải */
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);              /* Kết thúc vào vị trí bình thường */
+            }
+        }
+
+        /* Animation: fade-out từ trái sang phải (dùng khi đóng toast) */
+        @keyframes fade-out {
+            from {
+                opacity: 1;
+                transform: translateX(0);              /* Bắt đầu ở vị trí bình thường */
+            }
+            to {
+                opacity: 0;
+                transform: translateX(400px);          /* Kết thúc ngoài màn hình bên phải */
+            }
+        }
+
+        /* Animation: bounce-in phóng to/nhỏ (dùng khi hiển thị modal chúc mừng) */
+        @keyframes bounce-in {
+            0%, 100% {
+                transform: scale(0.95);                /* Bắt đầu và kết thúc: nhỏ lại 95% */
+                opacity: 0;                            /* Bắt đầu: trong suốt hoàn toàn */
+            }
+            50% {
+                transform: scale(1.05);                /* Giữa animation: to ra 105% */
+            }
+            100% {
+                transform: scale(1);                   /* Kết thúc: trở lại kích thước bình thường */
+                opacity: 1;                            /* Kết thúc: hiển thị hoàn toàn */
+            }
+        }
+
+        /* CSS class: Áp dụng animation slide-in */
+        /* Dùng cho toast notification */
+        .animate-slide-in {
+            animation: slide-in 0.4s ease-out;
+        }
+
+        /* CSS class: Áp dụng animation fade-out */
+        /* Dùng khi xóa toast notification */
+        .animate-fade-out {
+            animation: fade-out 0.3s ease-out;
+        }
+
+        /* CSS class: Áp dụng animation bounce-in */
+        /* Dùng khi hiển thị modal chúc mừng hoàn thành bài học */
+        .animate-bounce-in {
+            animation: bounce-in 0.5s ease-out;
+        }
+    </style>
 
 </body>
 </html>
