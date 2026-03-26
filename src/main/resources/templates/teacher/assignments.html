@@ -15,76 +15,28 @@
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
     <script th:src="@{/js/tailwind-config.js}"></script>
     <link rel="stylesheet" th:href="@{/css/landing.css}">
+    <script th:src="@{/js/teacher-dropdown.js}"></script>
 </head>
 
 <body class="bg-slate-50 text-slate-600 antialiased font-sans">
-    <!-- NAVIGATION BAR -->
-    <header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between">
-                <a href="/" class="flex items-center gap-3 cursor-pointer group">
-                    <img th:src="@{/images/logo.png}" alt="Logo" class="h-12 w-auto transition-transform group-hover:scale-105">
-                    <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
-                </a>
-                <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
-                    <a href="/dashboard/teacher" class="hover:text-brand-600 transition-colors">Dashboard</a>
-                    <a href="/dashboard/teacher/content" class="hover:text-brand-600 transition-colors">Nội dung</a>
-                    <a href="/dashboard/teacher/classes" class="hover:text-brand-600 transition-colors">Lớp học</a>
-                    <a href="/dashboard/teacher/students" class="hover:text-brand-600 transition-colors">Học sinh</a>
-                    <a href="/dashboard/teacher/assignments" class="text-brand-600">Bài tập</a>
-                </nav>
-                <div class="hidden md:flex items-center gap-3">
-                    <div class="relative">
-                        <button id="user-menu-button" class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
-                            <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white text-sm font-medium">
-                                <span th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'T'}">G</span>
-                            </div>
-                            <span class="text-sm font-medium text-slate-700" th:text="${username}">Giáo viên</span>
-                            <iconify-icon icon="solar:alt-arrow-down-linear" width="16" class="text-slate-500"></iconify-icon>
-                        </button>
-                        <div id="user-dropdown" class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50">
-                            <div class="px-4 py-3 border-b border-slate-100">
-                                <p class="text-sm font-medium text-slate-900" th:text="${username}">Giáo viên</p>
-                                <p class="text-xs text-slate-500">Giáo viên</p>
-                            </div>
-                            <div class="py-1">
-                                <a href="/dashboard/teacher" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                                    <iconify-icon icon="solar:home-2-linear" width="18" class="text-slate-500"></iconify-icon>
-                                    <span>Dashboard</span>
-                                </a>
-                                <a href="/dashboard/teacher/classes" class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50">
-                                    <iconify-icon icon="solar:users-group-rounded-linear" width="18" class="text-slate-500"></iconify-icon>
-                                    <span>Lớp học của tôi</span>
-                                </a>
-                            </div>
-                            <div class="border-t border-slate-100 py-1">
-                                <a href="/api/auth/logout" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
-                                    <iconify-icon icon="solar:logout-2-linear" width="18" class="text-red-500"></iconify-icon>
-                                    <span>Đăng xuất</span>
-                                </a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </header>
+    <!-- SHARED HEADER -->
+    <th:block th:with="currentPage='assignments'" th:insert="teacher/shared/header"></th:block>
 
     <main class="pt-20 pb-12">
         <!-- Page Header -->
-        <div class="bg-gradient-to-r from-indigo-500 to-indigo-700 text-white py-12">
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white py-12">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-medium mb-2">Quản Lý Bài Tập</h1>
-                        <p class="text-indigo-100">Giao bài tập và theo dõi tiến độ học sinh</p>
+                        <p class="text-emerald-100">Giao bài tập và theo dõi tiến độ học sinh</p>
                     </div>
                     <div class="hidden md:block">
-                        <button onclick="openCreateModal()"
-                            class="px-6 py-3 bg-white text-indigo-600 rounded-lg font-medium hover:bg-indigo-50 transition-colors flex items-center gap-2">
+                        <a href="/dashboard/teacher/create-assignment"
+                            class="px-6 py-3 bg-white text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center gap-2">
                             <iconify-icon icon="solar:add-circle-linear" width="20"></iconify-icon>
                             <span>Giao bài tập mới</span>
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
@@ -727,5 +679,13 @@
             if (e.key === 'Escape') { closeCreateModal(); closeEditModal(); closeDetailModal(); closeDeleteModal(); }
         });
     </script>
+
+    <!-- SHARED FOOTER -->
+    <th:block th:insert="teacher/shared/footer"></th:block>
+
+    <!-- SHARED NOTIFICATION -->
+    <th:block th:insert="teacher/shared/notification"></th:block>
+    <script th:src="@{/js/teacher-notification.js}"></script>
+
 </body>
 </html>

@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Đề Thi - English 12 Smart</title>
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+    <script th:src="@{/js/teacher-dropdown.js}"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+    <!-- SHARED HEADER với currentPage='exams' -->
+    <th:block th:with="currentPage='exams'" th:insert="teacher/shared/header"></th:block>
+
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white py-10">
+            <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-4">
+                    <a href="/dashboard/teacher/exams"
+                        class="p-2 rounded-lg hover:bg-white/20 transition-colors">
+                        <iconify-icon icon="solar:arrow-left-linear" width="20"></iconify-icon>
+                    </a>
+                    <div>
+                        <h1 class="text-2xl font-medium mb-1">Tạo Đề Thi Mới</h1>
+                        <p class="text-emerald-100 text-sm">Đề thi sẽ được cấp mã PIN 5 số sau khi tạo</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form tạo đề thi -->
+        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mt-8">
+            <form id="createExamForm" onsubmit="ExamManager.createExam(event)">
+
+                <!-- Section 1: Thông tin cơ bản -->
+                <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                        <span class="h-6 w-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-bold">1</span>
+                        Thông Tin Đề Thi
+                    </h2>
+                    <div class="grid gap-5">
+                        <!-- Tiêu đề -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Tiêu đề đề thi <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" name="title" required
+                                placeholder="VD: Kiểm tra Unit 1 - Life Stories"
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent">
+                        </div>
+                        <!-- Mô tả / Hướng dẫn -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Hướng dẫn làm bài
+                            </label>
+                            <textarea name="description" rows="3"
+                                placeholder="VD: Đọc kỹ câu hỏi trước khi trả lời. Không được dùng tài liệu."
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Lớp học và thời gian -->
+                <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                        <span class="h-6 w-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-bold">2</span>
+                        Lớp Học & Thời Gian
+                    </h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <!-- Chọn lớp -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Lớp được thi <span class="text-red-500">*</span>
+                            </label>
+                            <select name="classroomId" required
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                <option value="">-- Chọn lớp học --</option>
+                                <option th:each="cls : ${classes}"
+                                    th:value="${cls.id}"
+                                    th:text="${cls.name} + ' (' + ${cls.studentCount} + ' học sinh)'">
+                                    12A1 (35 học sinh)
+                                </option>
+                            </select>
+                        </div>
+                        <!-- Thời gian làm bài -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1.5">
+                                Thời gian làm bài (phút)
+                            </label>
+                            <input type="number" name="timeLimitMinutes" min="1" max="180" value="45"
+                                placeholder="45"
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                            <p class="text-xs text-slate-400 mt-1">Để trống = không giới hạn thời gian</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 3: Câu hỏi (2 tab) -->
+                <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
+                    <h2 class="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
+                        <span class="h-6 w-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-bold">3</span>
+                        Câu Hỏi
+                    </h2>
+
+                    <!-- Tab buttons -->
+                    <div class="flex gap-1 bg-slate-100 p-1 rounded-lg mb-6 w-fit">
+                        <button type="button" id="tabBank"
+                            onclick="ExamManager.switchTab('bank')"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white text-slate-900 shadow-sm">
+                            <iconify-icon icon="solar:library-linear" width="16" class="inline mr-1"></iconify-icon>
+                            Chọn từ ngân hàng
+                        </button>
+                        <button type="button" id="tabCustom"
+                            onclick="ExamManager.switchTab('custom')"
+                            class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-slate-500 hover:text-slate-700">
+                            <iconify-icon icon="solar:pen-linear" width="16" class="inline mr-1"></iconify-icon>
+                            Câu hỏi tự soạn
+                        </button>
+                    </div>
+
+                    <!-- Tab 1: Chọn từ Exercise bank -->
+                    <div id="panelBank">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <!-- Chọn Unit -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Chọn Unit</label>
+                                <select id="unitSelect" onchange="ExamManager.loadLessons(this.value)"
+                                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                    <option value="">-- Chọn Unit --</option>
+                                    <option th:each="unit : ${units}"
+                                        th:value="${unit.id}"
+                                        th:text="'Unit ' + ${unit.orderIndex} + ': ' + ${unit.title}">
+                                    </option>
+                                </select>
+                            </div>
+                            <!-- Chọn Lesson -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-700 mb-1.5">Chọn Bài học</label>
+                                <select id="lessonSelect" onchange="ExamManager.loadExercises(this.value)"
+                                    disabled
+                                    class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 disabled:bg-slate-100">
+                                    <option value="">-- Chọn bài học --</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Danh sách Exercise để chọn -->
+                        <div id="exerciseList" class="space-y-3">
+                            <p class="text-sm text-slate-400 text-center py-8">
+                                <iconify-icon icon="solar:library-linear" width="32" class="inline mb-2 opacity-40 block mx-auto"></iconify-icon>
+                                Chọn Unit và Bài học để xem các exercise
+                            </p>
+                        </div>
+                        <!-- Input ẩn lưu danh sách exerciseIds đã chọn -->
+                        <input type="hidden" id="selectedExerciseIds" name="exerciseIds" value="">
+                    </div>
+
+                    <!-- Tab 2: Câu hỏi tự soạn -->
+                    <div id="panelCustom" class="hidden">
+                        <!-- Danh sách câu hỏi đã thêm -->
+                        <div id="customQuestionList" class="space-y-4 mb-4"></div>
+
+                        <!-- Form thêm câu hỏi mới -->
+                        <div class="border-2 border-dashed border-slate-200 rounded-xl p-5 bg-slate-50">
+                            <h4 class="text-sm font-semibold text-slate-700 mb-4">Thêm câu hỏi mới</h4>
+                            <div class="grid gap-4">
+                                <!-- Nội dung câu hỏi -->
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Nội dung câu hỏi *</label>
+                                    <input type="text" id="newQuestionText" placeholder="Nhập câu hỏi..."
+                                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                </div>
+                                <div class="grid grid-cols-2 gap-4">
+                                    <!-- Loại câu hỏi -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-600 mb-1">Loại câu hỏi</label>
+                                        <select id="newQuestionType" onchange="ExamManager.onQuestionTypeChange()"
+                                            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                            <option value="MULTIPLE_CHOICE">Trắc nghiệm</option>
+                                            <option value="TRUE_FALSE">Đúng / Sai</option>
+                                            <option value="FILL_IN_BLANK">Điền vào chỗ trống</option>
+                                        </select>
+                                    </div>
+                                    <!-- Điểm -->
+                                    <div>
+                                        <label class="block text-xs font-medium text-slate-600 mb-1">Điểm</label>
+                                        <input type="number" id="newQuestionScore" value="1" min="1" max="10"
+                                            class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                    </div>
+                                </div>
+                                <!-- Lựa chọn trả lời (cho MULTIPLE_CHOICE) -->
+                                <div id="optionsSection">
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Các lựa chọn (mỗi dòng 1 lựa chọn)</label>
+                                    <textarea id="newQuestionOptions" rows="4" placeholder="A. Lựa chọn A&#10;B. Lựa chọn B&#10;C. Lựa chọn C&#10;D. Lựa chọn D"
+                                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"></textarea>
+                                </div>
+                                <!-- Đáp án đúng -->
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Đáp án đúng *</label>
+                                    <input type="text" id="newQuestionAnswer" placeholder="VD: A  hoặc  true  hoặc  london"
+                                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                </div>
+                                <!-- Giải thích (tùy chọn) -->
+                                <div>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">Giải thích đáp án (tùy chọn)</label>
+                                    <input type="text" id="newQuestionExplanation" placeholder="Giải thích tại sao đây là đáp án đúng..."
+                                        class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
+                                </div>
+                                <!-- Nút thêm -->
+                                <button type="button" onclick="ExamManager.addCustomQuestion()"
+                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 w-fit">
+                                    <iconify-icon icon="solar:add-circle-linear" width="16"></iconify-icon>
+                                    Thêm câu hỏi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tóm tắt câu hỏi đã chọn -->
+                    <div id="questionSummary" class="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-lg hidden">
+                        <p class="text-sm text-emerald-700 font-medium">
+                            <iconify-icon icon="solar:check-circle-linear" width="16" class="inline mr-1"></iconify-icon>
+                            <span id="questionSummaryText">Đã chọn 0 câu hỏi</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Nút submit -->
+                <div class="flex items-center justify-between">
+                    <a href="/dashboard/teacher/exams"
+                        class="px-6 py-2.5 text-slate-600 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
+                        Hủy
+                    </a>
+                    <button type="submit"
+                        class="px-8 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 transition-colors">
+                        <iconify-icon icon="solar:diploma-linear" width="18"></iconify-icon>
+                        Tạo đề thi
+                    </button>
+                </div>
+            </form>
+        </div>
+    </main>
+
+    <!-- Modal hiển thị mã PIN sau khi tạo thành công -->
+    <div id="pinModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+            <div class="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
+                <iconify-icon icon="solar:check-circle-bold" width="32" class="text-emerald-600"></iconify-icon>
+            </div>
+            <h3 class="text-xl font-bold text-slate-900 mb-1">Tạo đề thi thành công!</h3>
+            <p class="text-slate-500 text-sm mb-6">Chia sẻ mã PIN này để học sinh vào thi</p>
+            <!-- Mã PIN lớn, nổi bật -->
+            <div class="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 mb-6">
+                <p class="text-xs text-emerald-500 uppercase font-semibold tracking-wide mb-1">Mã PIN</p>
+                <p id="createdPinCode" class="text-4xl font-black text-emerald-700 tracking-widest">-----</p>
+            </div>
+            <button onclick="ExamManager.copyCreatedPin()"
+                class="w-full mb-3 px-4 py-2.5 border border-emerald-300 text-emerald-600 rounded-lg text-sm font-medium hover:bg-emerald-50 flex items-center justify-center gap-2 transition-colors">
+                <iconify-icon icon="solar:copy-linear" width="16"></iconify-icon>
+                Sao chép mã PIN
+            </button>
+            <a href="/dashboard/teacher/exams"
+                class="block w-full px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors">
+                Về danh sách đề thi
+            </a>
+        </div>
+    </div>
+
+    <!-- SHARED FOOTER -->
+    <th:block th:insert="teacher/shared/footer"></th:block>
+
+    <!-- Script quản lý form tạo đề thi -->
+    <script th:src="@{/js/teacher-exam-manager.js}"></script>
+</body>
+</html>

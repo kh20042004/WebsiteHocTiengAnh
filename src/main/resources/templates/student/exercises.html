@@ -25,27 +25,27 @@
 
     <main class="pt-20 pb-12">
         <!-- Page Header -->
-        <div class="bg-gradient-to-r from-brand-500 to-brand-700 text-white py-12">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-12">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center justify-between">
                     <div>
                         <h1 class="text-3xl font-medium mb-2">Bài Tập Của Tôi</h1>
-                        <p class="text-brand-100">Quản lý và hoàn thành các bài tập được giao</p>
+                        <p class="text-blue-100">Quản lý và hoàn thành các bài tập được giao</p>
                     </div>
                     <div class="hidden md:flex items-center gap-4">
                         <div class="text-center">
-                            <div class="text-2xl font-bold" th:text="${pendingExercises != null ? pendingExercises : 0}">0</div>
-                            <div class="text-xs text-brand-100">Chưa làm</div>
+                            <div class="text-3xl font-bold" th:text="${pendingExercises != null ? pendingExercises : 0}">0</div>
+                            <div class="text-xs text-blue-100">Chưa làm</div>
                         </div>
                         <div class="w-px h-12 bg-white/20"></div>
                         <div class="text-center">
-                            <div class="text-2xl font-bold" th:text="${completedExercises != null ? completedExercises : 0}">0</div>
-                            <div class="text-xs text-brand-100">Đã hoàn thành</div>
+                            <div class="text-3xl font-bold" th:text="${completedExercises != null ? completedExercises : 0}">0</div>
+                            <div class="text-xs text-blue-100">Đã hoàn thành</div>
                         </div>
                         <div class="w-px h-12 bg-white/20"></div>
                         <div class="text-center">
-                            <div class="text-2xl font-bold" th:text="${overdueExercises != null ? overdueExercises : 0}">0</div>
-                            <div class="text-xs text-brand-100">Quá hạn</div>
+                            <div class="text-3xl font-bold" th:text="${overdueExercises != null ? overdueExercises : 0}">0</div>
+                            <div class="text-xs text-blue-100">Quá hạn</div>
                         </div>
                     </div>
                 </div>
@@ -56,7 +56,7 @@
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-8">
             <!-- Filter Tabs -->
             <div class="bg-white rounded-xl border border-slate-200 p-2 mb-6 flex flex-wrap gap-2">
-                <button onclick="filterExercises('all')" id="tab-all" class="filter-tab px-4 py-2 rounded-lg bg-brand-500 text-white text-sm font-medium transition-colors">
+                <button onclick="filterExercises('all')" id="tab-all" class="filter-tab px-4 py-2 rounded-lg bg-blue-500 text-white text-sm font-medium transition-colors">
                     Tất cả (<span th:text="${totalExercises != null ? totalExercises : 0}">0</span>)
                 </button>
                 <button onclick="filterExercises('pending')" id="tab-pending" class="filter-tab px-4 py-2 rounded-lg text-slate-600 hover:bg-slate-50 text-sm font-medium transition-colors">

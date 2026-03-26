@@ -11,51 +11,36 @@
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
     <script th:src="@{/js/tailwind-config.js}"></script>
     <link rel="stylesheet" th:href="@{/css/landing.css}">
+    <script th:src="@{/js/teacher-dropdown.js}"></script>
 </head>
 
 <body class="bg-slate-50 text-slate-600 antialiased font-sans">
 
-    <!-- NAVBAR -->
-    <header class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white">
-        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div class="flex h-16 items-center justify-between">
-                <!-- Logo -->
-                <a href="/" class="flex items-center gap-3">
-                    <span class="text-lg font-semibold text-slate-900">English 12 Smart</span>
-                </a>
-                <!-- Nav Links -->
-                <nav class="hidden md:flex items-center gap-6">
-                    <a href="/dashboard/teacher" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Dashboard</a>
-                    <a href="/dashboard/teacher/content" class="text-sm font-medium text-emerald-600 border-b-2 border-emerald-600 pb-0.5">Nội dung</a>
-                    <a href="/dashboard/teacher/classes" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Lớp học</a>
-                    <a href="/dashboard/teacher/students" class="text-sm text-slate-600 hover:text-emerald-600 transition-colors">Học sinh</a>
-                </nav>
-                <!-- User info -->
-                <div class="flex items-center gap-3">
-                    <span class="text-sm text-slate-600" th:text="${username}">Giáo viên</span>
-                    <button onclick="logout()" class="text-sm text-red-500 hover:text-red-700 transition-colors cursor-pointer">Đăng xuất</button>
+    <!-- SHARED HEADER -->
+    <th:block th:with="currentPage='content'" th:insert="teacher/shared/header"></th:block>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h1 class="text-3xl font-medium mb-2">Quản Lý Nội Dung</h1>
+                        <p class="text-emerald-100">Tạo và quản lý các Unit, bài học, bài tập</p>
+                    </div>
+                    <div class="hidden md:block">
+                        <button onclick="openCreateUnitModal()"
+                            class="px-6 py-3 bg-white text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center gap-2">
+                            <iconify-icon icon="mdi:plus" width="20"></iconify-icon>
+                            <span>Thêm Unit mới</span>
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
-    </header>
 
-    <!-- NỘI DUNG CHÍNH -->
-    <main class="pt-16 min-h-screen">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-
-            <!-- HEADER TRANG -->
-            <div class="flex items-center justify-between mb-8">
-                <div>
-                    <h1 class="text-2xl font-bold text-slate-900">Quản lý nội dung</h1>
-                    <p class="text-slate-500 mt-1">Tạo và quản lý các Unit, bài học, bài tập</p>
-                </div>
-                <!-- Nút tạo Unit mới (chỉ admin) -->
-                <button onclick="openCreateUnitModal()"
-                    class="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
-                    <iconify-icon icon="mdi:plus" class="text-lg"></iconify-icon>
-                    Thêm Unit mới
-                </button>
-            </div>
 
             <!-- DANH SÁCH UNITS -->
             <!-- Hiển thị thông báo khi không có Unit nào -->
@@ -384,6 +369,13 @@
             window.location.href = '/auth/login';
         }
     </script>
+
+    <!-- SHARED FOOTER -->
+    <th:block th:insert="teacher/shared/footer"></th:block>
+
+    <!-- SHARED NOTIFICATION -->
+    <th:block th:insert="teacher/shared/notification"></th:block>
+    <script th:src="@{/js/teacher-notification.js}"></script>
 
 </body>
 </html>

@@ -1,0 +1,163 @@
+<!-- TEACHER SHARED FOOTER -->
+<footer class="bg-slate-900 text-slate-400 border-t border-slate-800" xmlns:th="http://www.thymeleaf.org">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12">
+        <!-- Footer Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
+            <!-- Brand Section -->
+            <div class="md:col-span-1">
+                <div class="flex items-center gap-3 mb-4">
+                    <img th:src="@{/images/logo.png}" alt="Logo" class="h-10 w-auto">
+                    <div>
+                        <h3 class="text-white font-semibold text-lg">English 12 Smart</h3>
+                        <p class="text-xs text-slate-500">Learning Platform</p>
+                    </div>
+                </div>
+                <p class="text-sm text-slate-400 mb-4">
+                    Nền tảng học tiếng Anh lớp 12 thông minh với AI support.
+                </p>
+                <!-- Social Links -->
+                <div class="flex gap-3">
+                    <a href="#" class="h-9 w-9 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                        title="Facebook">
+                        <iconify-icon icon="mdi:facebook" width="18" class="text-blue-400"></iconify-icon>
+                    </a>
+                    <a href="#" class="h-9 w-9 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                        title="Twitter">
+                        <iconify-icon icon="mdi:twitter" width="18" class="text-sky-400"></iconify-icon>
+                    </a>
+                    <a href="#" class="h-9 w-9 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                        title="Instagram">
+                        <iconify-icon icon="mdi:instagram" width="18" class="text-pink-400"></iconify-icon>
+                    </a>
+                    <a href="#" class="h-9 w-9 rounded-lg bg-slate-800 hover:bg-slate-700 transition-colors flex items-center justify-center"
+                        title="YouTube">
+                        <iconify-icon icon="mdi:youtube" width="18" class="text-red-400"></iconify-icon>
+                    </a>
+                </div>
+            </div>
+
+            <!-- Quick Links -->
+            <div>
+                <h4 class="text-white font-semibold mb-4">Điều Hướng</h4>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/dashboard/teacher" class="hover:text-white transition-colors text-sm">
+                            Dashboard
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/dashboard/teacher/content" class="hover:text-white transition-colors text-sm">
+                            Quản lý nội dung
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/dashboard/teacher/classes" class="hover:text-white transition-colors text-sm">
+                            Lớp học của tôi
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/dashboard/teacher/students" class="hover:text-white transition-colors text-sm">
+                            Quản lý học sinh
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/dashboard/teacher/assignments" class="hover:text-white transition-colors text-sm">
+                            Bài tập
+                        </a>
+                    </li>
+                    <!-- Link đến trang quản lý đề thi trong footer -->
+                    <li>
+                        <a href="/dashboard/teacher/exams" class="hover:text-white transition-colors text-sm">
+                            Kiểm tra
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Resources -->
+            <div>
+                <h4 class="text-white font-semibold mb-4">Tài Nguyên</h4>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/help" class="hover:text-white transition-colors text-sm">
+                            Trợ giúp
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/documentation" class="hover:text-white transition-colors text-sm">
+                            Tài liệu
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/tutorials" class="hover:text-white transition-colors text-sm">
+                            Hướng dẫn
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/faq" class="hover:text-white transition-colors text-sm">
+                            Câu hỏi thường gặp
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/contact" class="hover:text-white transition-colors text-sm">
+                            Liên hệ
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Legal -->
+            <div>
+                <h4 class="text-white font-semibold mb-4">Pháp Lý</h4>
+                <ul class="space-y-2">
+                    <li>
+                        <a href="/privacy" class="hover:text-white transition-colors text-sm">
+                            Chính sách bảo mật
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/terms" class="hover:text-white transition-colors text-sm">
+                            Điều khoản dịch vụ
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/cookies" class="hover:text-white transition-colors text-sm">
+                            Chính sách Cookie
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/accessibility" class="hover:text-white transition-colors text-sm">
+                            Khả năng truy cập
+                        </a>
+                    </li>
+                    <li>
+                        <a href="/sitemap" class="hover:text-white transition-colors text-sm">
+                            Sơ đồ trang web
+                        </a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="border-t border-slate-800 mb-6"></div>
+
+        <!-- Bottom Section -->
+        <div class="flex flex-col md:flex-row items-center justify-between">
+            <!-- Copyright -->
+            <p class="text-sm text-slate-500 mb-4 md:mb-0">
+                &copy; <span th:text="${#dates.year(#dates.createNow())}">2026</span> English 12 Smart. Bảo lưu mọi quyền.
+            </p>
+
+            <!-- Version & Status -->
+            <div class="flex items-center gap-6 text-sm text-slate-500">
+                <div class="flex items-center gap-2">
+                    <span class="h-2 w-2 bg-green-500 rounded-full"></span>
+                    <span>System Operational</span>
+                </div>
+                <span class="hidden sm:inline">•</span>
+                <a href="/status" class="hover:text-white transition-colors hidden sm:inline">Status Page</a>
+            </div>
+        </div>
+    </div>
+</footer>

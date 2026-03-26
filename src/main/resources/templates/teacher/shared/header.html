@@ -1,0 +1,80 @@
+<!-- TEACHER SHARED HEADER -->
+<header id="navbar" class="fixed top-0 left-0 right-0 z-50 border-b border-slate-200 bg-white"
+        xmlns:th="http://www.thymeleaf.org">
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <div class="flex h-16 items-center justify-between">
+            <!-- Logo -->
+            <a href="/" class="flex items-center gap-3 cursor-pointer group">
+                <img th:src="@{/images/logo.png}" alt="Logo" class="h-12 w-auto transition-transform group-hover:scale-105">
+                <span class="text-lg font-medium tracking-tight text-slate-900">English 12 Smart</span>
+            </a>
+
+            <!-- Navigation Menu -->
+            <nav class="hidden md:flex gap-8 text-sm font-medium text-slate-500">
+                <a href="/dashboard/teacher" 
+                    th:classappend="${currentPage == 'dashboard'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
+                    Dashboard
+                </a>
+                <a href="/dashboard/teacher/content" 
+                    th:classappend="${currentPage == 'content'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
+                    Nội dung
+                </a>
+                <a href="/dashboard/teacher/classes" 
+                    th:classappend="${currentPage == 'classes'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
+                    Lớp học
+                </a>
+                <a href="/dashboard/teacher/students" 
+                    th:classappend="${currentPage == 'students'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
+                    Học sinh
+                </a>
+                <a href="/dashboard/teacher/assignments"
+                    th:classappend="${currentPage == 'assignments'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
+                    Bài tập
+                </a>
+                <!-- Mục Kiểm tra: dẫn đến trang quản lý đề thi -->
+                <a href="/dashboard/teacher/exams"
+                    th:classappend="${currentPage == 'exams'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
+                    Kiểm tra
+                </a>
+            </nav>
+
+            <!-- User Menu Button -->
+            <div class="hidden md:flex items-center gap-3">
+                <div class="relative" id="userMenuContainer">
+                    <button id="user-menu-button"
+                        class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors cursor-pointer">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500 text-white text-sm font-medium">
+                            <span th:text="${username != null ? username.substring(0, 1).toUpperCase() : 'T'}">G</span>
+                        </div>
+                        <span class="text-sm font-medium text-slate-700" th:text="${username}">Giáo viên</span>
+                        <iconify-icon icon="solar:alt-arrow-down-linear" width="16" class="text-slate-500"></iconify-icon>
+                    </button>
+
+                    <!-- User Dropdown Menu (Reusable Component) -->
+                    <th:block th:insert="teacher/shared/dropdown :: userDropdown"></th:block>
+                </div>
+            </div>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobile-menu-button" class="md:hidden p-2 rounded-lg hover:bg-slate-100">
+                <iconify-icon icon="solar:hamburger-menu-linear" width="24" class="text-slate-600"></iconify-icon>
+            </button>
+        </div>
+
+        <!-- Mobile Menu (Hidden by default) -->
+        <nav id="mobile-menu" class="hidden md:hidden py-4 border-t border-slate-100">
+            <a href="/dashboard/teacher" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Dashboard</a>
+            <a href="/dashboard/teacher/content" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Nội dung</a>
+            <a href="/dashboard/teacher/classes" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Lớp học</a>
+            <a href="/dashboard/teacher/students" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Học sinh</a>
+            <a href="/dashboard/teacher/assignments" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Bài tập</a>
+            <!-- Mục Kiểm tra trong mobile menu -->
+            <a href="/dashboard/teacher/exams" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Kiểm tra</a>
+            <div class="border-t border-slate-100 mt-2 pt-2">
+                <a href="/profile" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Thông tin cá nhân</a>
+                <a href="/settings" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Cài đặt</a>
+                <button onclick="handleLogout()" class="w-full text-left block px-4 py-2 text-sm text-red-600 hover:bg-red-50 border-none cursor-pointer bg-transparent">Đăng xuất</button>
+            </div>
+        </nav>
+    </div>
+</header>

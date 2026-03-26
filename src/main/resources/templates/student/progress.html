@@ -106,29 +106,29 @@
 
     <main class="pt-20 pb-12">
         <!-- Page Header -->
-        <div class="bg-gradient-to-r from-purple-500 to-purple-700 text-white py-12">
+        <div class="bg-gradient-to-r from-blue-500 to-blue-700 text-white py-12">
             <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
                 <div class="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                     <div>
                         <h1 class="text-3xl font-medium mb-2">Tiến Độ Học Tập</h1>
-                        <p class="text-purple-100">Theo dõi sự tiến bộ và thành tích của bạn</p>
+                        <p class="text-blue-100">Theo dõi sự tiến bộ và thành tích của bạn</p>
                     </div>
                     <!-- XP & Level Card -->
                     <div class="hidden md:block bg-white/10 backdrop-blur-sm border border-white/20 rounded-xl px-6 py-4 min-w-[260px]">
                         <div class="flex items-center justify-between mb-2">
                             <div>
-                                <div class="text-xs text-purple-200 mb-0.5">Cấp độ hiện tại</div>
+                                <div class="text-xs text-blue-200 mb-0.5">Cấp độ hiện tại</div>
                                 <div class="text-lg font-bold" th:text="${level}">Beginner</div>
                             </div>
                             <div class="text-right">
-                                <div class="text-xs text-purple-200 mb-0.5">Tổng XP</div>
+                                <div class="text-xs text-blue-200 mb-0.5">Tổng XP</div>
                                 <div class="text-lg font-bold text-amber-300" th:text="${totalXP} + ' XP'">0 XP</div>
                             </div>
                         </div>
                         <div class="h-2 bg-white/20 rounded-full overflow-hidden">
                             <div class="h-full bg-amber-400 rounded-full transition-all" th:style="'width:' + ${xpPercent} + '%'"></div>
                         </div>
-                        <div class="flex justify-between text-xs text-purple-200 mt-1">
+                        <div class="flex justify-between text-xs text-blue-200 mt-1">
                             <span th:text="${totalXP} + ' XP'">0 XP</span>
                             <span th:text="${nextLevelXP} + ' XP → ' + ${nextLevel}">500 XP → Elementary</span>
                         </div>

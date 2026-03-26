@@ -159,6 +159,13 @@ public class SecurityConfig {
                                                 .requestMatchers("/api/student/**")
                                                 .hasAnyAuthority("ROLE_STUDENT", "ROLE_ADMIN")
 
+                                                // Exam API - nhập PIN để vào thi: chỉ học sinh dùng
+                                                .requestMatchers(HttpMethod.GET, "/api/exams/pin/**")
+                                                .hasAnyAuthority("ROLE_STUDENT", "ROLE_ADMIN")
+                                                // Các endpoint đề thi khác: yêu cầu đã đăng nhập
+                                                // (phân quyền chi tiết hơn đã có @PreAuthorize ở từng method)
+                                                .requestMatchers("/api/exams/**").authenticated()
+
                                                 // Profile endpoints - cần authentication
                                                 .requestMatchers(HttpMethod.GET, "/api/profile/**").authenticated()
                                                 .requestMatchers(HttpMethod.PUT, "/api/profile/**").authenticated()

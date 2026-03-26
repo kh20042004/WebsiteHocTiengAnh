@@ -26,8 +26,11 @@
                             th:classappend="${currentPage == 'classes' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Lớp học</a>
                         <a href="/dashboard/student/exercises" 
                             th:classappend="${currentPage == 'exercises' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Bài tập</a>
-                        <a href="/dashboard/student/progress" 
+                        <a href="/dashboard/student/progress"
                             th:classappend="${currentPage == 'progress' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Tiến độ</a>
+                        <!-- Mục Kiểm tra: học sinh nhập PIN vào thi -->
+                        <a href="/dashboard/student/exams"
+                            th:classappend="${currentPage == 'exams' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Kiểm tra</a>
                     </nav>
 
                     <!-- User Menu -->
@@ -83,6 +86,14 @@
                                         <iconify-icon icon="solar:document-text-linear" width="18"
                                             class="text-slate-500"></iconify-icon>
                                         <span>Bài tập của tôi</span>
+                                    </a>
+                                    <!-- Mục Kiểm tra trong dropdown menu -->
+                                    <a href="/dashboard/student/exams"
+                                        class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700"
+                                        th:classappend="${currentPage == 'exams' ? 'bg-slate-50' : 'hover:bg-slate-50'}">
+                                        <iconify-icon icon="solar:diploma-linear" width="18"
+                                            class="text-emerald-500"></iconify-icon>
+                                        <span>Kiểm tra</span>
                                     </a>
                                 </div>
                                 <div class="border-t border-slate-100 py-1">

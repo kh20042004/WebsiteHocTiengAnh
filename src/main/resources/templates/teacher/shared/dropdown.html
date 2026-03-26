@@ -1,0 +1,66 @@
+<!-- TEACHER USER DROPDOWN MENU - Reusable Component -->
+<div id="user-dropdown"
+    class="hidden absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-slate-200 py-2 z-50"
+    th:fragment="userDropdown"
+    xmlns:th="http://www.thymeleaf.org">
+
+    <!-- User Info Section -->
+    <div class="px-4 py-3 border-b border-slate-100">
+        <p class="text-sm font-medium text-slate-900 truncate" th:text="${username}">Giáo viên</p>
+        <p class="text-xs text-slate-500">Giáo viên</p>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="py-1">
+        <a href="/dashboard/teacher"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            data-page="dashboard">
+            <iconify-icon icon="solar:home-2-linear" width="18" class="text-slate-500"></iconify-icon>
+            <span>Dashboard</span>
+        </a>
+        <a href="/dashboard/teacher/content"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            data-page="content">
+            <iconify-icon icon="solar:book-bookmark-linear" width="18" class="text-emerald-500"></iconify-icon>
+            <span>Quản lý nội dung</span>
+        </a>
+        <a href="/dashboard/teacher/classes"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            data-page="classes">
+            <iconify-icon icon="solar:users-group-rounded-linear" width="18" class="text-slate-500"></iconify-icon>
+            <span>Lớp học của tôi</span>
+        </a>
+        <a href="/dashboard/teacher/assignments"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            data-page="assignments">
+            <iconify-icon icon="solar:document-text-linear" width="18" class="text-slate-500"></iconify-icon>
+            <span>Quản lý bài tập</span>
+        </a>
+        <!-- Mục Kiểm tra trong dropdown menu -->
+        <a href="/dashboard/teacher/exams"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
+            data-page="exams">
+            <iconify-icon icon="solar:diploma-linear" width="18" class="text-emerald-500"></iconify-icon>
+            <span>Kiểm tra</span>
+        </a>
+    </div>
+
+    <!-- Settings & Logout -->
+    <div class="border-t border-slate-100 py-1">
+        <a href="/profile"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <iconify-icon icon="solar:user-circle-linear" width="18" class="text-slate-500"></iconify-icon>
+            <span>Thông tin cá nhân</span>
+        </a>
+        <a href="/settings"
+            class="flex items-center gap-3 px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <iconify-icon icon="solar:settings-linear" width="18" class="text-slate-500"></iconify-icon>
+            <span>Cài đặt</span>
+        </a>
+        <button onclick="handleLogout()"
+            class="w-full text-left flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors border-none cursor-pointer">
+            <iconify-icon icon="solar:logout-2-linear" width="18" class="text-red-500"></iconify-icon>
+            <span>Đăng xuất</span>
+        </button>
+    </div>
+</div>

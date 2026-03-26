@@ -3,15 +3,21 @@ package com.english12smart.controller;
 import com.english12smart.dto.AssignmentDTO;
 import com.english12smart.dto.ClassroomDTO;
 import com.english12smart.dto.ContentDTO;
+import com.english12smart.dto.ExamSubmissionDTO;
 import com.english12smart.entity.Assignment;
 import com.english12smart.entity.Classroom;
+import com.english12smart.entity.Exam;
+import com.english12smart.entity.ExamSubmission;
 import com.english12smart.entity.User;
 import com.english12smart.repository.AssignmentRepository;
 import com.english12smart.repository.ClassroomRepository;
+import com.english12smart.repository.ExamRepository;
+import com.english12smart.repository.ExamSubmissionRepository;
 import com.english12smart.repository.UserRepository;
 import com.english12smart.service.AssignmentService;
 import com.english12smart.service.ClassroomService;
 import com.english12smart.service.ContentService;
+import com.english12smart.service.ExamService;
 import com.english12smart.util.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +26,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import jakarta.servlet.http.HttpServletRequest;
@@ -50,8 +57,11 @@ public class DashboardController {
     private final ClassroomService classroomService;
     private final AssignmentService assignmentService;
     private final ContentService contentService;
+    private final ExamService examService;
     private final ClassroomRepository classroomRepository;
     private final AssignmentRepository assignmentRepository;
+    private final ExamRepository examRepository;
+    private final ExamSubmissionRepository examSubmissionRepository;
     private final UserRepository userRepository;
 
     /**
@@ -636,9 +646,59 @@ public class DashboardController {
     }
 
     /**
+     * Trang tạo bài tập mới của giáo viên
+     * GET /dashboard/teacher/create-assignment
+     *
+     * Cung cấp dữ liệu cho form:
+     * - Danh sách Unit để giáo viên chọn nội dung bài tập
+     * - Danh sách lớp học của giáo viên để chọn lớp giao bài
+     *
+     * @param model - Model để truyền dữ liệu ra view
+     * @return trang tạo bài tập (teacher/create-assignment.html)
+     */
+    @GetMapping("/teacher/create-assignment")
+    public String teacherCreateAssignment(Model model) {
+        log.info("Đang tải trang tạo bài tập");
+
+        try {
+            // Lấy thông tin giáo viên đang đăng nhập
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+
+            // Thiết lập thông tin cơ bản của user vào model
+            String username = (user != null && user.getFullName() != null)
+                    ? user.getFullName() : email;
+            model.addAttribute("username", username);
+            model.addAttribute("role", "TEACHER");
+
+            // Lấy danh sách Unit active để đổ vào dropdown chọn unit
+            List<com.english12smart.dto.ContentDTO.UnitResponse> units = contentService.getAllActiveUnits();
+            model.addAttribute("units", units);
+
+            // Lấy danh sách lớp học của giáo viên để đổ vào danh sách chọn lớp giao bài
+            String teacherId = (user != null) ? user.getId() : email;
+            List<ClassroomDTO.Response> classes = classroomService.getClassroomsByTeacher(teacherId);
+            model.addAttribute("classes", classes);
+
+            log.info("Tải trang tạo bài tập thành công: {} units, {} lớp", units.size(), classes.size());
+
+        } catch (Exception e) {
+            log.error("Lỗi khi tải trang tạo bài tập: {}", e.getMessage(), e);
+            // Đặt dữ liệu mặc định để tránh lỗi render template
+            model.addAttribute("username", "Teacher");
+            model.addAttribute("role", "TEACHER");
+            model.addAttribute("units", List.of());
+            model.addAttribute("classes", List.of());
+        }
+
+        return "teacher/create-assignment";
+    }
+
+    /**
      * Trang quản lý lớp học của giáo viên
      * GET /dashboard/teacher/classes
-     * 
+     *
      * @param model - Model để truyền dữ liệu ra view
      * @return teacher classes page template
      */
@@ -839,5 +899,263 @@ public class DashboardController {
         }
 
         return "teacher/assignments";
+    }
+
+    // ======================================================================
+    // Các route mới: Tính năng đề thi (Exam)
+    // ======================================================================
+
+    /**
+     * Trang danh sách đề thi của giáo viên
+     * GET /dashboard/teacher/exams
+     *
+     * Hiển thị tất cả đề thi giáo viên đã tạo với thống kê tổng quát
+     *
+     * @param model - Model để truyền dữ liệu ra view
+     * @return trang danh sách đề thi (teacher/exams.html)
+     */
+    @GetMapping("/teacher/exams")
+    public String teacherExams(Model model) {
+        log.info("Đang tải trang danh sách đề thi của giáo viên");
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+
+            if (user != null) {
+                model.addAttribute("username", user.getFullName() != null ? user.getFullName() : user.getEmail());
+                model.addAttribute("role", "TEACHER");
+
+                String teacherId = user.getId();
+
+                // Lấy tất cả đề thi của giáo viên, sắp xếp mới nhất trước
+                List<com.english12smart.entity.Exam> exams = examRepository
+                        .findByTeacherIdOrderByCreatedAtDesc(teacherId);
+                model.addAttribute("exams", exams);
+
+                // Thống kê cho cards phía trên
+                long totalExams = exams.size();
+                long activeExams = exams.stream()
+                        .filter(e -> "ACTIVE".equals(e.getStatus())).count();
+                long totalSubmissions = exams.stream()
+                        .mapToLong(e -> e.getSubmittedCount() != null ? e.getSubmittedCount() : 0)
+                        .sum();
+
+                model.addAttribute("totalExams", totalExams);
+                model.addAttribute("activeExams", activeExams);
+                model.addAttribute("totalSubmissions", totalSubmissions);
+            } else {
+                setDefaultTeacherExams(model);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi tải trang đề thi: {}", e.getMessage(), e);
+            setDefaultTeacherExams(model);
+        }
+
+        return "teacher/exams";
+    }
+
+    /**
+     * Trang tạo đề thi mới của giáo viên
+     * GET /dashboard/teacher/create-exam
+     *
+     * Cung cấp dữ liệu cho form:
+     * - Danh sách lớp học để chọn lớp giao đề
+     * - Danh sách Unit để giáo viên duyệt ngân hàng Exercise
+     *
+     * @param model - Model để truyền dữ liệu ra view
+     * @return trang tạo đề thi (teacher/create-exam.html)
+     */
+    @GetMapping("/teacher/create-exam")
+    public String teacherCreateExam(Model model) {
+        log.info("Đang tải trang tạo đề thi mới");
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+
+            String username = (user != null && user.getFullName() != null)
+                    ? user.getFullName() : email;
+            model.addAttribute("username", username);
+            model.addAttribute("role", "TEACHER");
+
+            // Lấy danh sách lớp học của giáo viên để đổ vào dropdown
+            String teacherId = (user != null) ? user.getId() : email;
+            List<ClassroomDTO.Response> classes = classroomService.getClassroomsByTeacher(teacherId);
+            model.addAttribute("classes", classes);
+
+            // Lấy danh sách Unit active để giáo viên duyệt ngân hàng câu hỏi
+            List<ContentDTO.UnitResponse> units = contentService.getAllActiveUnits();
+            model.addAttribute("units", units);
+
+            log.info("Tải trang tạo đề thi thành công: {} lớp, {} units", classes.size(), units.size());
+
+        } catch (Exception e) {
+            log.error("Lỗi khi tải trang tạo đề thi: {}", e.getMessage(), e);
+            // Đặt dữ liệu mặc định khi có lỗi
+            model.addAttribute("username", "Teacher");
+            model.addAttribute("role", "TEACHER");
+            model.addAttribute("classes", List.of());
+            model.addAttribute("units", List.of());
+        }
+
+        return "teacher/create-exam";
+    }
+
+    /**
+     * Trang nhập mã PIN và lịch sử thi của học sinh
+     * GET /dashboard/student/exams
+     *
+     * Hiển thị ô nhập PIN và danh sách các bài thi đã làm
+     *
+     * @param model - Model để truyền dữ liệu ra view
+     * @return trang đề thi học sinh (student/exams.html)
+     */
+    @GetMapping("/student/exams")
+    public String studentExams(Model model) {
+        log.info("Đang tải trang đề thi của học sinh");
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+
+            if (user != null) {
+                model.addAttribute("username", user.getFullName() != null ? user.getFullName() : user.getEmail());
+                model.addAttribute("role", "STUDENT");
+
+                // Lấy lịch sử thi của học sinh (các bài đã nộp)
+                List<ExamSubmission> history = examSubmissionRepository
+                        .findByStudentIdOrderBySubmittedAtDesc(user.getId());
+                model.addAttribute("examHistory", history);
+                model.addAttribute("totalExams", history.size());
+            } else {
+                model.addAttribute("username", "Student");
+                model.addAttribute("role", "STUDENT");
+                model.addAttribute("examHistory", List.of());
+                model.addAttribute("totalExams", 0);
+            }
+        } catch (Exception e) {
+            log.error("Lỗi khi tải trang đề thi học sinh: {}", e.getMessage(), e);
+            model.addAttribute("username", "Student");
+            model.addAttribute("role", "STUDENT");
+            model.addAttribute("examHistory", List.of());
+            model.addAttribute("totalExams", 0);
+        }
+
+        return "student/exams";
+    }
+
+    /**
+     * Trang làm bài thi của học sinh
+     * GET /dashboard/student/exam/{examId}
+     *
+     * Xác thực học sinh có quyền vào thi, rồi load đề thi (ĐÃ ẨN đáp án)
+     *
+     * @param examId ID đề thi
+     * @param model  - Model để truyền dữ liệu ra view
+     * @return trang làm bài (student/exam-taking.html) hoặc redirect nếu không hợp lệ
+     */
+    @GetMapping("/student/exam/{examId}")
+    public String studentExamTaking(@PathVariable String examId, Model model) {
+        log.info("Đang tải trang làm bài thi, examId: {}", examId);
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            model.addAttribute("username", user.getFullName() != null ? user.getFullName() : user.getEmail());
+            model.addAttribute("role", "STUDENT");
+
+            // Kiểm tra học sinh đã nộp bài chưa → redirect sang trang kết quả
+            if (examSubmissionRepository.existsByExamIdAndStudentId(examId, user.getId())) {
+                log.info("Học sinh {} đã nộp bài thi {}, chuyển sang trang kết quả", user.getId(), examId);
+                return "redirect:/dashboard/student/exam/" + examId + "/result";
+            }
+
+            // Lấy đề thi và ẨN đáp án đúng trước khi truyền vào view
+            Exam exam = examRepository.findById(examId).orElse(null);
+            if (exam == null) {
+                log.warn("Không tìm thấy đề thi: {}", examId);
+                return "redirect:/dashboard/student/exams";
+            }
+
+            // Kiểm tra đề thi đang mở
+            if (!"ACTIVE".equals(exam.getStatus())) {
+                log.warn("Đề thi {} đã đóng, học sinh {} không thể vào thi", examId, user.getId());
+                return "redirect:/dashboard/student/exams";
+            }
+
+            // Truyền đề thi vào model (KHÔNG có correctAnswer)
+            model.addAttribute("exam", exam);
+            model.addAttribute("studentId", user.getId());
+            model.addAttribute("studentName", user.getFullName() != null ? user.getFullName() : user.getEmail());
+
+        } catch (Exception e) {
+            log.error("Lỗi khi tải trang làm bài: {}", e.getMessage(), e);
+            return "redirect:/dashboard/student/exams";
+        }
+
+        return "student/exam-taking";
+    }
+
+    /**
+     * Trang xem kết quả bài thi của học sinh
+     * GET /dashboard/student/exam/{examId}/result
+     *
+     * Hiển thị điểm số, phần trăm, đáp án đúng và giải thích từng câu
+     *
+     * @param examId ID đề thi
+     * @param model  - Model để truyền dữ liệu ra view
+     * @return trang kết quả (student/exam-result.html) hoặc redirect nếu chưa nộp
+     */
+    @GetMapping("/student/exam/{examId}/result")
+    public String studentExamResult(@PathVariable String examId, Model model) {
+        log.info("Đang tải trang kết quả bài thi, examId: {}", examId);
+
+        try {
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            String email = authentication.getName();
+            User user = userRepository.findByEmail(email);
+
+            if (user == null) {
+                return "redirect:/auth/login";
+            }
+
+            model.addAttribute("username", user.getFullName() != null ? user.getFullName() : user.getEmail());
+            model.addAttribute("role", "STUDENT");
+
+            // Lấy kết quả bài làm, bao gồm đáp án đúng và giải thích
+            ExamSubmissionDTO.Response result = examService.getStudentResult(examId, user.getId());
+            model.addAttribute("result", result);
+
+            // Lấy thông tin đề thi để hiển thị chi tiết từng câu hỏi
+            Exam exam = examRepository.findById(examId).orElse(null);
+            model.addAttribute("exam", exam);
+
+        } catch (Exception e) {
+            log.error("Lỗi khi tải trang kết quả: {}", e.getMessage(), e);
+            // Nếu chưa có bài làm → redirect về trang đề thi
+            return "redirect:/dashboard/student/exams";
+        }
+
+        return "student/exam-result";
+    }
+
+    /** Dữ liệu mặc định khi có lỗi load trang đề thi giáo viên */
+    private void setDefaultTeacherExams(Model model) {
+        model.addAttribute("username", "Teacher");
+        model.addAttribute("role", "TEACHER");
+        model.addAttribute("exams", List.of());
+        model.addAttribute("totalExams", 0L);
+        model.addAttribute("activeExams", 0L);
+        model.addAttribute("totalSubmissions", 0L);
     }
 }

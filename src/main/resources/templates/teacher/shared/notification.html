@@ -1,0 +1,58 @@
+<!-- Shared Notification Component for Teacher Pages -->
+<div id="notification-container" class="fixed top-20 right-4 z-50 space-y-3 pointer-events-none">
+    <!-- Notifications will be dynamically added here -->
+</div>
+
+<!-- Notification Template (hidden, for cloning) -->
+<template id="notification-template">
+    <div class="notification-item pointer-events-auto flex items-start gap-3 px-4 py-3 rounded-lg border shadow-lg animate-slide-in max-w-sm"
+        role="alert">
+        <div class="flex-shrink-0 pt-0.5">
+            <iconify-icon id="notification-icon" icon="mdi:check-circle" width="20" class="text-white"></iconify-icon>
+        </div>
+        <div class="flex-1">
+            <h3 id="notification-title" class="font-medium text-white text-sm"></h3>
+            <p id="notification-message" class="text-white/90 text-sm mt-0.5"></p>
+        </div>
+        <button class="flex-shrink-0 text-white/70 hover:text-white transition-colors" 
+            onclick="this.closest('.notification-item').remove()">
+            <iconify-icon icon="mdi:close" width="18"></iconify-icon>
+        </button>
+    </div>
+</template>
+
+<style>
+    @keyframes slideIn {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    @keyframes slideOut {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+    }
+
+    .animate-slide-in {
+        animation: slideIn 0.3s ease-out;
+    }
+
+    .animate-slide-out {
+        animation: slideOut 0.3s ease-out forwards;
+    }
+
+    .notification-item {
+        min-width: 300px;
+    }
+</style>
