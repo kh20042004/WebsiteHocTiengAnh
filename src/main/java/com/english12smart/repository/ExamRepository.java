@@ -51,4 +51,9 @@ public interface ExamRepository extends MongoRepository<Exam, String> {
      * Dùng cho thống kê số đề đang hoạt động
      */
     long countByTeacherIdAndStatus(String teacherId, String status);
+
+    /**
+     * Đếm số đề thi theo trạng thái (ACTIVE, CLOSED, DRAFT)
+     */
+    long countByStatus(String status);
 }

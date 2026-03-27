@@ -26,8 +26,10 @@ public class AssignmentApiController {
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<AssignmentDTO.Response>> createAssignment(
             @Valid @RequestBody AssignmentDTO.CreateRequest request) {
-        String teacherId = getCurrentUserId();
-        return ResponseEntity.ok(ApiResponseDTO.success(assignmentService.createAssignment(request, teacherId)));
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        return ResponseEntity.ok(
+            ApiResponseDTO.success(assignmentService.createAssignment(request, currentUser.getId(), isAdmin)));
     }
 
     /** PUT /api/assignments/{id} - Cập nhật bài tập */
@@ -36,27 +38,34 @@ public class AssignmentApiController {
     public ResponseEntity<ApiResponseDTO<AssignmentDTO.Response>> updateAssignment(
             @PathVariable String id,
             @Valid @RequestBody AssignmentDTO.UpdateRequest request) {
-        String teacherId = getCurrentUserId();
-        return ResponseEntity.ok(ApiResponseDTO.success(assignmentService.updateAssignment(id, request, teacherId)));
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        return ResponseEntity.ok(ApiResponseDTO.success(
+            assignmentService.updateAssignment(id, request, currentUser.getId(), isAdmin)));
     }
 
     /** DELETE /api/assignments/{id} - Xóa bài tập */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<String>> deleteAssignment(@PathVariable String id) {
-        String teacherId = getCurrentUserId();
-        assignmentService.deleteAssignment(id, teacherId);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        assignmentService.deleteAssignment(id, currentUser.getId(), isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success("Xóa bài tập thành công"));
     }
 
     // ---- Helper ----
     private String getCurrentUserId() {
+        return getCurrentUser().getId();
+    }
+
+    private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new com.english12smart.exception.ResourceNotFoundException("Không tìm thấy người dùng");
         }
-        return user.getId();
+        return user;
     }
 }

@@ -92,11 +92,12 @@ public class ClassroomService {
     /**
      * Cập nhật thông tin lớp học
      */
-    public ClassroomDTO.Response updateClassroom(String classroomId, ClassroomDTO.UpdateRequest request, String teacherId) {
+    public ClassroomDTO.Response updateClassroom(String classroomId, ClassroomDTO.UpdateRequest request, String teacherId,
+            boolean adminOverride) {
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học với ID: " + classroomId));
 
-        if (!classroom.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền sửa lớp học này");
         }
 
@@ -131,11 +132,11 @@ public class ClassroomService {
     /**
      * Xóa lớp học
      */
-    public void deleteClassroom(String classroomId, String teacherId) {
+    public void deleteClassroom(String classroomId, String teacherId, boolean adminOverride) {
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học với ID: " + classroomId));
 
-        if (!classroom.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền xóa lớp học này");
         }
 

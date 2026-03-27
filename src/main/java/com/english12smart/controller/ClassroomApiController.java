@@ -63,16 +63,19 @@ public class ClassroomApiController {
     public ResponseEntity<ApiResponseDTO<ClassroomDTO.Response>> updateClassroom(
             @PathVariable String id,
             @Valid @RequestBody ClassroomDTO.UpdateRequest request) {
-        String teacherId = getCurrentUserId();
-        return ResponseEntity.ok(ApiResponseDTO.success(classroomService.updateClassroom(id, request, teacherId)));
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        return ResponseEntity.ok(ApiResponseDTO.success(
+            classroomService.updateClassroom(id, request, currentUser.getId(), isAdmin)));
     }
 
     /** DELETE /api/classrooms/{id} - Xóa lớp học */
     @DeleteMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<String>> deleteClassroom(@PathVariable String id) {
-        String teacherId = getCurrentUserId();
-        classroomService.deleteClassroom(id, teacherId);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        classroomService.deleteClassroom(id, currentUser.getId(), isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success("Xóa lớp học thành công"));
     }
 
@@ -102,12 +105,16 @@ public class ClassroomApiController {
     // ---- Helper ----
 
     private String getCurrentUserId() {
+        return getCurrentUser().getId();
+    }
+
+    private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new com.english12smart.exception.ResourceNotFoundException("Không tìm thấy người dùng");
         }
-        return user.getId();
+        return user;
     }
 }

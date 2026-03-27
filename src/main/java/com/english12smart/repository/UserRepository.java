@@ -98,6 +98,13 @@ public interface UserRepository extends MongoRepository<User, String> {
     long countByIsActiveTrue();
 
     /**
+     * Đếm số giáo viên đang hoạt động
+     * @param role - TEACHER
+     * @return Số lượng giáo viên active
+     */
+    long countByRoleAndIsActiveTrue(String role);
+
+    /**
      * Đếm số user mới trong N ngày
      * @param timestamp - Timestamp từ N ngày trước
      * @return Số lượng user

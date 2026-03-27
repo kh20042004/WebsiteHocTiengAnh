@@ -39,6 +39,11 @@ public interface LessonRepository extends MongoRepository<Lesson, String> {
     long countByUnitIdAndIsActiveTrue(String unitId);
 
     /**
+     * Đếm tổng số bài học đang active
+     */
+    long countByIsActiveTrue();
+
+    /**
      * Xoá tất cả bài học của một Unit (khi xoá Unit)
      * @param unitId - ID của Unit bị xoá
      */

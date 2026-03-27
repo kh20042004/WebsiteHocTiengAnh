@@ -49,4 +49,9 @@ public interface ExerciseRepository extends MongoRepository<Exercise, String> {
      * @param unitId - ID của Unit bị xoá
      */
     void deleteByUnitId(String unitId);
+
+    /**
+     * Đếm tổng số bài tập đang active
+     */
+    long countByIsActiveTrue();
 }

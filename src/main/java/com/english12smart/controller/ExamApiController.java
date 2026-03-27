@@ -57,9 +57,10 @@ public class ExamApiController {
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<ExamDTO.Response>> createExam(
             @Valid @RequestBody ExamDTO.CreateRequest request) {
-        String teacherId = getCurrentUserId();
-        log.info("Giáo viên {} gọi API tạo đề thi: {}", teacherId, request.getTitle());
-        ExamDTO.Response response = examService.createExam(teacherId, request);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        log.info("Giáo viên {} gọi API tạo đề thi: {}", currentUser.getId(), request.getTitle());
+        ExamDTO.Response response = examService.createExam(currentUser.getId(), request, isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
@@ -70,9 +71,10 @@ public class ExamApiController {
     @GetMapping
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<List<ExamDTO.Response>>> getMyExams() {
-        String teacherId = getCurrentUserId();
-        log.info("Giáo viên {} lấy danh sách đề thi", teacherId);
-        List<ExamDTO.Response> exams = examService.getExamsByTeacher(teacherId);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        log.info("Giáo viên {} lấy danh sách đề thi", currentUser.getId());
+        List<ExamDTO.Response> exams = examService.getExamsByTeacher(currentUser.getId(), isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success(exams));
     }
 
@@ -84,9 +86,10 @@ public class ExamApiController {
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<List<ExamSubmissionDTO.Response>>> getExamResults(
             @PathVariable String examId) {
-        String teacherId = getCurrentUserId();
-        log.info("Giáo viên {} xem kết quả đề thi: {}", teacherId, examId);
-        List<ExamSubmissionDTO.Response> results = examService.getExamResults(examId, teacherId);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        log.info("Giáo viên {} xem kết quả đề thi: {}", currentUser.getId(), examId);
+        List<ExamSubmissionDTO.Response> results = examService.getExamResults(examId, currentUser.getId(), isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success(results));
     }
 
@@ -100,10 +103,11 @@ public class ExamApiController {
     public ResponseEntity<ApiResponseDTO<ExamDTO.Response>> updateExamStatus(
             @PathVariable String examId,
             @RequestBody Map<String, String> body) {
-        String teacherId = getCurrentUserId();
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
         String newStatus = body.getOrDefault("status", "ACTIVE");
-        log.info("Giáo viên {} thay đổi trạng thái đề thi {} → {}", teacherId, examId, newStatus);
-        ExamDTO.Response response = examService.updateExamStatus(examId, teacherId, newStatus);
+        log.info("Giáo viên {} thay đổi trạng thái đề thi {} → {}", currentUser.getId(), examId, newStatus);
+        ExamDTO.Response response = examService.updateExamStatus(examId, currentUser.getId(), newStatus, isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success(response));
     }
 
@@ -114,9 +118,10 @@ public class ExamApiController {
     @DeleteMapping("/{examId}")
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<String>> deleteExam(@PathVariable String examId) {
-        String teacherId = getCurrentUserId();
-        log.info("Giáo viên {} xóa đề thi: {}", teacherId, examId);
-        examService.deleteExam(examId, teacherId);
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        log.info("Giáo viên {} xóa đề thi: {}", currentUser.getId(), examId);
+        examService.deleteExam(examId, currentUser.getId(), isAdmin);
         return ResponseEntity.ok(ApiResponseDTO.success("Đã xóa đề thi thành công"));
     }
 
@@ -208,12 +213,16 @@ public class ExamApiController {
      * SecurityContext lưu email → tra cứu User → lấy ID
      */
     private String getCurrentUserId() {
+        return getCurrentUser().getId();
+    }
+
+    private User getCurrentUser() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         String email = auth.getName();
         User user = userRepository.findByEmail(email);
         if (user == null) {
             throw new ResourceNotFoundException("Không tìm thấy người dùng với email: " + email);
         }
-        return user.getId();
+        return user;
     }
 }

@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 import lombok.extern.slf4j.Slf4j;
 import com.english12smart.dto.ApiResponseDTO;
 
@@ -200,6 +201,26 @@ public class GlobalExceptionHandler {
                 response.setTimestamp(System.currentTimeMillis());
 
                 return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+        }
+
+        /**
+         * Handle missing endpoint/static resource
+         */
+        @ExceptionHandler(NoResourceFoundException.class)
+        public ResponseEntity<ApiResponseDTO<String>> handleNoResourceFoundException(
+                        NoResourceFoundException ex,
+                        WebRequest request) {
+                log.warn("No resource found: {}", ex.getMessage());
+
+                ApiResponseDTO<String> response = new ApiResponseDTO<>(
+                                404,
+                                "Không tìm thấy tài nguyên hoặc endpoint.",
+                                null);
+                response.setError("NO_RESOURCE_FOUND");
+                response.setPath(request.getDescription(false).replace("uri=", ""));
+                response.setTimestamp(System.currentTimeMillis());
+
+                return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
 
         /**

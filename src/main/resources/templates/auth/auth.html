@@ -509,7 +509,11 @@
 
                 if (response.ok) {
                     // Save token and user data
-                    localStorage.setItem('token', data.data.token);
+                    const accessToken = data.data.accessToken || data.data.token;
+                    if (accessToken) {
+                        localStorage.setItem('token', accessToken);
+                        localStorage.setItem('accessToken', accessToken);
+                    }
                     localStorage.setItem('user', JSON.stringify(data.data.user));
 
                     // Save email if remember is checked

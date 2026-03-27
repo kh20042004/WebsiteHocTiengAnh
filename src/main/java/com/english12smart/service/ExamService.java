@@ -53,7 +53,7 @@ public class ExamService {
      * @param request   Thông tin đề thi từ form
      * @return ExamDTO.Response chứa đủ thông tin kể cả mã PIN mới sinh
      */
-    public ExamDTO.Response createExam(String teacherId, ExamDTO.CreateRequest request) {
+    public ExamDTO.Response createExam(String teacherId, ExamDTO.CreateRequest request, boolean adminOverride) {
         log.info("Giáo viên {} đang tạo đề thi mới: {}", teacherId, request.getTitle());
 
         // Kiểm tra lớp học tồn tại và giáo viên có quyền
@@ -61,7 +61,7 @@ public class ExamService {
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học với ID: " + request.getClassroomId()));
 
         // Đảm bảo giáo viên chỉ tạo đề cho lớp của mình
-        if (!classroom.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền tạo đề thi cho lớp này");
         }
 
@@ -134,7 +134,7 @@ public class ExamService {
         Exam exam = Exam.builder()
                 .title(request.getTitle().trim())
                 .description(request.getDescription())
-                .teacherId(teacherId)
+                .teacherId(adminOverride ? classroom.getTeacherId() : teacherId)
                 .createdBy(teacherId)
                 .classroomId(request.getClassroomId())
                 .classroomName(classroom.getName())
@@ -160,9 +160,17 @@ public class ExamService {
      * @param teacherId ID giáo viên
      * @return Danh sách đề thi, sắp xếp mới nhất trước
      */
-    public List<ExamDTO.Response> getExamsByTeacher(String teacherId) {
+        public List<ExamDTO.Response> getExamsByTeacher(String teacherId, boolean adminOverride) {
         log.info("Lấy danh sách đề thi của giáo viên: {}", teacherId);
-        return examRepository.findByTeacherIdOrderByCreatedAtDesc(teacherId)
+        List<Exam> exams = adminOverride
+            ? examRepository.findAll().stream()
+                .sorted((a, b) -> Long.compare(
+                    b.getCreatedAt() != null ? b.getCreatedAt() : 0L,
+                    a.getCreatedAt() != null ? a.getCreatedAt() : 0L))
+                .collect(Collectors.toList())
+            : examRepository.findByTeacherIdOrderByCreatedAtDesc(teacherId);
+
+        return exams
                 .stream()
                 .map(exam -> toResponse(exam, false)) // giáo viên thấy đầy đủ thông tin
                 .collect(Collectors.toList());
@@ -175,14 +183,14 @@ public class ExamService {
      * @param teacherId ID giáo viên (để kiểm tra quyền)
      * @return Danh sách kết quả, sắp xếp theo điểm cao nhất
      */
-    public List<ExamSubmissionDTO.Response> getExamResults(String examId, String teacherId) {
+    public List<ExamSubmissionDTO.Response> getExamResults(String examId, String teacherId, boolean adminOverride) {
         log.info("Giáo viên {} đang xem kết quả đề thi: {}", teacherId, examId);
 
         // Kiểm tra đề thi tồn tại và thuộc giáo viên này
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề thi với ID: " + examId));
 
-        if (!exam.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !exam.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền xem kết quả đề thi này");
         }
 
@@ -201,13 +209,13 @@ public class ExamService {
      * @param status    Trạng thái mới
      * @return Đề thi đã cập nhật
      */
-    public ExamDTO.Response updateExamStatus(String examId, String teacherId, String status) {
+    public ExamDTO.Response updateExamStatus(String examId, String teacherId, String status, boolean adminOverride) {
         log.info("Giáo viên {} cập nhật trạng thái đề thi {} → {}", teacherId, examId, status);
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề thi với ID: " + examId));
 
-        if (!exam.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !exam.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền cập nhật đề thi này");
         }
 
@@ -229,13 +237,13 @@ public class ExamService {
      * @param examId    ID đề thi
      * @param teacherId ID giáo viên (kiểm tra quyền)
      */
-    public void deleteExam(String examId, String teacherId) {
+    public void deleteExam(String examId, String teacherId, boolean adminOverride) {
         log.info("Giáo viên {} đang xóa đề thi: {}", teacherId, examId);
 
         Exam exam = examRepository.findById(examId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề thi với ID: " + examId));
 
-        if (!exam.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !exam.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền xóa đề thi này");
         }
 

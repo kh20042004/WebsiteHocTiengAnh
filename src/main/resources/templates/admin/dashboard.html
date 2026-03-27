@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi" xmlns:th="http://www.thymeleaf.org">
 
 <head>
@@ -6,45 +6,390 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Admin | English 12 Smart</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" th:href="@{/css/admin-dashboard.css}">
 </head>
 
-<body class="bg-slate-50">
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 text-center">
-            <div class="mb-6">
-                <div class="h-20 w-20 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <svg class="h-10 w-10 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
+<body class="admin-page">
+    <div class="admin-bg-shape shape-left"></div>
+    <div class="admin-bg-shape shape-right"></div>
+
+    <main class="admin-container">
+        <header class="admin-header">
+            <div>
+                <p class="admin-eyebrow">English 12 Smart</p>
+                <h1 class="admin-title">Bảng điều khiển quản trị</h1>
+                <p class="admin-subtitle">
+                    Quản lý người dùng và theo dõi toàn bộ hệ thống trong một màn hình.
+                </p>
+            </div>
+
+            <div class="admin-header-right">
+                <div class="admin-pill">
+                    <span>Xin chào,</span>
+                    <strong id="adminName" th:text="${username}">admin@example.com</strong>
                 </div>
-                <h1 class="text-3xl font-bold text-slate-900 mb-2">Dashboard Admin</h1>
-                <p class="text-slate-600">Chào mừng, <span th:text="${username}"
-                        class="font-semibold text-purple-600">Admin</span>!</p>
+                <button id="logoutButton" class="btn btn-danger" type="button">Đăng xuất</button>
+            </div>
+        </header>
+
+        <section id="authWarning" class="warning-box hidden" aria-live="polite">
+            <h2>Thiếu token đăng nhập</h2>
+            <p>Không tìm thấy token trong trình duyệt. Vui lòng đăng nhập lại để dùng trang quản trị.</p>
+            <a class="btn btn-primary" href="/auth/login">Đi tới đăng nhập</a>
+        </section>
+
+        <section class="stats-grid" id="statsGrid">
+            <article class="stat-card">
+                <h2>Tổng người dùng</h2>
+                <p id="totalUsers">--</p>
+            </article>
+            <article class="stat-card">
+                <h2>Đang hoạt động</h2>
+                <p id="activeUsers">--</p>
+            </article>
+            <article class="stat-card">
+                <h2>Giáo viên</h2>
+                <p id="teacherUsers">--</p>
+            </article>
+            <article class="stat-card">
+                <h2>Học sinh</h2>
+                <p id="studentUsers">--</p>
+            </article>
+            <article class="stat-card">
+                <h2>Người dùng mới (7 ngày)</h2>
+                <p id="newUsersLastWeek">--</p>
+            </article>
+            <article class="stat-card stat-card-wide">
+                <h2>Nội dung hệ thống</h2>
+                <div class="inline-stats">
+                    <span id="totalUnits">Units: --</span>
+                    <span id="totalClassrooms">Lớp học: --</span>
+                    <span id="totalAssignments">Bài tập: --</span>
+                    <span id="totalExams">Đề thi: --</span>
+                </div>
+            </article>
+        </section>
+
+        <nav class="admin-nav" aria-label="Chuyển đổi mục quản lý">
+            <button class="nav-link active" type="button" data-section="users">Quản lý người dùng</button>
+            <button class="nav-link" type="button" data-section="content">Quản lý nội dung học tập</button>
+            <button class="nav-link" type="button" data-section="classrooms">Quản lý lớp học & giáo viên</button>
+            <button class="nav-link" type="button" data-section="monitoring">Theo dõi & báo cáo</button>
+            <button class="nav-link" type="button" data-section="learning">Dữ liệu học tập</button>
+        </nav>
+
+        <div class="panel-stack">
+
+        <section id="userPanel" class="panel">
+            <div class="panel-head">
+                <h2>Quản lý người dùng</h2>
+                <button id="refreshButton" class="btn btn-secondary" type="button">Làm mới</button>
             </div>
 
-            <div class="bg-purple-50 border border-purple-200 rounded-lg p-6 mb-6">
-                <p class="text-purple-800 font-medium mb-2">⚙️ Trang dashboard admin đang được phát triển</p>
-                <p class="text-purple-700 text-sm">Các tính năng sẽ có: Quản lý người dùng, Thống kê hệ thống, Cấu hình,
-                    Logs</p>
+            <form id="filterForm" class="filter-grid" autocomplete="off">
+                <label>
+                    Vai trò
+                    <select id="roleFilter" name="role">
+                        <option value="">Tất cả</option>
+                        <option value="ADMIN">ADMIN</option>
+                        <option value="TEACHER">TEACHER</option>
+                        <option value="STUDENT">STUDENT</option>
+                    </select>
+                </label>
+
+                <label>
+                    Trạng thái
+                    <select id="statusFilter" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="true">Hoạt động</option>
+                        <option value="false">Đã khóa</option>
+                    </select>
+                </label>
+
+                <label class="keyword-field">
+                    Từ khóa
+                    <input id="keywordFilter" name="keyword" type="text" placeholder="Tên hoặc email người dùng">
+                </label>
+
+                <button class="btn btn-primary" type="submit">Áp dụng bộ lọc</button>
+            </form>
+
+            <div id="loadingState" class="table-state">Đang tải dữ liệu...</div>
+            <div id="errorState" class="table-state error hidden"></div>
+
+            <div class="table-wrap" id="tableWrap">
+                <table class="user-table">
+                    <thead>
+                        <tr>
+                            <th>Người dùng</th>
+                            <th>Vai trò</th>
+                            <th>Trạng thái</th>
+                            <th>XP / Cấp độ</th>
+                            <th>Ngày tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="usersTableBody"></tbody>
+                </table>
+            </div>
+        </section>
+
+        <section id="contentPanel" class="panel hidden">
+            <div class="panel-head">
+                <h2>Quản lý nội dung học tập</h2>
+                <button id="contentRefreshButton" class="btn btn-secondary" type="button">Làm mới nội dung</button>
             </div>
 
-            <button onclick="logout()"
-                class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors">
-                Đăng xuất
-            </button>
+            <form id="contentFilterForm" class="filter-grid content-filter" autocomplete="off">
+                <label>
+                    Loại nội dung
+                    <select id="contentTypeFilter" name="contentType">
+                        <option value="">Tất cả</option>
+                        <option value="UNIT">Unit</option>
+                        <option value="LESSON">Bài học</option>
+                        <option value="EXERCISE">Bài tập</option>
+                        <option value="EXAM">Đề thi</option>
+                    </select>
+                </label>
+
+                <label>
+                    Trạng thái
+                    <select id="contentStatusFilter" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="HIDDEN">Ẩn</option>
+                    </select>
+                </label>
+
+                <label>
+                    Người tạo
+                    <input id="contentCreatorFilter" name="createdBy" type="text" placeholder="Email hoặc ID người tạo">
+                </label>
+
+                <label class="keyword-field">
+                    Từ khóa
+                    <input id="contentKeywordFilter" name="keyword" type="text" placeholder="Tên hoặc mô tả">
+                </label>
+
+                <button class="btn btn-primary" type="submit">Áp dụng bộ lọc</button>
+            </form>
+
+            <div class="content-stats-grid">
+                <article class="stat-card">
+                    <h3>Tổng nội dung</h3>
+                    <p id="contentStatsTotal">--</p>
+                </article>
+                <article class="stat-card">
+                    <h3>Theo loại</h3>
+                    <div id="contentTypeCounts" class="content-stats-list"></div>
+                </article>
+                <article class="stat-card">
+                    <h3>Trạng thái</h3>
+                    <div id="contentStatusBreakdown" class="content-stats-list"></div>
+                </article>
+            </div>
+
+            <div id="contentLoadingState" class="table-state hidden">Đang tải nội dung...</div>
+            <div id="contentErrorState" class="table-state error hidden"></div>
+
+            <div class="table-wrap">
+                <table class="content-table">
+                    <thead>
+                        <tr>
+                            <th>Nội dung</th>
+                            <th>Loại</th>
+                            <th>Trạng thái</th>
+                            <th>Người tạo</th>
+                            <th>Ngày tạo</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="contentTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination-row">
+                <button id="contentPrevPage" class="btn btn-tertiary" type="button" disabled>Trước</button>
+                <span id="contentPageInfo">Trang --</span>
+                <button id="contentNextPage" class="btn btn-tertiary" type="button" disabled>Sau</button>
+            </div>
+        </section>
+
+        <section id="classroomPanel" class="panel hidden">
+            <div class="panel-head">
+                <h2>Quản lý lớp học & giáo viên</h2>
+                <button id="classroomRefreshButton" class="btn btn-secondary" type="button">Làm mới lớp học</button>
+            </div>
+
+            <form id="classroomFilterForm" class="filter-grid classroom-filter" autocomplete="off">
+                <label>
+                    Giáo viên
+                    <input id="classroomTeacherFilter" name="teacherKeyword" type="text" placeholder="Email hoặc tên giáo viên">
+                </label>
+
+                <label>
+                    Trạng thái
+                    <select id="classroomStatusFilter" name="status">
+                        <option value="">Tất cả</option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="UPCOMING">Sắp khai giảng</option>
+                        <option value="COMPLETED">Đã kết thúc</option>
+                    </select>
+                </label>
+
+                <label>
+                    Khối
+                    <input id="classroomGradeFilter" name="grade" type="text" placeholder="10, 11, 12">
+                </label>
+
+                <label class="keyword-field">
+                    Từ khóa
+                    <input id="classroomKeywordFilter" name="keyword" type="text" placeholder="Tên lớp, mô tả hoặc mã">
+                </label>
+
+                <button class="btn btn-primary" type="submit">Áp dụng bộ lọc</button>
+            </form>
+
+            <div class="classroom-stats-grid">
+                <article class="stat-card">
+                    <h3>Tổng lớp học</h3>
+                    <p id="classroomTotal">--</p>
+                </article>
+                <article class="stat-card">
+                    <h3>Giáo viên</h3>
+                    <p id="classroomTeacherCount">--</p>
+                    <small id="classroomActiveTeacherCount">-- hoạt động</small>
+                </article>
+                <article class="stat-card">
+                    <h3>Học sinh trung bình</h3>
+                    <p id="classroomAvgStudents">--</p>
+                </article>
+                <article class="stat-card">
+                    <h3>Trạng thái</h3>
+                    <div id="classroomStatusBreakdown" class="content-stats-list"></div>
+                </article>
+            </div>
+
+            <div id="classroomLoadingState" class="table-state hidden">Đang tải lớp học...</div>
+            <div id="classroomErrorState" class="table-state error hidden"></div>
+
+            <div class="table-wrap">
+                <table class="classroom-table">
+                    <thead>
+                        <tr>
+                            <th>Lớp học</th>
+                            <th>Giáo viên</th>
+                            <th>Khối</th>
+                            <th>Trạng thái</th>
+                            <th>Học sinh</th>
+                            <th>Hành động</th>
+                        </tr>
+                    </thead>
+                    <tbody id="classroomTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination-row">
+                <button id="classroomPrevPage" class="btn btn-tertiary" type="button" disabled>Trước</button>
+                <span id="classroomPageInfo">Trang --</span>
+                <button id="classroomNextPage" class="btn btn-tertiary" type="button" disabled>Sau</button>
+            </div>
+        </section>
+
+        <section id="monitoringPanel" class="panel hidden">
+            <div class="panel-head">
+                <div>
+                    <h2>Theo dõi hoạt động &amp; báo cáo</h2>
+                    <p class="panel-subtitle" id="activitySummaryHint">Dữ liệu cập nhật trong 7 ngày gần nhất.</p>
+                </div>
+                <button id="activityRefreshButton" class="btn btn-secondary" type="button">Làm mới báo cáo</button>
+            </div>
+
+            <div class="content-stats-grid monitoring-summary-grid">
+                <article class="stat-card stat-card-wide">
+                    <h3>Hành động nổi bật</h3>
+                    <p class="panel-subtitle">Tóm tắt số lần hành động trong cửa sổ thời gian</p>
+                    <ul id="activitySummaryList" class="activity-summary-list"></ul>
+                    <p class="panel-subtitle">Cửa sổ hiện tại: <strong id="activityWindowLabel">7 ngày</strong></p>
+                </article>
+            </div>
+
+            <div id="activityLoadingState" class="table-state hidden">Đang tải hoạt động...</div>
+            <div id="activityErrorState" class="table-state error hidden"></div>
+
+            <div class="table-wrap">
+                <table class="activity-table">
+                    <thead>
+                        <tr>
+                            <th>Admin</th>
+                            <th>Hành động</th>
+                            <th>Đối tượng</th>
+                            <th>Chi tiết</th>
+                            <th>Thời điểm</th>
+                        </tr>
+                    </thead>
+                    <tbody id="activityTableBody"></tbody>
+                </table>
+            </div>
+
+            <div class="pagination-row">
+                <button id="activityPrevPage" class="btn btn-tertiary" type="button" disabled>Trước</button>
+                <span id="activityPageInfo">Trang --</span>
+                <button id="activityNextPage" class="btn btn-tertiary" type="button" disabled>Sau</button>
+            </div>
+        </section>
+
+        <section id="learningPanel" class="panel hidden">
+            <div class="panel-head">
+                <div>
+                    <h2>Dữ liệu học tập</h2>
+                    <p class="panel-subtitle">Tổng quan tiến độ học bài và điểm bài tập từ dữ liệu LessonProgress / ExerciseSubmission.</p>
+                </div>
+                <button id="learningRefreshButton" class="btn btn-secondary" type="button">Làm mới dữ liệu</button>
+            </div>
+
+            <div class="content-stats-grid learning-stats-grid" id="learningStatsGrid"></div>
+
+            <div id="learningLoadingState" class="table-state hidden">Đang tải dữ liệu học tập...</div>
+            <div id="learningErrorState" class="table-state error hidden"></div>
+
+            <div class="learning-top-card">
+                <div class="learning-top-header">
+                    <h3>Học sinh nổi bật</h3>
+                    <p>Top 3 học sinh có tiến độ trung bình cao nhất</p>
+                </div>
+                <ul id="learningTopList" class="learning-top-list"></ul>
+            </div>
+        </section>
+
+        </div>
+    </main>
+
+    <div id="toast" class="toast hidden" role="status" aria-live="polite"></div>
+
+    <div id="adminConfirmModal" class="modal hidden" aria-hidden="true">
+        <div class="modal-content">
+            <h3 id="modalTitle">Xác nhận hành động</h3>
+            <p id="modalMessage">Bạn có muốn tiếp tục?</p>
+            <div class="modal-actions">
+                <button id="modalCancel" class="btn btn-secondary" type="button">Hủy</button>
+                <button id="modalConfirm" class="btn btn-primary" type="button">Xác nhận</button>
+            </div>
         </div>
     </div>
 
     <script>
         function logout() {
             localStorage.removeItem('token');
+            localStorage.removeItem('accessToken');
             localStorage.removeItem('user');
             window.location.href = '/auth/login';
         }
+
+        document.getElementById('logoutButton').addEventListener('click', logout);
     </script>
+    <script th:src="@{/js/admin-dashboard.js}"></script>
+    <noscript>Vui lòng bật JavaScript để sử dụng dashboard admin.</noscript>
 </body>
 
 </html>

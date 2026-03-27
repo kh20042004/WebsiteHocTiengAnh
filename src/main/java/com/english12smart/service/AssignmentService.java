@@ -37,13 +37,14 @@ public class AssignmentService {
     /**
      * Tạo bài tập mới
      */
-    public AssignmentDTO.Response createAssignment(AssignmentDTO.CreateRequest request, String teacherId) {
+    public AssignmentDTO.Response createAssignment(AssignmentDTO.CreateRequest request, String teacherId,
+            boolean adminOverride) {
         // Kiểm tra lớp học tồn tại
         Classroom classroom = classroomRepository.findById(request.getClassroomId())
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
 
         // Kiểm tra giáo viên sở hữu lớp
-        if (!classroom.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền giao bài cho lớp này");
         }
 
@@ -54,7 +55,7 @@ public class AssignmentService {
                 .type(request.getType() != null ? request.getType().toUpperCase() : "READING")
                 .classroomId(classroom.getId())
                 .classroomName(classroom.getName())
-                .teacherId(teacherId)
+                .teacherId(adminOverride ? classroom.getTeacherId() : teacherId)
                 .assignedDate(now)
                 .dueDate(request.getDueDate())
                 .status("ACTIVE")
@@ -77,11 +78,12 @@ public class AssignmentService {
     /**
      * Cập nhật bài tập
      */
-    public AssignmentDTO.Response updateAssignment(String id, AssignmentDTO.UpdateRequest request, String teacherId) {
+    public AssignmentDTO.Response updateAssignment(String id, AssignmentDTO.UpdateRequest request, String teacherId,
+            boolean adminOverride) {
         Assignment assignment = assignmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập"));
 
-        if (!assignment.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !assignment.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền sửa bài tập này");
         }
 
@@ -108,11 +110,11 @@ public class AssignmentService {
     /**
      * Xóa bài tập
      */
-    public void deleteAssignment(String id, String teacherId) {
+    public void deleteAssignment(String id, String teacherId, boolean adminOverride) {
         Assignment assignment = assignmentRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập"));
 
-        if (!assignment.getTeacherId().equals(teacherId)) {
+        if (!adminOverride && !assignment.getTeacherId().equals(teacherId)) {
             throw new BadRequestException("Bạn không có quyền xóa bài tập này");
         }
 
