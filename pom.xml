@@ -58,6 +58,12 @@
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>
 
+        <!-- Email (Gửi email cho verify, forgot password, etc) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-mail</artifactId>
+        </dependency>
+
         <!-- Thymeleaf Security Integration -->
         <dependency>
             <groupId>org.thymeleaf.extras</groupId>

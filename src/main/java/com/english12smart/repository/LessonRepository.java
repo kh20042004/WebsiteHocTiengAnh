@@ -44,6 +44,12 @@ public interface LessonRepository extends MongoRepository<Lesson, String> {
     long countByIsActiveTrue();
 
     /**
+     * Lấy tất cả bài học đang active (không phân biệt Unit)
+     * Dùng cho dropdown trong form tạo bài tập
+     */
+    List<Lesson> findByIsActiveTrueOrderByOrderIndexAsc();
+
+    /**
      * Xoá tất cả bài học của một Unit (khi xoá Unit)
      * @param unitId - ID của Unit bị xoá
      */

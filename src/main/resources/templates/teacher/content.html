@@ -29,7 +29,14 @@
                         <h1 class="text-3xl font-medium mb-2">Quản Lý Nội Dung</h1>
                         <p class="text-emerald-100">Tạo và quản lý các Unit, bài học, bài tập</p>
                     </div>
-                    <div class="hidden md:block">
+                    <div class="hidden md:flex gap-3">
+                        <!-- 🆕 Button tạo câu hỏi mới -->
+                        <a href="/dashboard/teacher/create-exercise"
+                            class="px-6 py-3 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-colors flex items-center gap-2">
+                            <iconify-icon icon="mdi:pencil-plus" width="20"></iconify-icon>
+                            <span>Tạo câu hỏi</span>
+                        </a>
+                        <!-- Button thêm Unit mới -->
                         <button onclick="openCreateUnitModal()"
                             class="px-6 py-3 bg-white text-emerald-600 rounded-lg font-medium hover:bg-emerald-50 transition-colors flex items-center gap-2">
                             <iconify-icon icon="mdi:plus" width="20"></iconify-icon>

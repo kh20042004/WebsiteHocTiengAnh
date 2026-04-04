@@ -157,6 +157,22 @@ public class User {
     @Builder.Default
     private String level = "Beginner";
 
+    // ========== PASSWORD RESET ==========
+    /**
+     * Token để reset mật khẩu (UUID)
+     * Tạo khi user yêu cầu quên mật khẩu
+     * Gửi link qua email chứa token này
+     * Mật khẩu trống = không có request reset nào đang pending
+     */
+    private String resetToken;
+
+    /**
+     * Thời gian hết hạn của reset token (milliseconds)
+     * Token chỉ có hiệu lực trong 1 giờ
+     * CURRENT_TIME < resetTokenExpiresAt thì token còn hợp lệ
+     */
+    private Long resetTokenExpiresAt;
+
     // ========== NOTES ==========
     /*
      * Cấu trúc mongoDB Document:

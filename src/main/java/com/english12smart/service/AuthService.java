@@ -25,6 +25,7 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final EmailService emailService; // Để gửi email forgot password, verify email
 
     // ========== REGISTER - Đăng ký tài khoản mới ==========
     /**
@@ -299,6 +300,131 @@ public class AuthService {
 
         log.info("Profile updated for user: {}", userId);
         return convertToUserDTO(updatedUser);
+    }
+
+    // ========== FORGOT PASSWORD - Yêu cầu reset mật khẩu ==========
+    /**
+     * Xử lý yêu cầu quên mật khẩu (Forgot Password)
+     * 
+     * Flow:
+     * 1. Tìm user theo email
+     * 2. Sinh reset token (UUID)
+     * 3. Lưu token + expiry time (1 giờ)
+     * 4. Gửi email chứa link reset với token
+     * 5. User click link để đến trang reset password
+     * 
+     * @param email - Email của user
+     * @throws RuntimeException - Nếu email không tồn tại
+     */
+    @Transactional
+    public void forgotPassword(String email) {
+        log.info("========== FORGOT PASSWORD REQUEST ==========");
+        log.info("Email: {}", email);
+
+        // ========== 1. Tìm user theo email ==========
+        User user = userRepository.findByEmail(email);
+        if (user == null) {
+            log.warn("Forgot password failed: Email không tồn tại: {}", email);
+            // Bảo mật: không reveal email tồn tại hay không, trả về thông báo chung
+            throw new RuntimeException("Nếu email tồn tại, link reset sẽ được gửi");
+        }
+
+        // ========== 2. Sinh reset token ==========
+        // Token là UUID 36 ký tự, ít khả năng bị brute-force
+        String resetToken = java.util.UUID.randomUUID().toString();
+        log.debug("Generated reset token: {}", resetToken);
+
+        // ========== 3. Lưu token + thời gian hết hạn (1 giờ) ==========
+        long expiresAt = System.currentTimeMillis() + (60 * 60 * 1000); // 1 hour
+        user.setResetToken(resetToken);
+        user.setResetTokenExpiresAt(expiresAt);
+        user.setUpdatedAt(System.currentTimeMillis());
+        userRepository.save(user);
+        log.debug("Reset token saved. Expires at: {}", expiresAt);
+
+        // ========== 4. Gửi email reset password ==========
+        try {
+            // Gửi email chứa link reset password
+            emailService.sendForgotPasswordEmail(email, user.getFullName(), resetToken);
+            log.info("Forgot password email sent to: {}", email);
+        } catch (Exception e) {
+            log.error("Lỗi khi gửi email forgot password: {}", e.getMessage(), e);
+            // Xóa token nếu gửi email thất bại
+            user.setResetToken(null);
+            user.setResetTokenExpiresAt(null);
+            userRepository.save(user);
+            throw new RuntimeException("Không thể gửi email. Vui lòng thử lại sau.");
+        }
+
+        log.info("========== FORGOT PASSWORD REQUEST SUCCESSFUL ==========");
+    }
+
+    // ========== RESET PASSWORD - Đặt lại mật khẩu ==========
+    /**
+     * Xử lý đặt lại mật khẩu (Reset Password)
+     * 
+     * Flow:
+     * 1. Tìm user theo reset token
+     * 2. Kiểm tra token còn hợp lệ không (chưa hết hạn)
+     * 3. Kiểm tra mật khẩu mới và xác nhận trùng khớp
+     * 4. Hash mật khẩu mới
+     * 5. Lưu mật khẩu mới, xóa reset token
+     * 6. Return thành công
+     * 
+     * @param token - Reset token (từ link email)
+     * @param newPassword - Mật khẩu mới
+     * @param confirmPassword - Xác nhận mật khẩu
+     * @return ResetPasswordResponse - Kết quả reset
+     * @throws RuntimeException - Nếu token không hợp lệ hoặc mật khẩu không khớp
+     */
+    @Transactional
+    public AuthDTO.ResetPasswordResponse resetPassword(String token, String newPassword, String confirmPassword) {
+        log.info("========== RESET PASSWORD REQUEST ==========");
+        log.debug("Token: {}", token.substring(0, Math.min(8, token.length())) + "..."); // Log token một phần
+
+        // ========== 1. Validation: Kiểm tra mật khẩu mới và xác nhận khớp ==========
+        if (!newPassword.equals(confirmPassword)) {
+            log.warn("Reset password failed: Passwords không khớp");
+            throw new RuntimeException("Mật khẩu xác nhận không khớp với mật khẩu mới");
+        }
+
+        // ========== 2. Tìm user theo reset token ==========
+        // Cần tạo custom query trong UserRepository: findByResetToken
+        User user = userRepository.findByResetToken(token);
+        if (user == null) {
+            log.warn("Reset password failed: Token không hợp lệ hoặc không tồn tại");
+            throw new RuntimeException("Link reset password không hợp lệ");
+        }
+
+        // ========== 3. Kiểm tra token còn hợp lệ không (chưa hết hạn) ==========
+        long currentTime = System.currentTimeMillis();
+        if (user.getResetTokenExpiresAt() == null || currentTime > user.getResetTokenExpiresAt()) {
+            log.warn("Reset password failed: Token hết hạn cho user: {}", user.getEmail());
+            // Xóa token hết hạn
+            user.setResetToken(null);
+            user.setResetTokenExpiresAt(null);
+            userRepository.save(user);
+            throw new RuntimeException("Link reset password đã hết hạn. Vui lòng yêu cầu lại.");
+        }
+
+        // ========== 4. Hash mật khẩu mới ==========
+        String hashedPassword = passwordEncoder.encode(newPassword);
+        log.debug("Password hashed successfully");
+
+        // ========== 5. Cập nhật mật khẩu, xóa reset token ==========
+        user.setPassword(hashedPassword);
+        user.setResetToken(null);           // Xóa token sau khi sử dụng
+        user.setResetTokenExpiresAt(null);  // Xóa thời gian hết hạn
+        user.setUpdatedAt(System.currentTimeMillis());
+        userRepository.save(user);
+        log.info("Password reset successfully for user: {}", user.getEmail());
+
+        // ========== 6. Return kết quả ==========
+        log.info("========== RESET PASSWORD REQUEST SUCCESSFUL ==========");
+        return AuthDTO.ResetPasswordResponse.builder()
+                .message("Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.")
+                .email(user.getEmail())
+                .build();
     }
 
     // ========== HELPER: Change Password ==========

@@ -320,6 +320,133 @@ public class AuthController {
         }
     }
 
+    // ========== FORGOT PASSWORD - POST /api/auth/forgot-password ==========
+    /**
+     * API quên mật khẩu (Forgot Password)
+     * User nhập email để nhận link reset password
+     * 
+     * Request Body:
+     * {
+     *   "email": "student@example.com"
+     * }
+     * 
+     * Response: 200 OK
+     * {
+     *   "status": "success",
+     *   "message": "Email reset password đã được gửi",
+     *   "data": {
+     *     "message": "Email reset password đã được gửi. Vui lòng kiểm tra email.",
+     *     "email": "student@example.com"
+     *   }
+     * }
+     * 
+     * Lưu ý: 
+     * - Link reset chỉ có hiệu lực 1 giờ
+     * - Mỗi email chỉ có 1 reset token hợp lệ tại 1 thời điểm
+     * - Nếu yêu cầu lại, token cũ sẽ bị ghi đè
+     * 
+     * @param forgotRequest - DTO chứa email
+     * @return ApiResponse - Kết quả yêu cầu
+     */
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<?>> forgotPassword(
+            @Valid @RequestBody AuthDTO.ForgotPasswordRequest forgotRequest) {
+        try {
+            log.info("Forgot password request for email: {}", forgotRequest.getEmail());
+
+            // ========== Call service (validation handled by @Valid) ==========
+            authService.forgotPassword(forgotRequest.getEmail());
+
+            // ========== Return response ==========
+            // Bảo mật: Luôn trả về thông báo thành công dù email có tồn tại hay không
+            AuthDTO.ForgotPasswordResponse response = AuthDTO.ForgotPasswordResponse.builder()
+                    .message("Nếu email tồn tại, link reset password sẽ được gửi. Vui lòng kiểm tra email.")
+                    .email(forgotRequest.getEmail())
+                    .build();
+
+            log.info("Forgot password request processed for email: {}", forgotRequest.getEmail());
+            return ResponseEntity.ok(ApiResponse.success("Yêu cầu đã được xử lý", response));
+
+        } catch (RuntimeException e) {
+            log.error("Forgot password error: {}", e.getMessage());
+            // Bảo mật: Không reveal thông tin chi tiết
+            return ResponseEntity.ok(ApiResponse.success("Yêu cầu đã được xử lý", 
+                    AuthDTO.ForgotPasswordResponse.builder()
+                        .message("Nếu email tồn tại, link reset password sẽ được gửi. Vui lòng kiểm tra email.")
+                        .email(forgotRequest.getEmail())
+                        .build()));
+
+        } catch (Exception e) {
+            log.error("Unexpected error during forgot password", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Đã xảy ra lỗi. Vui lòng thử lại"));
+        }
+    }
+
+    // ========== RESET PASSWORD - POST /api/auth/reset-password ==========
+    /**
+     * API đặt lại mật khẩu (Reset Password)
+     * User nhập reset token + mật khẩu mới để reset password
+     * 
+     * Request Body:
+     * {
+     *   "token": "550e8400-e29b-41d4-a716-446655440000",
+     *   "newPassword": "NewPassword123",
+     *   "confirmPassword": "NewPassword123"
+     * }
+     * 
+     * Response: 200 OK
+     * {
+     *   "status": "success",
+     *   "message": "Mật khẩu đã được đặt lại",
+     *   "data": {
+     *     "message": "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại.",
+     *     "email": "student@example.com"
+     *   }
+     * }
+     * 
+     * Error cases:
+     * - 400: Token không hợp lệ / đã hết hạn
+     * - 400: Mật khẩu xác nhận không khớp
+     * - 400: Mật khẩu không thỏa mãn điều kiện
+     * 
+     * Lưu ý:
+     * - Token chỉ có hiệu lực 1 giờ
+     * - Token sẽ bị xóa sau khi reset thành công
+     * - Mật khẩu phải từ 6-50 ký tự, chứa ít nhất 1 chữ hoa, 1 chữ thường, 1 số
+     * 
+     * @param resetRequest - DTO chứa token, newPassword, confirmPassword
+     * @return ApiResponse - Kết quả reset
+     */
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<?>> resetPassword(
+            @Valid @RequestBody AuthDTO.ResetPasswordRequest resetRequest) {
+        try {
+            log.info("Reset password request with token: {}", 
+                    resetRequest.getToken().substring(0, Math.min(8, resetRequest.getToken().length())) + "...");
+
+            // ========== Call service (validation handled by @Valid) ==========
+            var resetResponse = authService.resetPassword(
+                    resetRequest.getToken(),
+                    resetRequest.getNewPassword(),
+                    resetRequest.getConfirmPassword());
+
+            // ========== Return response ==========
+            log.info("Password reset successful for email: {}", resetResponse.getEmail());
+            return ResponseEntity.ok(ApiResponse.success("Mật khẩu đã được đặt lại", resetResponse));
+
+        } catch (RuntimeException e) {
+            log.error("Reset password error: {}", e.getMessage());
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error(e.getMessage()));
+
+        } catch (Exception e) {
+            log.error("Unexpected error during reset password", e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(ApiResponse.error("Đã xảy ra lỗi. Vui lòng thử lại"));
+        }
+    }
+
     // ========== HELPER: Extract token từ Authorization header ==========
     /**
      * Lấy JWT token từ Authorization header

@@ -102,6 +102,25 @@ public class ContentController {
         return "teacher/lesson-detail";
     }
 
+    /**
+     * GET /dashboard/teacher/create-exercise — Trang tạo câu hỏi mới
+     * Hiển thị form tạo câu hỏi với các loại khác nhau
+     */
+    @GetMapping("/dashboard/teacher/create-exercise")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
+    public String createExercise(Model model, HttpServletRequest request) {
+        log.info("🆕 Giáo viên tạo câu hỏi mới");
+
+        // Lấy danh sách tất cả Lesson để hiển thị trong dropdown
+        List<ContentDTO.LessonResponse> lessons = contentService.getAllLessons();
+        model.addAttribute("lessons", lessons);
+
+        // Thêm thông tin user
+        addUserInfoToModel(model, request);
+
+        return "teacher/create-exercise";
+    }
+
     // =============================================================
     //  TRANG HỌC TẬP (Student)
     // =============================================================

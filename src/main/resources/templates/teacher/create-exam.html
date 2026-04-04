@@ -2,10 +2,14 @@
 <html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
 
 <head>
+    <!-- ========== META TAGS ========== -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tạo Đề Thi - English 12 Smart</title>
+    <meta name="description" content="Tạo đề thi trắc nghiệm cho lớp học với các câu hỏi từ ngân hàng hoặc tự soạn">
     <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+    
+    <!-- ========== FONTS & STYLES ========== -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -18,47 +22,67 @@
 </head>
 
 <body class="bg-slate-50 text-slate-600 antialiased font-sans">
-    <!-- SHARED HEADER với currentPage='exams' -->
+    <!-- ========== HEADER - NAVBAR ========== -->
+    <!-- Hiển thị menu chính (SHARED COMPONENT)
+         currentPage='exams' để highlight mục "Đề Thi" trong navbar -->
     <th:block th:with="currentPage='exams'" th:insert="teacher/shared/header"></th:block>
 
     <main class="pt-20 pb-12">
-        <!-- Page Header -->
+        <!-- ========== PAGE HEADER ========== -->
+        <!-- Tiêu đề trang với nút quay lại
+             Gradient màu emerald để thể hiện tính quan trọng của tính năng tạo đề -->
         <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white py-10">
             <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
                 <div class="flex items-center gap-4">
+                    <!-- Nút quay lại danh sách đề thi -->
                     <a href="/dashboard/teacher/exams"
-                        class="p-2 rounded-lg hover:bg-white/20 transition-colors">
+                        class="p-2 rounded-lg hover:bg-white/20 transition-colors"
+                        title="Quay lại danh sách đề thi">
                         <iconify-icon icon="solar:arrow-left-linear" width="20"></iconify-icon>
                     </a>
                     <div>
                         <h1 class="text-2xl font-medium mb-1">Tạo Đề Thi Mới</h1>
-                        <p class="text-emerald-100 text-sm">Đề thi sẽ được cấp mã PIN 5 số sau khi tạo</p>
+                        <p class="text-emerald-100 text-sm">
+                            <!-- Hệ thống sẽ tự sinh mã PIN 5 chữ số sau khi tạo thành công -->
+                            Đề thi sẽ được cấp mã PIN 5 số sau khi tạo
+                        </p>
                     </div>
                 </div>
             </div>
         </div>
 
-        <!-- Form tạo đề thi -->
+        <!-- ========== FORM TẠO ĐỀ THI ========== -->
+        <!-- Form được chia thành 3 phần chính:
+             1. Thông tin cơ bản (tiêu đề, hướng dẫn)
+             2. Lớp học & Thời gian làm bài
+             3. Câu hỏi (2 tab: từ ngân hàng hoặc tự soạn) -->
         <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8 mt-8">
             <form id="createExamForm" onsubmit="ExamManager.createExam(event)">
 
-                <!-- Section 1: Thông tin cơ bản -->
+                <!-- ========== SECTION 1: THÔNG TIN CƠ BẢN ========== -->
+                <!-- Ghi nhận tiêu đề đề thi và hướng dẫn làm bài cho học sinh -->
                 <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
                     <h2 class="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
                         <span class="h-6 w-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-bold">1</span>
                         Thông Tin Đề Thi
                     </h2>
                     <div class="grid gap-5">
-                        <!-- Tiêu đề -->
+                        <!-- ========== Tiêu đề đề thi ========== -->
+                        <!-- Bắt buộc - sẽ hiển thị khi học sinh xem danh sách đề -->
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                                Tiêu đề đề thi <span class="text-red-500">*</span>
+                                Tiêu đề đề thi 
+                                <span class="text-red-500">*</span>
                             </label>
                             <input type="text" name="title" required
                                 placeholder="VD: Kiểm tra Unit 1 - Life Stories"
-                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent">
+                                class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 focus:border-transparent"
+                                data-error="Vui lòng nhập tiêu đề đề thi">
                         </div>
-                        <!-- Mô tả / Hướng dẫn -->
+                        
+                        <!-- ========== Hướng dẫn làm bài ========== -->
+                        <!-- Tùy chọn - đường dẫn sẽ được hiển thị khi học sinh bắt đầu làm bài
+                             VD: Không được dùng tài liệu, đọc kỹ câu hỏi trước khi trả lời, v.v. -->
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">
                                 Hướng dẫn làm bài
@@ -70,17 +94,21 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Lớp học và thời gian -->
+                <!-- ========== SECTION 2: LỚP HỌC & THỜI GIAN ========== -->
+                <!-- Chỉ định lớp học nào được thi và thời gian giới hạn -->
                 <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
                     <h2 class="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
                         <span class="h-6 w-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-bold">2</span>
                         Lớp Học & Thời Gian
                     </h2>
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                        <!-- Chọn lớp -->
+                        <!-- ========== Chọn lớp ========== -->
+                        <!-- Bắt buộc - đề thi chỉ được giao cho 1 lớp, học sinh lớp khác không nhìn thấy
+                             Số học sinh sẽ được hiển thị để giáo viên biết lớp có bao nhiêu em -->
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">
-                                Lớp được thi <span class="text-red-500">*</span>
+                                Lớp được thi 
+                                <span class="text-red-500">*</span>
                             </label>
                             <select name="classroomId" required
                                 class="w-full px-4 py-2.5 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
@@ -92,7 +120,10 @@
                                 </option>
                             </select>
                         </div>
-                        <!-- Thời gian làm bài -->
+                        
+                        <!-- ========== Thời gian làm bài ========== -->
+                        <!-- Tùy chọn - nếu để trống = không giới hạn thời gian 
+                             Mặc định 45 phút như một kiểm tra tiết -->
                         <div>
                             <label class="block text-sm font-medium text-slate-700 mb-1.5">
                                 Thời gian làm bài (phút)
@@ -105,21 +136,28 @@
                     </div>
                 </div>
 
-                <!-- Section 3: Câu hỏi (2 tab) -->
+                <!-- ========== SECTION 3: CÂU HỎI (2 CÁC - TAB) ========== -->
+                <!-- Giáo viên có 2 cách để thêm câu hỏi:
+                     * TAB 1 "Chọn từ ngân hàng": Duyệt các câu hỏi đã tạo sẵn (Exercise)
+                     * TAB 2 "Câu hỏi tự soạn": Nhập nhanh câu hỏi trực tiếp vào form
+                     Có thể kết hợp cả 2 cách trong 1 đề -->
                 <div class="bg-white rounded-xl border border-slate-200 p-6 mb-6">
                     <h2 class="text-base font-semibold text-slate-900 mb-5 flex items-center gap-2">
                         <span class="h-6 w-6 rounded-full bg-emerald-500 text-white text-xs flex items-center justify-center font-bold">3</span>
                         Câu Hỏi
                     </h2>
 
-                    <!-- Tab buttons -->
+                    <!-- ========== TAB BUTTONS ========== -->
+                    <!-- Chuyển đổi giữa 2 cách thêm câu hỏi -->
                     <div class="flex gap-1 bg-slate-100 p-1 rounded-lg mb-6 w-fit">
+                        <!-- TAB 1: Chọn từ ngân hàng Exercise -->
                         <button type="button" id="tabBank"
                             onclick="ExamManager.switchTab('bank')"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors bg-white text-slate-900 shadow-sm">
                             <iconify-icon icon="solar:library-linear" width="16" class="inline mr-1"></iconify-icon>
                             Chọn từ ngân hàng
                         </button>
+                        <!-- TAB 2: Câu hỏi tự soạn -->
                         <button type="button" id="tabCustom"
                             onclick="ExamManager.switchTab('custom')"
                             class="px-4 py-2 rounded-md text-sm font-medium transition-colors text-slate-500 hover:text-slate-700">
@@ -128,10 +166,14 @@
                         </button>
                     </div>
 
-                    <!-- Tab 1: Chọn từ Exercise bank -->
+                    <!-- ========== TAB 1: CHỌN TỪ NGÂN HÀNG ========== -->
+                    <!-- Duyệt các exercise đã tạo trước đó với các câu hỏi bên trong
+                         Quy trình: Chọn Unit → Chọn Lesson → Xem danh sách Exercise → Tick chọn -->
                     <div id="panelBank">
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                            <!-- Chọn Unit -->
+                            <!-- ========== Chọn Unit ========== -->
+                            <!-- Bước 1: Chọn Unit để giới hạn dạng sách bài học
+                                 Sau khi chọn sẽ load danh sách Lesson từ Unit này -->
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1.5">Chọn Unit</label>
                                 <select id="unitSelect" onchange="ExamManager.loadLessons(this.value)"
@@ -143,7 +185,11 @@
                                     </option>
                                 </select>
                             </div>
-                            <!-- Chọn Lesson -->
+                            
+                            <!-- ========== Chọn Lesson ========== -->
+                            <!-- Bước 2: Chọn Lesson trong Unit vừa chọn
+                                 Sau khi chọn sẽ load danh sách Exercise từ Lesson này
+                                 Ban đầu bị disabled cho tới khi chọn Unit -->
                             <div>
                                 <label class="block text-sm font-medium text-slate-700 mb-1.5">Chọn Bài học</label>
                                 <select id="lessonSelect" onchange="ExamManager.loadExercises(this.value)"
@@ -154,34 +200,53 @@
                             </div>
                         </div>
 
-                        <!-- Danh sách Exercise để chọn -->
+                        <!-- ========== DANH SÁCH EXERCISE ========== -->
+                        <!-- Bước 3: Xem danh sách các Exercise từ Lesson
+                             Mỗi Exercise chứa 1 hoặc nhiều câu hỏi
+                             Tick vào checkbox để chọn Exercise vào đề thi -->
                         <div id="exerciseList" class="space-y-3">
                             <p class="text-sm text-slate-400 text-center py-8">
                                 <iconify-icon icon="solar:library-linear" width="32" class="inline mb-2 opacity-40 block mx-auto"></iconify-icon>
                                 Chọn Unit và Bài học để xem các exercise
                             </p>
                         </div>
-                        <!-- Input ẩn lưu danh sách exerciseIds đã chọn -->
+                        
+                        <!-- ========== INPUT ẨN ========== -->
+                        <!-- Lưu danh sách ID của các Exercise được chọn
+                             Sẽ được gửi lên API khi submit form -->
                         <input type="hidden" id="selectedExerciseIds" name="exerciseIds" value="">
                     </div>
 
-                    <!-- Tab 2: Câu hỏi tự soạn -->
+                    <!-- ========== TAB 2: CÂU HỎI TỰ SOẠN ========== -->
+                    <!-- Nhanh chóng nhập các câu hỏi trực tiếp mà không cần tạo Exercise trước
+                         Hỗ trợ: Trắc nghiệm (MULTIPLE_CHOICE), Đúng/Sai (TRUE_FALSE), Điền chỗ trống (FILL_IN_BLANK)
+                         Các câu được thêm từng cái một vào danh sách dưới form -->
                     <div id="panelCustom" class="hidden">
-                        <!-- Danh sách câu hỏi đã thêm -->
+                        <!-- ========== DANH SÁCH CÂU HỎI ĐÃ THÊM ========== -->
+                        <!-- Hiển thị các câu hỏi tự soạn đã được thêm
+                             Mỗi câu hỏi có nút xóa để loại bỏ khỏi đề -->
                         <div id="customQuestionList" class="space-y-4 mb-4"></div>
 
-                        <!-- Form thêm câu hỏi mới -->
+                        <!-- ========== FORM THÊM CÂU HỎI MỚI ========== -->
+                        <!-- Section dashed để nhấn mạnh đây là nơi nhập câu hỏi mới
+                             Supported loại: Trắc nghiệm (4 đáp án), Đúng/Sai, Điền vào chỗ trống -->
                         <div class="border-2 border-dashed border-slate-200 rounded-xl p-5 bg-slate-50">
                             <h4 class="text-sm font-semibold text-slate-700 mb-4">Thêm câu hỏi mới</h4>
                             <div class="grid gap-4">
-                                <!-- Nội dung câu hỏi -->
+                                <!-- ========== NỘI DUNG CÂU HỎI ========== -->
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-600 mb-1">Nội dung câu hỏi *</label>
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                                        Nội dung câu hỏi <span class="text-red-500">*</span>
+                                    </label>
                                     <input type="text" id="newQuestionText" placeholder="Nhập câu hỏi..."
                                         class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                                 </div>
                                 <div class="grid grid-cols-2 gap-4">
-                                    <!-- Loại câu hỏi -->
+                                    <!-- ========== LOẠI CÂU HỎI ========== -->
+                                    <!-- Lựa chọn loại quyết định giao diện của lựa chọn (options) và đáp án
+                                         - MULTIPLE_CHOICE: Hiển thị textarea cho các lựa chọn A, B, C, D
+                                         - TRUE_FALSE: Hiển thị textarea cho True và False
+                                         - FILL_IN_BLANK: Không hiển thị textarea, chỉ nhập đáp án -->
                                     <div>
                                         <label class="block text-xs font-medium text-slate-600 mb-1">Loại câu hỏi</label>
                                         <select id="newQuestionType" onchange="ExamManager.onQuestionTypeChange()"
@@ -191,34 +256,58 @@
                                             <option value="FILL_IN_BLANK">Điền vào chỗ trống</option>
                                         </select>
                                     </div>
-                                    <!-- Điểm -->
+                                    
+                                    <!-- ========== ĐIỂM ========== -->
+                                    <!-- Số điểm câu hỏi này sẽ được tính vào tổng điểm đề thi
+                                         Mặc định 1 điểm, có thể tăng lên 10 điểm tối đa -->
                                     <div>
                                         <label class="block text-xs font-medium text-slate-600 mb-1">Điểm</label>
                                         <input type="number" id="newQuestionScore" value="1" min="1" max="10"
                                             class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                                     </div>
                                 </div>
-                                <!-- Lựa chọn trả lời (cho MULTIPLE_CHOICE) -->
+                                
+                                <!-- ========== CÁC LỰA CHỌN (CHỈ CHO TRẮC NGHIỆM & ĐÚNG/SAI) ========== -->
+                                <!-- Textarea này chỉ hiển thị khi loại câu hỏi là MULTIPLE_CHOICE hoặc TRUE_FALSE
+                                     Mỗi dòng 1 lựa chọn VD: A. Đáp án A
+                                     Sẽ bị ẩn nếu chọn FILL_IN_BLANK -->
                                 <div id="optionsSection">
-                                    <label class="block text-xs font-medium text-slate-600 mb-1">Các lựa chọn (mỗi dòng 1 lựa chọn)</label>
-                                    <textarea id="newQuestionOptions" rows="4" placeholder="A. Lựa chọn A&#10;B. Lựa chọn B&#10;C. Lựa chọn C&#10;D. Lựa chọn D"
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                                        Các lựa chọn (mỗi dòng 1 lựa chọn)
+                                    </label>
+                                    <textarea id="newQuestionOptions" rows="4" 
+                                        placeholder="A. Lựa chọn A&#10;B. Lựa chọn B&#10;C. Lựa chọn C&#10;D. Lựa chọn D"
                                         class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400 resize-none"></textarea>
                                 </div>
-                                <!-- Đáp án đúng -->
+                                
+                                <!-- ========== ĐÁP ÁN ĐÚNG ========== -->
+                                <!-- Bắt buộc - Hệ thống sẽ so sánh câu trả lời của học sinh với giá trị này
+                                     VD trắc nghiệm: "A", ĐÚNG/SAI: "true" hoặc "false", điền chỗ trống: "london" -->
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-600 mb-1">Đáp án đúng *</label>
-                                    <input type="text" id="newQuestionAnswer" placeholder="VD: A  hoặc  true  hoặc  london"
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                                        Đáp án đúng <span class="text-red-500">*</span>
+                                    </label>
+                                    <input type="text" id="newQuestionAnswer" 
+                                        placeholder="VD: A  hoặc  true  hoặc  london"
                                         class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                                 </div>
-                                <!-- Giải thích (tùy chọn) -->
+                                
+                                <!-- ========== GIẢI THÍCH ĐÁP ÁN ========== -->
+                                <!-- Tùy chọn - hiển thị cho học sinh khi xem kết quả sau khi nộp bài
+                                     Giúp học sinh hiểu rõ hơn tại sao đó là đáp án đúng -->
                                 <div>
-                                    <label class="block text-xs font-medium text-slate-600 mb-1">Giải thích đáp án (tùy chọn)</label>
-                                    <input type="text" id="newQuestionExplanation" placeholder="Giải thích tại sao đây là đáp án đúng..."
+                                    <label class="block text-xs font-medium text-slate-600 mb-1">
+                                        Giải thích đáp án (tùy chọn)
+                                    </label>
+                                    <input type="text" id="newQuestionExplanation" 
+                                        placeholder="Giải thích tại sao đây là đáp án đúng..."
                                         class="w-full px-3 py-2 border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-400">
                                 </div>
-                                <!-- Nút thêm -->
+                                
+                                <!-- ========== NÚT THÊM CÂU HỎI ========== -->
+                                <!-- Click để thêm câu hỏi vào danh sách trên -->
                                 <button type="button" onclick="ExamManager.addCustomQuestion()"
-                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 w-fit">
+                                    class="px-4 py-2 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 w-fit transition-colors">
                                     <iconify-icon icon="solar:add-circle-linear" width="16"></iconify-icon>
                                     Thêm câu hỏi
                                 </button>
@@ -226,7 +315,9 @@
                         </div>
                     </div>
 
-                    <!-- Tóm tắt câu hỏi đã chọn -->
+                    <!-- ========== TÓM TẮT CÂU HỎI ĐÃ CHỌN ========== -->
+                    <!-- Badge hiển thị tổng số câu hỏi từ cả 2 nguồn (ngân hàng + tự soạn)
+                         Nó sẽ hiển thị tự động khi có ít nhất 1 câu hỏi được chọn -->
                     <div id="questionSummary" class="mt-4 p-3 bg-emerald-50 border border-emerald-100 rounded-lg hidden">
                         <p class="text-sm text-emerald-700 font-medium">
                             <iconify-icon icon="solar:check-circle-linear" width="16" class="inline mr-1"></iconify-icon>
@@ -235,12 +326,15 @@
                     </div>
                 </div>
 
-                <!-- Nút submit -->
+                <!-- ========== NÚTBUTTONSUBMIT ========== -->
+                <!-- Hủy bỏ hoặc Tạo đề thi -->
                 <div class="flex items-center justify-between">
+                    <!-- Nút Hủy - Quay lại danh sách đề thi mà không lưu -->
                     <a href="/dashboard/teacher/exams"
                         class="px-6 py-2.5 text-slate-600 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
                         Hủy
                     </a>
+                    <!-- Nút Tạo đề thi - Submit form lên API -->
                     <button type="submit"
                         class="px-8 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 transition-colors">
                         <iconify-icon icon="solar:diploma-linear" width="18"></iconify-icon>
@@ -251,24 +345,36 @@
         </div>
     </main>
 
-    <!-- Modal hiển thị mã PIN sau khi tạo thành công -->
+    <!-- ========== MODAL TƯ TẳNG HIỂN THỊ MÃ PIN ========== -->
+    <!-- Modal này hiển thị sau khi tạo đề thi thành công
+         Hiển thị mã PIN 5 chữ số mà giáo viên chia sẻ cho học sinh
+         Có nút sao chép và quay lại danh sách -->
     <div id="pinModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl p-8 max-w-sm w-full text-center">
+            <!-- ========== ICON THÀNH CÔNG ========== -->
             <div class="h-16 w-16 rounded-full bg-emerald-100 flex items-center justify-center mx-auto mb-4">
                 <iconify-icon icon="solar:check-circle-bold" width="32" class="text-emerald-600"></iconify-icon>
             </div>
+            
+            <!-- ========== TIÊU ĐỀ & MÔ TẢ ========== -->
             <h3 class="text-xl font-bold text-slate-900 mb-1">Tạo đề thi thành công!</h3>
             <p class="text-slate-500 text-sm mb-6">Chia sẻ mã PIN này để học sinh vào thi</p>
-            <!-- Mã PIN lớn, nổi bật -->
+            
+            <!-- ========== MÃ PIN LỚN, NỔI BẬT ========== -->
+            <!-- Mã PIN được hiển thị lớn dễ nhìn, có thể sao chép -->
             <div class="bg-emerald-50 border-2 border-emerald-200 rounded-xl p-4 mb-6">
                 <p class="text-xs text-emerald-500 uppercase font-semibold tracking-wide mb-1">Mã PIN</p>
                 <p id="createdPinCode" class="text-4xl font-black text-emerald-700 tracking-widest">-----</p>
             </div>
+            
+            <!-- ========== NÚT SAOẠP VÀ QUAY LẠI ========== -->
+            <!-- Nút 1: Sao chép mã PIN vào clipboard -->
             <button onclick="ExamManager.copyCreatedPin()"
                 class="w-full mb-3 px-4 py-2.5 border border-emerald-300 text-emerald-600 rounded-lg text-sm font-medium hover:bg-emerald-50 flex items-center justify-center gap-2 transition-colors">
                 <iconify-icon icon="solar:copy-linear" width="16"></iconify-icon>
                 Sao chép mã PIN
             </button>
+            <!-- Nút 2: Quay lại danh sách đề thi -->
             <a href="/dashboard/teacher/exams"
                 class="block w-full px-4 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors">
                 Về danh sách đề thi
@@ -276,10 +382,16 @@
         </div>
     </div>
 
-    <!-- SHARED FOOTER -->
+    <!-- ========== FOOTER ========== -->
+    <!-- SHARED FOOTER COMPONENT - Hiển thị thông tin về trang web -->
     <th:block th:insert="teacher/shared/footer"></th:block>
 
-    <!-- Script quản lý form tạo đề thi -->
+    <!-- ========== SCRIPT QUẢN LÝ ========== -->
+    <!-- JavaScript module xử lý toàn bộ logic tạo đề thi:
+         - Chuyển đổi giữa 2 tab (ngân hàng vs tự soạn)
+         - Load dữ liệu từ API
+         - Thêm/xóa câu hỏi
+         - Submit form lên API tạo đề thi -->
     <script th:src="@{/js/teacher-exam-manager.js}"></script>
 </body>
 </html>

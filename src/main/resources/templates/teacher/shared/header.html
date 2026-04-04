@@ -36,6 +36,13 @@
                     th:classappend="${currentPage == 'exams'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'">
                     Kiểm tra
                 </a>
+                <!-- Link tạo câu hỏi mới -->
+                <a href="/dashboard/teacher/create-exercise"
+                    th:classappend="${currentPage == 'create-exercise'} ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'"
+                    class="flex items-center gap-1 px-3 py-1 rounded-lg bg-emerald-50 text-emerald-600 hover:bg-emerald-100 transition-colors" title="Tạo câu hỏi mới">
+                    <iconify-icon icon="mdi:plus-circle" width="18"></iconify-icon>
+                    Tạo câu hỏi
+                </a>
             </nav>
 
             <!-- User Menu Button -->
@@ -70,6 +77,8 @@
             <a href="/dashboard/teacher/assignments" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Bài tập</a>
             <!-- Mục Kiểm tra trong mobile menu -->
             <a href="/dashboard/teacher/exams" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Kiểm tra</a>
+            <!-- Link tạo câu hỏi mới trong mobile menu -->
+            <a href="/dashboard/teacher/create-exercise" class="block px-4 py-2 text-sm text-emerald-600 hover:bg-emerald-50 font-medium">+ Tạo câu hỏi</a>
             <div class="border-t border-slate-100 mt-2 pt-2">
                 <a href="/profile" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Thông tin cá nhân</a>
                 <a href="/settings" class="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-100">Cài đặt</a>

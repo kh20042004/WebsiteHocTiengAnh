@@ -207,6 +207,20 @@ public class ContentService {
     }
 
     /**
+     * Lấy TẤT CẢ bài học active (bao gồm cả thông tin Unit)
+     * Dùng cho dropdown trong form tạo bài tập
+     * @return Danh sách LessonResponse từ tất cả Units
+     */
+    public List<ContentDTO.LessonResponse> getAllLessons() {
+        log.info("📚 Lấy danh sách tất cả bài học");
+
+        return lessonRepository.findByIsActiveTrueOrderByOrderIndexAsc()
+                .stream()
+                .map(this::convertToLessonResponse)
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Lấy chi tiết một bài học
      * @param lessonId - ID của Lesson
      * @return LessonResponse

@@ -12,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,43 +36,104 @@ public class AssignmentService {
     }
 
     /**
-     * Tạo bài tập mới
+     * Tạo bài tập mới (hỗ trợ multi-class)
+     * 
+     * Flow:
+     * 1. Validate classroomIds array (bắt buộc)
+     * 2. Validate teacher sở hữu all classrooms
+     * 3. Create assignment với:
+     *    - classroomIds: danh sách ID lớp
+     *    - exerciseIds: danh sách ID bài tập
+     *    - gradingMode: AUTO hoặc MANUAL
+     *    - timeLimitMinutes: giới hạn thời gian (nếu có)
+     * 4. Update statistics cho tất cả classrooms
+     * 
+     * @param request - CreateRequest với classroomIds[], exerciseIds[], gradingMode
+     * @param teacherId - Teacher ID
+     * @param adminOverride - Admin có thể bypass validation
+     * @return AssignmentDTO.Response
      */
     public AssignmentDTO.Response createAssignment(AssignmentDTO.CreateRequest request, String teacherId,
             boolean adminOverride) {
-        // Kiểm tra lớp học tồn tại
-        Classroom classroom = classroomRepository.findById(request.getClassroomId())
-                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
+        
+        log.info("========== CREATE ASSIGNMENT ==========");
+        log.info("Title: {}, Teacher: {}", request.getTitle(), teacherId);
 
-        // Kiểm tra giáo viên sở hữu lớp
-        if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
-            throw new BadRequestException("Bạn không có quyền giao bài cho lớp này");
+        // ========== 1. Handle multi-class vs single-class ==========
+        List<String> classroomIds = new java.util.ArrayList<>();
+        String primaryClassroomId = null;
+        String primaryClassroomName = null;
+
+        // Nếu có classroomIds array (multi-class)
+        if (request.getClassroomIds() != null && !request.getClassroomIds().isEmpty()) {
+            classroomIds = request.getClassroomIds();
+            log.info("Multi-class assignment: {} classrooms", classroomIds.size());
+        } else {
+            throw new BadRequestException("Vui lòng chọn ít nhất 1 lớp học");
         }
 
+        // ========== 2. Validate & fetch classrooms ==========
+        List<Classroom> classrooms = new java.util.ArrayList<>();
+        int totalStudents = 0;
+
+        for (String classroomId : classroomIds) {
+            Classroom classroom = classroomRepository.findById(classroomId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp: " + classroomId));
+
+            // Validate teacher owns this classroom
+            if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
+                throw new BadRequestException("Bạn không có quyền giao bài cho lớp: " + classroom.getName());
+            }
+
+            classrooms.add(classroom);
+            Integer count = classroom.getStudentCount();
+            totalStudents += (count != null ? count : 0);
+
+            // Remember primary classroom (first one)
+            if (primaryClassroomId == null) {
+                primaryClassroomId = classroom.getId();
+                primaryClassroomName = classroom.getName();
+            }
+        }
+
+        log.info("Validated {} classrooms, total students: {}", classrooms.size(), totalStudents);
+
+        // ========== 3. Create Assignment entity ==========
         long now = System.currentTimeMillis();
         Assignment assignment = Assignment.builder()
                 .title(request.getTitle())
                 .description(request.getDescription())
                 .type(request.getType() != null ? request.getType().toUpperCase() : "READING")
-                .classroomId(classroom.getId())
-                .classroomName(classroom.getName())
-                .teacherId(adminOverride ? classroom.getTeacherId() : teacherId)
+                // Backward compatibility: set classroomId for single-class assignments
+                .classroomId(primaryClassroomId)
+                .classroomName(primaryClassroomName)
+                // New fields for multi-class
+                .classroomIds(classroomIds)
+                .exerciseIds(request.getExerciseIds() != null ? request.getExerciseIds() : new java.util.ArrayList<>())
+                .gradingMode(request.getGradingMode() != null ? request.getGradingMode().toUpperCase() : "MANUAL")
+                .teacherId(adminOverride ? classrooms.get(0).getTeacherId() : teacherId)
                 .assignedDate(now)
                 .dueDate(request.getDueDate())
                 .status("ACTIVE")
-                .totalStudents(classroom.getStudentCount())
+                .totalStudents(totalStudents)
+                .submittedCount(0)
+                .gradedCount(0)
+                .averageScore(0.0)
                 .createdAt(now)
                 .updatedAt(now)
                 .build();
 
         Assignment saved = assignmentRepository.save(assignment);
-        log.info("Tạo bài tập mới: {} cho lớp {}", saved.getTitle(), classroom.getName());
+        log.info("Assignment created: {} (ID: {})", saved.getTitle(), saved.getId());
 
-        // Cập nhật số bài tập trong lớp
-        classroom.setTotalAssignments(
-                (classroom.getTotalAssignments() != null ? classroom.getTotalAssignments() : 0) + 1);
-        classroomRepository.save(classroom);
+        // ========== 4. Update statistics in all classrooms ==========
+        for (Classroom classroom : classrooms) {
+            classroom.setTotalAssignments(
+                    (classroom.getTotalAssignments() != null ? classroom.getTotalAssignments() : 0) + 1);
+            classroomRepository.save(classroom);
+        }
 
+        log.info("========== ASSIGNMENT CREATION SUCCESSFUL ==========");
         return toResponse(saved);
     }
 
@@ -94,11 +156,19 @@ public class AssignmentService {
         if (request.getStatus() != null) assignment.setStatus(request.getStatus());
 
         // Nếu đổi lớp
-        if (request.getClassroomId() != null && !request.getClassroomId().equals(assignment.getClassroomId())) {
-            Classroom newClassroom = classroomRepository.findById(request.getClassroomId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học"));
-            assignment.setClassroomId(newClassroom.getId());
-            assignment.setClassroomName(newClassroom.getName());
+        if (request.getClassroomIds() != null && !request.getClassroomIds().isEmpty()) {
+            List<String> newClassroomNames = new ArrayList<>();
+            for (String classroomId : request.getClassroomIds()) {
+                Classroom classroom = classroomRepository.findById(classroomId)
+                        .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học: " + classroomId));
+                // Kiểm tra quyền
+                if (!adminOverride && !classroom.getTeacherId().equals(teacherId)) {
+                    throw new BadRequestException("Bạn không có quyền giao bài tập cho lớp này");
+                }
+                newClassroomNames.add(classroom.getName());
+            }
+            assignment.setClassroomIds(request.getClassroomIds());
+            assignment.setClassroomNames(newClassroomNames);
         }
 
         assignment.setUpdatedAt(System.currentTimeMillis());
@@ -152,6 +222,11 @@ public class AssignmentService {
                 .typeBadgeClass(a.getTypeBadgeClass())
                 .classroomId(a.getClassroomId())
                 .classroomName(a.getClassroomName() != null ? a.getClassroomName() : "")
+                // ===== Additional fields for multi-class & advanced features =====
+                .classroomIds(a.getClassroomIds() != null ? a.getClassroomIds() : new java.util.ArrayList<>())
+                .exerciseIds(a.getExerciseIds() != null ? a.getExerciseIds() : new java.util.ArrayList<>())
+                .gradingMode(a.getGradingMode() != null ? a.getGradingMode() : "MANUAL")
+                // ================================================================
                 .teacherId(a.getTeacherId())
                 .assignedDate(a.getAssignedDate())
                 .dueDate(a.getDueDate())

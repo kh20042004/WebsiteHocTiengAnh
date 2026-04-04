@@ -3,6 +3,9 @@
  * Manages creation and editing of assignments
  */
 
+// Prevent duplicate loading
+if (typeof AssignmentManager === 'undefined') {
+
 const AssignmentManager = (() => {
     let selectedExercises = [];
 
@@ -20,7 +23,10 @@ const AssignmentManager = (() => {
 
         try {
             const response = await fetch(`/api/units/${unitId}/lessons`);
-            const lessons = await response.json();
+            const result = await response.json();
+            
+            // Extract lessons from ApiResponseDTO wrapper
+            const lessons = result.data || [];
 
             lessonSelect.innerHTML = '<option value="">-- Tất cả bài tập từ Unit --</option>';
             lessons.forEach(lesson => {
@@ -58,7 +64,10 @@ const AssignmentManager = (() => {
             }
 
             const response = await fetch(url);
-            const exercises = await response.json();
+            const result = await response.json();
+            
+            // Extract exercises from ApiResponseDTO wrapper
+            const exercises = result.data || [];
 
             renderExercises(exercises);
         } catch (error) {
@@ -265,6 +274,12 @@ const AssignmentManager = (() => {
     };
 })();
 
+// Expose functions to global scope for inline HTML event handlers
+window.loadLessons = AssignmentManager.loadLessons;
+window.loadExercises = AssignmentManager.loadExercises;
+window.toggleExercise = AssignmentManager.toggleExercise;
+window.createAssignment = AssignmentManager.createAssignment;
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', () => {
     // Set minimum date to today
@@ -277,3 +292,5 @@ document.addEventListener('DOMContentLoaded', () => {
         // Units will be loaded via Thymeleaf th:each
     }
 });
+
+} // Close the if (typeof AssignmentManager === 'undefined') block

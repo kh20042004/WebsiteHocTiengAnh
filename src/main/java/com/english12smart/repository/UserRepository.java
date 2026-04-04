@@ -131,6 +131,14 @@ public interface UserRepository extends MongoRepository<User, String> {
      */
     Optional<User> findById(String id);
 
+    // ========== RESET PASSWORD TOKEN ==========
+    /**
+     * Tìm user theo reset token (dùng cho forgot password)
+     * @param resetToken - Reset token (UUID)
+     * @return User nếu tìm thấy, null nếu không
+     */
+    User findByResetToken(String resetToken);
+
     // ========== DELETE ==========
     /**
      * Xóa user by ID

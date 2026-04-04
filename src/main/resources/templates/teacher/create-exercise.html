@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tạo Câu Hỏi - English 12 Smart</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+    <script th:src="@{/js/teacher-dropdown.js}"></script>
+    <script th:src="@{/js/teacher-exercise-manager.js}"></script>
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+
+    <!-- SHARED HEADER -->
+    <th:block th:with="currentPage='content'" th:insert="teacher/shared/header"></th:block>
+
+    <!-- NỘI DUNG CHÍNH -->
+    <main class="pt-20 pb-12">
+        <!-- Page Header -->
+        <div class="bg-gradient-to-r from-emerald-500 to-emerald-700 text-white py-12">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-4">
+                    <a href="/dashboard/teacher/content" class="inline-flex items-center justify-center h-10 w-10 rounded-lg bg-white/20 hover:bg-white/30 transition-colors">
+                        <iconify-icon icon="mdi:arrow-left" width="20" class="text-white"></iconify-icon>
+                    </a>
+                    <div>
+                        <h1 class="text-3xl font-medium mb-2">Tạo Câu Hỏi Mới</h1>
+                        <p class="text-emerald-100">Tạo các loại câu hỏi để thêm vào bài tập của bạn</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8 py-8">
+            <!-- Form Tạo Câu Hỏi -->
+            <div class="bg-white rounded-2xl border border-slate-200 p-8">
+                <form id="createExerciseForm" class="space-y-8">
+
+                    <!-- Section 1: Thông tin cơ bản -->
+                    <div class="space-y-6">
+                        <h2 class="text-lg font-semibold text-slate-900 pb-4 border-b border-slate-200">
+                            <iconify-icon icon="mdi:information-outline" width="20" class="inline mr-2"></iconify-icon>
+                            Thông tin cơ bản
+                        </h2>
+
+                        <!-- Chọn Lesson -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-900 mb-2">
+                                Chọn Lesson <span class="text-red-500">*</span>
+                            </label>
+                            <select id="lessonSelect" required onchange="window.ExerciseManager.updateLessonInfo()"
+                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="">-- Chọn Lesson --</option>
+                                <option th:each="lesson : ${lessons}" th:value="${lesson.id}" 
+                                    th:text="${'Lesson ' + lesson.orderIndex + ': ' + lesson.title}">
+                                    Lesson 1: Greeting
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Tiêu đề câu hỏi -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-900 mb-2">
+                                Tiêu đề / Nội dung câu hỏi <span class="text-red-500">*</span>
+                            </label>
+                            <input type="text" id="questionTitle" required
+                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                placeholder="VD: Choose the best answer">
+                            <p class="text-xs text-slate-500 mt-1">Tối đa 200 ký tự</p>
+                        </div>
+
+                        <!-- Loại câu hỏi -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-900 mb-2">
+                                Loại câu hỏi <span class="text-red-500">*</span>
+                            </label>
+                            <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <!-- Multiple Choice -->
+                                <label class="relative flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-emerald-400 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+                                    <input type="radio" name="questionType" value="MULTIPLE_CHOICE" required onchange="window.ExerciseManager.switchQuestionType('MULTIPLE_CHOICE')"
+                                        class="w-4 h-4">
+                                    <span class="text-sm font-medium text-slate-900">
+                                        <span class="block">📋 Trắc nghiệm</span>
+                                        <span class="text-xs text-slate-500">Multiple Choice</span>
+                                    </span>
+                                </label>
+
+                                <!-- Fill in the Blank -->
+                                <label class="relative flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-emerald-400 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+                                    <input type="radio" name="questionType" value="FILL_BLANK" onchange="window.ExerciseManager.switchQuestionType('FILL_BLANK')"
+                                        class="w-4 h-4">
+                                    <span class="text-sm font-medium text-slate-900">
+                                        <span class="block">✏️ Điền từ</span>
+                                        <span class="text-xs text-slate-500">Fill in blank</span>
+                                    </span>
+                                </label>
+
+                                <!-- True/False -->
+                                <label class="relative flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-emerald-400 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+                                    <input type="radio" name="questionType" value="TRUE_FALSE" onchange="window.ExerciseManager.switchQuestionType('TRUE_FALSE')"
+                                        class="w-4 h-4">
+                                    <span class="text-sm font-medium text-slate-900">
+                                        <span class="block">✓✗ Đúng/Sai</span>
+                                        <span class="text-xs text-slate-500">True/False</span>
+                                    </span>
+                                </label>
+
+                                <!-- Matching -->
+                                <label class="relative flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-emerald-400 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+                                    <input type="radio" name="questionType" value="MATCHING" onchange="window.ExerciseManager.switchQuestionType('MATCHING')"
+                                        class="w-4 h-4">
+                                    <span class="text-sm font-medium text-slate-900">
+                                        <span class="block">🔗 Ghép đôi</span>
+                                        <span class="text-xs text-slate-500">Matching</span>
+                                    </span>
+                                </label>
+
+                                <!-- Short Answer -->
+                                <label class="relative flex items-center gap-3 p-4 border-2 border-slate-200 rounded-lg cursor-pointer hover:border-emerald-400 transition-colors has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-50">
+                                    <input type="radio" name="questionType" value="SHORT_ANSWER" onchange="window.ExerciseManager.switchQuestionType('SHORT_ANSWER')"
+                                        class="w-4 h-4">
+                                    <span class="text-sm font-medium text-slate-900">
+                                        <span class="block">📝 Trả lời ngắn</span>
+                                        <span class="text-xs text-slate-500">Short Answer</span>
+                                    </span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Hướng dẫn / Mô tả -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-900 mb-2">
+                                Hướng dẫn (tuỳ chọn)
+                            </label>
+                            <textarea id="instruction" rows="2"
+                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                placeholder="VD: Choose ONE best answer..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Section 2: Chi tiết câu hỏi (Dynamic based on type) -->
+                    <div id="questionDetailsContainer" class="space-y-6">
+                        <!-- Sẽ được render động bằng JavaScript -->
+                    </div>
+
+                    <!-- Section 3: Điểm số & Thống kê -->
+                    <div class="space-y-6">
+                        <h2 class="text-lg font-semibold text-slate-900 pb-4 border-b border-slate-200">
+                            <iconify-icon icon="mdi:star-outline" width="20" class="inline mr-2"></iconify-icon>
+                            Điểm số & Thống kê
+                        </h2>
+
+                        <div class="grid grid-cols-2 gap-6">
+                            <!-- Điểm tối đa -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-900 mb-2">
+                                    Điểm tối đa <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" id="maxScore" value="10" min="1" max="100" required
+                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    placeholder="10">
+                            </div>
+
+                            <!-- Thời gian ước tính -->
+                            <div>
+                                <label class="block text-sm font-medium text-slate-900 mb-2">
+                                    Thời gian ước tính (phút) <span class="text-red-500">*</span>
+                                </label>
+                                <input type="number" id="estimatedDuration" value="5" min="1" max="180" required
+                                    class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                                    placeholder="5">
+                            </div>
+                        </div>
+
+                        <!-- Mức độ khó -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-900 mb-2">
+                                Mức độ khó <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex gap-3">
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="difficulty" value="EASY" checked class="w-4 h-4">
+                                    <span class="text-sm">🟢 Dễ</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="difficulty" value="MEDIUM" class="w-4 h-4">
+                                    <span class="text-sm">🟡 Trung bình</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="difficulty" value="HARD" class="w-4 h-4">
+                                    <span class="text-sm">🔴 Khó</span>
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Thông báo lỗi -->
+                    <div id="errorMessage" class="hidden p-4 rounded-lg bg-red-50 text-red-700 text-sm border border-red-200"></div>
+
+                    <!-- Action buttons -->
+                    <div class="flex gap-4 pt-6 border-t border-slate-200">
+                        <a href="/dashboard/teacher/content"
+                            class="flex-1 px-6 py-3 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors text-center">
+                            Huỷ bỏ
+                        </a>
+                        <button type="submit"
+                            class="flex-1 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <iconify-icon icon="mdi:check-circle" width="20"></iconify-icon>
+                            Tạo câu hỏi
+                        </button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Notification script -->
+    <script>
+        /**
+         * NotificationManager - Hiển thị thông báo cho người dùng
+         * Hỗ trợ: success, error, warning
+         */
+        const NotificationManager = {
+            success: (msg) => {
+                console.log('✅ ' + msg);
+                alert(msg);
+            },
+            error: (msg) => {
+                console.error('❌ ' + msg);
+                const errorDiv = document.getElementById('errorMessage');
+                if (errorDiv) {
+                    errorDiv.textContent = msg;
+                    errorDiv.classList.remove('hidden');
+                }
+                alert('Lỗi: ' + msg);
+            },
+            warning: (msg) => {
+                console.warn('⚠️ ' + msg);
+                alert('⚠️ ' + msg);
+            }
+        };
+    </script>
+
+</body>
+
+</html>

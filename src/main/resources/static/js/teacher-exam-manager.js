@@ -1,15 +1,41 @@
 /**
+ * ========== EXAM MANAGER MODULE ==========
  * teacher-exam-manager.js
- * Module quản lý giao diện tạo đề thi cho giáo viên.
- * Xử lý: chuyển tab, tải câu hỏi từ ngân hàng, thêm câu hỏi tự soạn, submit form.
+ * 
+ * Quản lý toàn bộ giao diện tạo đề thi cho giáo viên.
+ * 
+ * Chức năng chính:
+ * 1. Chuyển đổi giữa 2 tab: "Chọn từ ngân hàng" & "Câu hỏi tự soạn"
+ * 2. Tải danh sách Unit → Lesson → Exercise từ API
+ * 3. Cho phép giáo viên chọn các Exercise từ ngân hàng
+ * 4. Cho phép giáo viên thêm câu hỏi tự soạn (3 loại: MC, True/False, Fill blank)
+ * 5. Submit form và gửi API tạo đề thi
+ * 6. Hiển thị mã PIN sau khi tạo thành công
+ * 
+ * Design Pattern: IIFE (Immediately Invoked Function Expression)
+ * - Tạo closure để bảo vệ state (customQuestions, selectedExerciseIds)
+ * - Return object với các public methods
+ * 
+ * @module ExamManager
  */
-const ExamManager = (() => {
 
-    // Danh sách câu hỏi tự soạn (sẽ gửi lên API khi submit)
-    const customQuestions = [];
+// Guard check: Tránh load module lặp lại
+if (!window.ExamManagerLoaded) {
+    window.ExamManagerLoaded = true;
 
-    // Danh sách exerciseIds được chọn từ ngân hàng
-    const selectedExerciseIds = new Set();
+    const ExamManager = (() => {
+
+        // ======================================================================
+        // STATE & DATA: Lưu trữ dữ liệu trong closure
+        // ======================================================================
+
+        /** Danh sách câu hỏi tự soạn mà giáo viên nhập
+            Sẽ gửi lên API khi form được submit */
+        const customQuestions = [];
+
+        /** Set chứa các exerciseId được chọn từ ngân hàng
+            Dùng Set để dễ thêm/xóa và tránh trùng lặp */
+        const selectedExerciseIds = new Set();
 
     // ======================================================================
     // Chuyển tab: Ngân hàng / Tự soạn
@@ -54,38 +80,60 @@ const ExamManager = (() => {
      * @param {string} unitId - ID của Unit đã chọn
      */
     async function loadLessons(unitId) {
-        const lessonSelect = document.getElementById('lessonSelect');
-        lessonSelect.disabled = true;
-        lessonSelect.innerHTML = '<option value="">Đang tải...</option>';
-
-        // Reset danh sách exercise khi đổi unit
-        document.getElementById('exerciseList').innerHTML = `
-            <p class="text-sm text-slate-400 text-center py-8">
-                <iconify-icon icon="solar:library-linear" width="32" class="inline mb-2 opacity-40 block mx-auto"></iconify-icon>
-                Chọn bài học để xem các exercise
-            </p>`;
-
-        if (!unitId) {
-            lessonSelect.innerHTML = '<option value="">-- Chọn bài học --</option>';
-            return;
-        }
-
         try {
-            const res  = await fetch('/api/units/' + unitId + '/lessons');
+            const lessonSelect = document.getElementById('lessonSelect');
+            if (!lessonSelect) {
+                console.error('❌ Không tìm thấy element lessonSelect');
+                return;
+            }
+
+            lessonSelect.disabled = true;
+            lessonSelect.innerHTML = '<option value="">Đang tải bài học...</option>';
+
+            // Reset danh sách exercise khi đổi unit
+            const exerciseList = document.getElementById('exerciseList');
+            if (exerciseList) {
+                exerciseList.innerHTML = `
+                    <p class="text-sm text-slate-400 text-center py-8">
+                        <iconify-icon icon="solar:library-linear" width="32" class="inline mb-2 opacity-40 block mx-auto"></iconify-icon>
+                        Chọn bài học để xem các exercise
+                    </p>`;
+            }
+
+            // Nếu không chọn Unit, reset dropdown
+            if (!unitId) {
+                lessonSelect.innerHTML = '<option value="">-- Chọn bài học --</option>';
+                lessonSelect.disabled = false;
+                return;
+            }
+
+            // Gọi API tải Lesson từ Unit
+            const res = await fetch('/api/units/' + unitId + '/lessons');
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: Không thể tải bài học`);
+            }
+            
             const data = await res.json();
             const lessons = data.data || [];
 
+            // Xây dựng dropdown Lesson
             lessonSelect.innerHTML = '<option value="">-- Chọn bài học --</option>';
             lessons.forEach(lesson => {
                 const opt = document.createElement('option');
-                opt.value   = lesson.id;
+                opt.value = lesson.id;
                 opt.textContent = lesson.title + (lesson.type ? ' [' + lesson.type + ']' : '');
                 lessonSelect.appendChild(opt);
             });
+            
             lessonSelect.disabled = false;
+            console.log('✅ Đã tải ' + lessons.length + ' bài học');
+
         } catch (err) {
-            lessonSelect.innerHTML = '<option value="">Lỗi khi tải dữ liệu</option>';
-            console.error('Lỗi khi tải danh sách bài học:', err);
+            const lessonSelect = document.getElementById('lessonSelect');
+            if (lessonSelect) {
+                lessonSelect.innerHTML = '<option value="">Lỗi khi tải bài học</option>';
+            }
+            console.error('❌ Lỗi khi tải danh sách Lesson:', err.message);
         }
     }
 
@@ -95,39 +143,54 @@ const ExamManager = (() => {
      * @param {string} lessonId - ID của Lesson đã chọn
      */
     async function loadExercises(lessonId) {
-        const exerciseList = document.getElementById('exerciseList');
-        exerciseList.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Đang tải...</p>';
-
-        if (!lessonId) {
-            exerciseList.innerHTML = `
-                <p class="text-sm text-slate-400 text-center py-8">
-                    Chọn bài học để xem các exercise
-                </p>`;
-            return;
-        }
-
         try {
-            const res  = await fetch('/api/lessons/' + lessonId + '/exercises');
-            const data = await res.json();
-            const exercises = data.data || [];
-
-            if (exercises.length === 0) {
-                exerciseList.innerHTML = '<p class="text-sm text-slate-400 text-center py-8">Bài học này chưa có exercise nào.</p>';
+            const exerciseList = document.getElementById('exerciseList');
+            if (!exerciseList) {
+                console.error('❌ Không tìm thấy element exerciseList');
                 return;
             }
 
-            // Render từng exercise với checkbox chọn
+            exerciseList.innerHTML = '<p class="text-sm text-slate-400 text-center py-4">Đang tải câu hỏi...</p>';
+
+            // Nếu không chọn Lesson, hiển thị guide
+            if (!lessonId) {
+                exerciseList.innerHTML = `
+                    <p class="text-sm text-slate-400 text-center py-8">
+                        Chọn bài học để xem các exercise
+                    </p>`;
+                return;
+            }
+
+            // Gọi API tải Exercise từ Lesson
+            const res = await fetch('/api/lessons/' + lessonId + '/exercises');
+            if (!res.ok) {
+                throw new Error(`HTTP ${res.status}: Không thể tải exercise`);
+            }
+            
+            const data = await res.json();
+            const exercises = data.data || [];
+
+            // Nếu không có Exercise, hiển thị thông báo
+            if (exercises.length === 0) {
+                exerciseList.innerHTML = `
+                    <p class="text-sm text-slate-400 text-center py-8">
+                        Bài học này chưa có câu hỏi nào. Vui lòng tạo câu hỏi trước.
+                    </p>`;
+                return;
+            }
+
+            // Render danh sách Exercise với checkbox
             exerciseList.innerHTML = exercises.map(ex => `
-                <div class="border border-slate-200 rounded-lg p-4 hover:border-violet-300 transition-colors bg-white">
+                <div class="border border-slate-200 rounded-lg p-4 hover:border-emerald-300 transition-colors bg-white">
                     <label class="flex items-start gap-3 cursor-pointer">
-                        <input type="checkbox" value="${ex.id}"
-                            class="mt-1 exercise-checkbox w-4 h-4 text-violet-600 rounded"
-                            onchange="ExamManager.toggleExercise('${ex.id}', this.checked)"
+                        <input type="checkbox" value="${escapeHtml(ex.id)}"
+                            class="mt-1 exercise-checkbox w-4 h-4 text-emerald-600 rounded"
+                            onchange="ExamManager.toggleExercise('${escapeHtml(ex.id)}', this.checked)"
                             ${selectedExerciseIds.has(ex.id) ? 'checked' : ''}>
                         <div class="flex-1 min-w-0">
-                            <p class="font-medium text-slate-800 text-sm">${ex.title || 'Exercise không có tiêu đề'}</p>
+                            <p class="font-medium text-slate-800 text-sm">${escapeHtml(ex.title || 'Exercise không có tiêu đề')}</p>
                             <p class="text-xs text-slate-500 mt-0.5">
-                                Loại: ${ex.type || 'N/A'}
+                                Loại: ${escapeHtml(ex.type || 'N/A')}
                                 &nbsp;•&nbsp; ${(ex.questions || []).length} câu hỏi
                                 &nbsp;•&nbsp; ${ex.maxScore || 0} điểm tối đa
                             </p>
@@ -136,9 +199,17 @@ const ExamManager = (() => {
                 </div>
             `).join('');
 
+            console.log('✅ Đã tải ' + exercises.length + ' exercise');
+
         } catch (err) {
-            exerciseList.innerHTML = '<p class="text-sm text-red-400 text-center py-4">Lỗi khi tải exercise.</p>';
-            console.error('Lỗi khi tải danh sách exercise:', err);
+            const exerciseList = document.getElementById('exerciseList');
+            if (exerciseList) {
+                exerciseList.innerHTML = `
+                    <p class="text-sm text-red-400 text-center py-4">
+                        ❌ Lỗi khi tải exercise: ${escapeHtml(err.message)}
+                    </p>`;
+            }
+            console.error('❌ Lỗi khi tải danh sách Exercise:', err);
         }
     }
 
@@ -191,35 +262,67 @@ const ExamManager = (() => {
      * Validate input rồi render ra UI và lưu vào mảng customQuestions
      */
     function addCustomQuestion() {
-        const text        = document.getElementById('newQuestionText').value.trim();
-        const type        = document.getElementById('newQuestionType').value;
-        const optionsRaw  = document.getElementById('newQuestionOptions').value.trim();
-        const answer      = document.getElementById('newQuestionAnswer').value.trim();
-        const explanation = document.getElementById('newQuestionExplanation').value.trim();
-        const score       = parseInt(document.getElementById('newQuestionScore').value) || 1;
+        try {
+            // Lấy dữ liệu từ form
+            const text = document.getElementById('newQuestionText').value.trim();
+            const type = document.getElementById('newQuestionType').value;
+            const optionsRaw = document.getElementById('newQuestionOptions').value.trim();
+            const answer = document.getElementById('newQuestionAnswer').value.trim();
+            const explanation = document.getElementById('newQuestionExplanation').value.trim();
+            const score = parseInt(document.getElementById('newQuestionScore').value) || 1;
 
-        // Validate dữ liệu bắt buộc
-        if (!text) { alert('Vui lòng nhập nội dung câu hỏi'); return; }
-        if (!answer) { alert('Vui lòng nhập đáp án đúng'); return; }
+            // ========== VALIDATION: Kiểm tra dữ liệu bắt buộc ==========
+            if (!text) { 
+                alert('🚫 Vui lòng nhập nội dung câu hỏi'); 
+                return; 
+            }
+            if (!answer) { 
+                alert('🚫 Vui lòng nhập đáp án đúng'); 
+                return; 
+            }
+            if (text.length > 500) {
+                alert('🚫 Nội dung câu hỏi quá dài (tối đa 500 ký tự)');
+                return;
+            }
+            if (score < 1 || score > 10) {
+                alert('🚫 Điểm phải từ 1 đến 10');
+                return;
+            }
 
-        // Tách options từ textarea (mỗi dòng 1 option)
-        const options = optionsRaw ? optionsRaw.split('\n').map(o => o.trim()).filter(o => o) : [];
+            // Tách options từ textarea (mỗi dòng 1 option)
+            const options = optionsRaw 
+                ? optionsRaw.split('\n').map(o => o.trim()).filter(o => o) 
+                : [];
 
-        const question = {
-            questionIndex: customQuestions.length,
-            questionText: text,
-            type,
-            options,
-            correctAnswer: answer,
-            explanation: explanation || null,
-            score,
-            sourceExerciseId: null
-        };
+            // Tạo object câu hỏi
+            const question = {
+                questionIndex: customQuestions.length,
+                questionText: text,
+                type: type,
+                options: options,
+                correctAnswer: answer,
+                explanation: explanation || null,
+                score: score,
+                sourceExerciseId: null
+            };
 
-        customQuestions.push(question);
-        renderCustomQuestion(question, customQuestions.length - 1);
-        clearCustomQuestionForm();
-        updateQuestionSummary();
+            // Thêm vào mảng
+            customQuestions.push(question);
+            console.log('✅ Thêm câu hỏi thứ', customQuestions.length);
+
+            // Render câu hỏi ra UI
+            renderCustomQuestion(question, customQuestions.length - 1);
+            
+            // Clear form nhập
+            clearCustomQuestionForm();
+            
+            // Cập nhật badge
+            updateQuestionSummary();
+
+        } catch (err) {
+            console.error('❌ Lỗi trong addCustomQuestion:', err);
+            alert('❌ Lỗi: ' + err.message);
+        }
     }
 
     /**
@@ -305,46 +408,57 @@ const ExamManager = (() => {
      * @param {Event} event - Submit event từ form
      */
     async function createExam(event) {
-        event.preventDefault();
-        const form = event.target;
-
-        // Lấy dữ liệu từ form
-        const title       = form.title.value.trim();
-        const description = form.description.value.trim();
-        const classroomId = form.classroomId.value;
-        const timeLimitRaw = parseInt(form.timeLimitMinutes.value);
-        const timeLimitMinutes = isNaN(timeLimitRaw) || timeLimitRaw <= 0 ? null : timeLimitRaw;
-
-        // Kiểm tra bắt buộc
-        if (!title)       { alert('Vui lòng nhập tiêu đề đề thi'); return; }
-        if (!classroomId) { alert('Vui lòng chọn lớp học'); return; }
-
-        // Câu hỏi tự soạn (lọc bỏ các phần tử null đã xóa)
-        const filteredCustom = customQuestions.filter(q => q !== null);
-
-        // Kiểm tra phải có ít nhất 1 câu hỏi từ một trong hai nguồn
-        if (selectedExerciseIds.size === 0 && filteredCustom.length === 0) {
-            alert('Vui lòng thêm ít nhất 1 câu hỏi (từ ngân hàng hoặc tự soạn)');
-            return;
-        }
-
-        // Vô hiệu hóa nút submit tránh double click
-        const submitBtn = form.querySelector('button[type="submit"]');
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin inline mr-1"></iconify-icon> Đang tạo...';
-
-        const payload = {
-            title,
-            description: description || null,
-            classroomId,
-            timeLimitMinutes,
-            questions: filteredCustom,
-            exerciseIds: [...selectedExerciseIds]
-        };
-
         try {
+            event.preventDefault();
+            const form = event.target;
+
+            // ========== LẤY DỮ LIỆU TỪ FORM ==========
+            const title = form.title.value.trim();
+            const description = form.description.value.trim();
+            const classroomId = form.classroomId.value;
+            const timeLimitRaw = parseInt(form.timeLimitMinutes.value);
+            const timeLimitMinutes = isNaN(timeLimitRaw) || timeLimitRaw <= 0 ? null : timeLimitRaw;
+
+            // ========== VALIDATION: Kiểm tra dữ liệu bắt buộc ==========
+            if (!title) { 
+                alert('🚫 Vui lòng nhập tiêu đề đề thi'); 
+                return; 
+            }
+            if (!classroomId) { 
+                alert('🚫 Vui lòng chọn lớp học'); 
+                return; 
+            }
+
+            // ========== KIỂM TRA CÓ CÂU HỎI KHÔNG ==========
+            // Câu hỏi tự soạn (lọc bỏ các phần tử null đã xóa)
+            const filteredCustom = customQuestions.filter(q => q !== null);
+
+            // Phải có ít nhất 1 câu hỏi từ một trong hai nguồn
+            if (selectedExerciseIds.size === 0 && filteredCustom.length === 0) {
+                alert('🚫 Vui lòng thêm ít nhất 1 câu hỏi');
+                return;
+            }
+
+            // ========== VÔ HIỆU HÓA NÚT SUBMIT: Tránh double click ==========
+            const submitBtn = form.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin inline mr-1"></iconify-icon> Đang tạo...';
+
+            // ========== XÂY DỰNG PAYLOAD GỬI LÊN API ==========
+            const payload = {
+                title: title,
+                description: description || null,
+                classroomId: classroomId,
+                timeLimitMinutes: timeLimitMinutes,
+                questions: filteredCustom,
+                exerciseIds: Array.from(selectedExerciseIds)
+            };
+
+            console.log('📤 Gửi API tạo đề thi:', payload);
+
+            // ========== GỌI API ==========
             const token = localStorage.getItem('accessToken') || '';
-            const res  = await fetch('/api/exams', {
+            const res = await fetch('/api/exams', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -352,20 +466,32 @@ const ExamManager = (() => {
                 },
                 body: JSON.stringify(payload)
             });
+
             const data = await res.json();
 
+            // ========== XỬ LÝ KẾT QUẢ ==========
             if (!res.ok || data.statusCode !== 200) {
                 throw new Error(data.message || 'Tạo đề thi thất bại');
             }
 
-            // Hiển thị modal với mã PIN vừa tạo
+            // Thành công - Hiển thị modal với mã PIN
+            console.log('✅ Tạo đề thi thành công! Mã PIN:', data.data.pinCode);
             document.getElementById('createdPinCode').textContent = data.data.pinCode;
             document.getElementById('pinModal').classList.remove('hidden');
 
         } catch (err) {
-            alert('Lỗi: ' + err.message);
-            submitBtn.disabled = false;
-            submitBtn.innerHTML = '<iconify-icon icon="solar:diploma-linear" width="18"></iconify-icon> Tạo đề thi';
+            console.error('❌ Lỗi khi tạo đề thi:', err);
+            alert('❌ Lỗi: ' + err.message);
+            
+            // Khôi phục nút submit
+            const form = document.getElementById('createExamForm');
+            if (form) {
+                const submitBtn = form.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<iconify-icon icon="solar:diploma-linear" width="18"></iconify-icon> Tạo đề thi';
+                }
+            }
         }
     }
 
@@ -415,4 +541,9 @@ const ExamManager = (() => {
         copyCreatedPin
     };
 
-})();
+    })();
+
+    // Lưu module vào window để có thể truy cập từ HTML
+    window.ExamManager = ExamManager;
+    console.log('✅ ExamManager module đã được load');
+}

@@ -114,7 +114,70 @@ public class AuthDTO {
     }
 
     /**
-     * ========== CHANGE PASSWORD REQUEST DTO ==========
+     * ========== FORGOT PASSWORD REQUEST DTO ==========
+     * Dùng cho API POST /api/auth/forgot-password
+     * User nhập email để nhận link reset password
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ForgotPasswordRequest {
+        @NotBlank(message = "Email không được để trống")
+        @Email(message = "Email không hợp lệ")
+        private String email; // Email để nhận link reset password
+    }
+
+    /**
+     * ========== FORGOT PASSWORD RESPONSE DTO ==========
+     * Response từ API POST /api/auth/forgot-password
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ForgotPasswordResponse {
+        private String message; // "Email reset password đã được gửi. Vui lòng kiểm tra email."
+        private String email; // Email đã nhận được email
+    }
+
+    /**
+     * ========== RESET PASSWORD REQUEST DTO ==========
+     * Dùng cho API POST /api/auth/reset-password
+     * User nhập token + mật khẩu mới để reset password
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResetPasswordRequest {
+        @NotBlank(message = "Token không được để trống")
+        private String token; // Reset token (lấy từ link email)
+
+        @NotBlank(message = "Mật khẩu mới không được để trống")
+        @Size(min = 6, max = 50, message = "Mật khẩu mới phải từ 6-50 ký tự")
+        @Pattern(regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d).*$", message = "Mật khẩu mới phải chứa ít nhất 1 chữ hoa, 1 chữ thường và 1 số")
+        private String newPassword; // Mật khẩu mới
+
+        @NotBlank(message = "Xác nhận mật khẩu không được để trống")
+        private String confirmPassword; // Xác nhận mật khẩu (phải trùng với newPassword)
+    }
+
+    /**
+     * ========== RESET PASSWORD RESPONSE DTO ==========
+     * Response từ API POST /api/auth/reset-password
+     */
+    @Data
+    @Builder
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class ResetPasswordResponse {
+        private String message; // "Đặt lại mật khẩu thành công. Vui lòng đăng nhập lại."
+        private String email; // Email của user
+    }
+
+    // ========== CHANGE PASSWORD REQUEST DTO ==========
+    /**
      * Dùng cho API POST /api/auth/change-password
      */
     @Data
