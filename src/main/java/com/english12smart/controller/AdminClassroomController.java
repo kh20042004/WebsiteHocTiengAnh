@@ -86,6 +86,12 @@ public class AdminClassroomController {
         return ResponseEntity.ok(ApiResponseDTO.success("Cập nhật trạng thái lớp học thành công", summary));
     }
 
+    @DeleteMapping("/{classroomId}")
+    public ResponseEntity<ApiResponseDTO<Void>> deleteClassroom(@PathVariable String classroomId) {
+        adminClassroomService.deleteClassroom(classroomId, getCurrentAdminId());
+        return ResponseEntity.ok(ApiResponseDTO.success("Xóa lớp học thành công", null));
+    }
+
         @GetMapping("/activities")
         public ResponseEntity<ApiResponseDTO<AdminActivityReportDTO>> listActivities(
             @RequestParam(required = false, defaultValue = "0") Integer page,

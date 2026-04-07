@@ -19,6 +19,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.DeleteMapping;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -61,6 +62,13 @@ public class AdminApiController {
         String adminId = getCurrentUserId();
         AdminDTO.UserSummary user = adminService.updateUserRole(userId, request.getRole(), adminId);
         return ResponseEntity.ok(ApiResponseDTO.success("Cập nhật quyền người dùng thành công", user));
+    }
+
+    @DeleteMapping("/users/{userId}")
+    public ResponseEntity<ApiResponseDTO<Void>> deleteUser(@PathVariable String userId) {
+        String adminId = getCurrentUserId();
+        adminService.deleteUser(userId, adminId);
+        return ResponseEntity.ok(ApiResponseDTO.success("Xóa người dùng thành công", null));
     }
 
     private String getCurrentUserId() {

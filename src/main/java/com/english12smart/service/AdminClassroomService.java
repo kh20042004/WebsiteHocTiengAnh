@@ -127,6 +127,21 @@ public class AdminClassroomService {
         }
     }
 
+    public void deleteClassroom(String classroomId, String adminId) {
+        try {
+            Classroom classroom = classroomRepository.findById(classroomId)
+                    .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy lớp học: " + classroomId));
+            String classroomName = classroom.getName();
+            classroomRepository.delete(classroom);
+            log.info("Admin {} đã xóa lớp học {}", adminId, classroomId);
+            activityLogService.recordStatusChange(adminId, classroomId, classroomName, classroom.getStatus(), "DELETED");
+            meterRegistry.counter("admin.classrooms.delete", "result", "success").increment();
+        } catch (RuntimeException ex) {
+            meterRegistry.counter("admin.classrooms.delete", "result", "error").increment();
+            throw ex;
+        }
+    }
+
     private Map<String, User> loadTeacherMap(List<Classroom> classrooms) {
         Set<String> teacherIds = classrooms.stream()
                 .map(Classroom::getTeacherId)

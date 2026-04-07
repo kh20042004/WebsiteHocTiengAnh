@@ -61,6 +61,15 @@ public class AdminContentController {
         return ResponseEntity.ok(ApiResponseDTO.success("Cập nhật trạng thái thành công", summary));
     }
 
+    @DeleteMapping("/{contentType}/{contentId}")
+    public ResponseEntity<ApiResponseDTO<Void>> deleteContent(
+            @PathVariable String contentType,
+            @PathVariable String contentId) {
+        AdminContentDTO.ContentType type = parseContentType(contentType);
+        adminContentService.deleteContent(type, contentId);
+        return ResponseEntity.ok(ApiResponseDTO.success("Xóa nội dung thành công", null));
+    }
+
     private AdminContentDTO.ContentType parseContentType(String raw) {
         if (raw == null) {
             return null;

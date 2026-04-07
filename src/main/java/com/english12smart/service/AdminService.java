@@ -95,6 +95,16 @@ public class AdminService {
         return toUserSummary(saved);
     }
 
+    public void deleteUser(String targetUserId, String currentAdminId) {
+        if (targetUserId.equals(currentAdminId)) {
+            throw new BadRequestException("Không thể tự xóa tài khoản admin hiện tại");
+        }
+        User user = userRepository.findById(targetUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng: " + targetUserId));
+        userRepository.delete(user);
+        log.info("Admin {} đã xóa user {}", currentAdminId, targetUserId);
+    }
+
     public AdminDTO.DashboardStats getDashboardStats() {
         long totalUsers = userRepository.count();
         long activeUsers = userRepository.countByIsActiveTrue();

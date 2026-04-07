@@ -162,6 +162,10 @@
             if (target.dataset.action === 'change-role') {
                 promptChangeRole(userId);
             }
+
+            if (target.dataset.action === 'delete-user') {
+                promptDeleteUser(userId);
+            }
         });
 
         el.modalCancel.addEventListener('click', closeModal);
@@ -264,6 +268,19 @@
                 }
                 promptToggleContentStatus(item);
             }
+
+            if (target.dataset.action === 'delete-content') {
+                const contentId = target.dataset.contentId;
+                const contentType = target.dataset.contentType;
+                const item = contentState.items.find(function (entry) {
+                    return entry.id === contentId;
+                });
+                if (!item) {
+                    showToast('Nội dung không tìm thấy.', true);
+                    return;
+                }
+                promptDeleteContent(item);
+            }
         });
 
         el.classroomFilterForm.addEventListener('submit', function (event) {
@@ -301,6 +318,10 @@
             if (target.dataset.action === 'update-classroom-status') {
                 const classroomId = target.dataset.classroomId;
                 promptUpdateClassroomStatus(classroomId);
+            }
+            if (target.dataset.action === 'delete-classroom') {
+                const classroomId = target.dataset.classroomId;
+                promptDeleteClassroom(classroomId);
             }
         });
 
@@ -427,6 +448,7 @@
                 '</select>',
                 '<button class="small-btn role" data-action="change-role" data-user-id="' + escapeHtml(user.id || '') + '">Đổi quyền</button>',
                 '</div>',
+                '<button class="small-btn btn-danger" style="margin-top:4px;" data-action="delete-user" data-user-id="' + escapeHtml(user.id || '') + '">Xóa</button>',
                 '</div>',
                 '</td>'
             ].join('');
@@ -598,6 +620,7 @@
                 '<button class="small-btn toggle" data-action="toggle-content-status" data-content-id="' + escapeHtml(item.id || '') + '" data-content-type="' + escapeHtml(item.contentType || '') + '">',
                 item.isActive ? 'Ẩn' : 'Hiển thị',
                 '</button>',
+                '<button class="small-btn btn-danger" style="margin-left:4px;" data-action="delete-content" data-content-id="' + escapeHtml(item.id || '') + '" data-content-type="' + escapeHtml(item.contentType || '') + '">Xóa</button>',
                 '</td>'
             ].join('');
 
@@ -785,6 +808,7 @@
                 optionsHtml,
                 '</select>',
                 '<button data-action="update-classroom-status" data-classroom-id="' + escapeHtml(item.id || '') + '">Cập nhật</button>',
+                '<button class="btn btn-danger" style="padding:4px 8px;font-size:0.875rem;" data-action="delete-classroom" data-classroom-id="' + escapeHtml(item.id || '') + '">Xóa</button>',
                 '</div>',
                 '</td>'
             ].join('');
@@ -1381,5 +1405,98 @@
             .replace(/>/g, '&gt;')
             .replace(/"/g, '&quot;')
             .replace(/'/g, '&#39;');
+    }
+
+    function promptDeleteUser(userId) {
+        const user = state.users.find(function (u) {
+            return u.id === userId;
+        });
+        if (!user) {
+            showToast('Không tìm thấy người dùng.', true);
+            return;
+        }
+        openModal({
+            title: 'Xóa người dùng',
+            message: 'Ban có chắc muốn xóa người dùng ' + (user.fullName || user.email) + ' vĩnh viễn không?',
+            confirmLabel: 'Xóa',
+            onConfirm: function () {
+                return deleteUser(userId);
+            }
+        });
+    }
+
+    async function deleteUser(userId) {
+        try {
+            const response = await apiRequest('/api/admin/users/' + encodeURIComponent(userId), {
+                method: 'DELETE'
+            });
+            showToast(response.message || 'Xóa người dùng thành công.');
+            await loadAll();
+        } catch (error) {
+            handleApiError(error);
+            throw error;
+        }
+    }
+
+    function promptDeleteContent(item) {
+        openModal({
+            title: 'Xóa nội dung',
+            message: 'Bạn có chắc muốn xóa vĩnh viễn "' + (item.title || 'nội dung') + '" không?',
+            confirmLabel: 'Xóa',
+            onConfirm: function () {
+                return deleteContent(item);
+            }
+        });
+    }
+
+    async function deleteContent(item) {
+        try {
+            const response = await apiRequest(
+                '/api/admin/content/' + encodeURIComponent(item.contentType) + '/' + encodeURIComponent(item.id),
+                {
+                    method: 'DELETE'
+                }
+            );
+            showToast(response.message || 'Xóa nội dung thành công.');
+            await Promise.all([
+                loadContentStats(),
+                loadContentList()
+            ]);
+        } catch (error) {
+            handleApiError(error);
+            throw error;
+        }
+    }
+
+    function promptDeleteClassroom(classroomId) {
+        const classroom = classroomState.items.find(c => c.id === classroomId);
+        if(!classroom) return;
+        openModal({
+            title: 'Xóa lớp học',
+            message: 'Bạn có chắc chắn muốn xóa vĩnh viễn lớp "' + (classroom.name || 'chưa đặt tên') + '" không?',
+            confirmLabel: 'Xóa',
+            onConfirm: function () {
+                return deleteClassroom(classroomId);
+            }
+        });
+    }
+
+    async function deleteClassroom(classroomId) {
+        try {
+            const response = await apiRequest(
+                '/api/admin/classrooms/' + encodeURIComponent(classroomId),
+                {
+                    method: 'DELETE'
+                }
+            );
+            showToast(response.message || 'Xóa lớp học thành công.');
+            await Promise.all([
+                loadClassroomStats(),
+                loadClassrooms()
+            ]);
+        } catch (error) {
+            handleApiError(error);
+            throw error;
+        }
     }
 })();

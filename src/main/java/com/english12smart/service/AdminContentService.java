@@ -128,6 +128,34 @@ public class AdminContentService {
         };
     }
 
+    public void deleteContent(AdminContentDTO.ContentType type, String id) {
+        if (type == null) {
+            throw new BadRequestException("contentType is required");
+        }
+        switch (type) {
+            case UNIT -> {
+                Unit unit = unitRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Unit not found: " + id));
+                unitRepository.delete(unit);
+            }
+            case LESSON -> {
+                Lesson lesson = lessonRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + id));
+                lessonRepository.delete(lesson);
+            }
+            case EXERCISE -> {
+                Exercise exercise = exerciseRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Exercise not found: " + id));
+                exerciseRepository.delete(exercise);
+            }
+            case EXAM -> {
+                Exam exam = examRepository.findById(id)
+                        .orElseThrow(() -> new ResourceNotFoundException("Exam not found: " + id));
+                examRepository.delete(exam);
+            }
+        }
+    }
+
     private AdminContentDTO.ContentSummary updateUnitStatus(String id, AdminContentDTO.StatusUpdateRequest request) {
         Unit unit = unitRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Unit not found: " + id));
