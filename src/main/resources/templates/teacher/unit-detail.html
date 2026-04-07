@@ -170,7 +170,7 @@
                 <div class="grid grid-cols-2 gap-3">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-1">Loại bài học</label>
-                        <select id="lessonType" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
+                        <select id="lessonType" onchange="updateLessonTypeUI()" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                             <option value="GETTING_STARTED">Getting Started</option>
                             <option value="VOCABULARY">Vocabulary</option>
                             <option value="GRAMMAR">Grammar</option>
@@ -186,10 +186,22 @@
                             class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none">
                     </div>
                 </div>
+                
+                <!-- SPEAKING LESSON HINT -->
+                <div id="speakingLessonHint" class="hidden bg-blue-50 border-l-4 border-blue-500 p-3 rounded text-sm">
+                    <div class="flex gap-2">
+                        <iconify-icon icon="mdi:information" class="text-blue-600 shrink-0 text-lg"></iconify-icon>
+                        <div class="text-blue-700">
+                            <strong>💡 Bài học Speaking</strong>
+                            <p class="mt-1">Sau khi tạo bài học, vào phần "Bài tập" để thêm <strong>Speaking Exercises</strong> (người học sẽ nói lên câu tiêu chuẩn và hệ thống sẽ chấm điểm tự động)</p>
+                        </div>
+                    </div>
+                </div>
+                
                 <!-- Nội dung bài học -->
                 <div>
                     <label class="block text-sm font-medium text-slate-700 mb-1">Nội dung bài học</label>
-                    <textarea id="lessonContent" rows="5" placeholder="Nhập nội dung bài học (HTML hoặc text)..."
+                    <textarea id="lessonContent" rows="5" placeholder="Nhập nội dung bài học (HTML hoặc text)... Ví dụ các từ vựng, quy tắc ngữ pháp, hoặc hướng dẫn:"
                         class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-emerald-500 outline-none resize-y"></textarea>
                 </div>
                 <!-- Thời gian & XP -->
@@ -237,11 +249,35 @@
 
         function openCreateLessonModal(unitId) {
             document.getElementById('lessonUnitId').value = unitId;
+            // Reset form
+            document.getElementById('lessonTitle').value = '';
+            document.getElementById('lessonDescription').value = '';
+            document.getElementById('lessonType').value = 'GETTING_STARTED';
+            document.getElementById('lessonOrder').value = '';
+            document.getElementById('lessonContent').value = '';
+            document.getElementById('lessonDuration').value = '30';
+            document.getElementById('lessonXp').value = '10';
+            document.getElementById('createLessonError').classList.add('hidden');
+            document.getElementById('speakingLessonHint').classList.add('hidden');
             document.getElementById('createLessonModal').classList.remove('hidden');
         }
 
         function closeCreateLessonModal() {
             document.getElementById('createLessonModal').classList.add('hidden');
+        }
+
+        /**
+         * Cập nhật UI dựa vào loại bài học được chọn
+         */
+        function updateLessonTypeUI() {
+            const lessonType = document.getElementById('lessonType').value;
+            const speakingHint = document.getElementById('speakingLessonHint');
+            
+            if (lessonType === 'SPEAKING') {
+                speakingHint.classList.remove('hidden');
+            } else {
+                speakingHint.classList.add('hidden');
+            }
         }
 
         async function submitCreateLesson() {

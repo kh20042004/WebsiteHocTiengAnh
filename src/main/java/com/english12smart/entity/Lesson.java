@@ -8,6 +8,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -72,6 +73,24 @@ public class Lesson {
      * URL audio file (cho bài nghe)
      */
     private String audioUrl;
+
+    /**
+     * Thời gian audio được tạo (Edge-TTS generation)
+     */
+    private LocalDateTime audioGeneratedAt;
+
+    /**
+     * Giọng được sử dụng để tạo audio (ví dụ: en-US-AriaNeural)
+     */
+    private String audioVoiceType;
+
+    /**
+     * Trạng thái tạo audio:
+     * PENDING - Đang tạo
+     * COMPLETED - Tạo thành công
+     * FAILED - Tạo thất bại
+     */
+    private String audioStatus;
 
     /**
      * Danh sách từ vựng trong bài (chỉ dùng cho type = VOCABULARY)

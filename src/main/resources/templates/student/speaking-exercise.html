@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Speaking Exercise</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #667eea;
+            --success-color: #48bb78;
+            --warning-color: #f6ad55;
+            --danger-color: #f56565;
+        }
+
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .container-main {
+            max-width: 800px;
+            margin: 30px auto;
+        }
+
+        .card-header {
+            background: linear-gradient(135deg, var(--primary-color), var(--warning-color));
+            border: none;
+        }
+
+        .card-header h2 {
+            margin: 0;
+            color: white;
+            font-weight: 600;
+        }
+
+        .exercise-instruction {
+            background: #f8f9fa;
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+
+        .exercise-instruction h5 {
+            color: var(--primary-color);
+            margin-bottom: 10px;
+        }
+
+        .recording-container {
+            background: #fff;
+            border-radius: 8px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .recording-container.recording {
+            background: #fee;
+            border: 2px solid var(--danger-color);
+            box-shadow: 0 0 20px rgba(245, 101, 101, 0.3);
+        }
+
+        .recording-timer {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--danger-color);
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn-recording {
+            border-radius: 50%;
+            width: 80px;
+            height: 80px;
+            font-size: 32px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 10px;
+            border: none;
+            transition: all 0.3s ease;
+        }
+
+        .btn-recording:hover:not(:disabled) {
+            transform: scale(1.1);
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-recording:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn-start {
+            background: var(--success-color);
+            color: white;
+        }
+
+        .btn-stop {
+            background: var(--danger-color);
+            color: white;
+        }
+
+        .transcript-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            min-height: 80px;
+        }
+
+        .final-transcript {
+            color: #333;
+            font-size: 16px;
+            line-height: 1.6;
+            word-wrap: break-word;
+        }
+
+        .interim-transcript {
+            color: #999;
+            font-size: 14px;
+            margin-top: 10px;
+            font-style: italic;
+        }
+
+        .no-transcript {
+            color: #ccc;
+            font-style: italic;
+            text-align: center;
+        }
+
+        .audio-preview {
+            margin: 20px 0;
+        }
+
+        .audio-preview audio {
+            width: 100%;
+            margin-top: 10px;
+            border-radius: 4px;
+        }
+
+        .btn-submit-custom {
+            background: linear-gradient(135deg, var(--primary-color), var(--warning-color));
+            border: none;
+            padding: 12px 30px;
+            font-size: 16px;
+            font-weight: 600;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .btn-submit-custom:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-submit-custom:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-top: 20px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .score-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .score-number {
+            font-size: 48px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .score-max {
+            font-size: 24px;
+            color: #999;
+            margin-left: 10px;
+        }
+
+        .accuracy-bar {
+            height: 30px;
+            margin: 15px 0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+
+        .alert-container {
+            margin-bottom: 20px;
+        }
+
+        .btn-group-custom {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 768px) {
+            .btn-recording {
+                width: 60px;
+                height: 60px;
+                font-size: 24px;
+            }
+
+            .recording-container {
+                padding: 20px;
+            }
+
+            .score-display {
+                flex-direction: column;
+            }
+
+            .score-max {
+                margin-left: 0;
+                margin-top: 10px;
+            }
+        }
+
+        .instruction-box {
+            background: linear-gradient(135deg, #667eea15, #764ba215);
+            border-left: 4px solid var(--primary-color);
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+
+        .icon-status {
+            font-size: 40px;
+            margin-bottom: 10px;
+        }
+
+        .comparison-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin: 20px 0;
+        }
+
+        .comparison-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .comparison-box.correct {
+            border-left-color: var(--success-color);
+        }
+
+        .comparison-box.user {
+            border-left-color: var(--warning-color);
+        }
+
+        .comparison-box h6 {
+            color: #666;
+            font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .comparison-box code {
+            color: #333;
+            word-break: break-word;
+            display: block;
+            background: white;
+            padding: 10px;
+            border-radius: 4px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 576px) {
+            .comparison-section {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container container-main">
+        <!-- Alert Container -->
+        <div id="alertContainer" class="alert-container"></div>
+
+        <!-- Main Card -->
+        <div class="card shadow-lg border-0">
+            <!-- Header -->
+            <div class="card-header py-4">
+                <h2 class="mb-0">
+                    <i class="fas fa-microphone me-2"></i>Speaking Exercise
+                </h2>
+                <small class="text-white-50" th:text="${exercise.title}"></small>
+            </div>
+
+            <!-- Card Body -->
+            <div class="card-body p-4">
+
+                <!-- Exercise Information -->
+                <div class="instruction-box" th:if="${exercise.instruction}">
+                    <h5 class="mb-2">
+                        <i class="fas fa-clipboard me-2"></i>Instructions
+                    </h5>
+                    <p class="mb-0" th:text="${exercise.instruction}"></p>
+                </div>
+
+                <!-- Target Phrase Display -->
+                <div class="card bg-light border-info mb-4">
+                    <div class="card-body">
+                        <h6 class="text-info mb-3">
+                            <i class="fas fa-bullseye me-2"></i>What to say:
+                        </h6>
+                        <div class="alert alert-info mb-0">
+                            <code class="fs-5" th:text="${exercise.correctPhrase}"></code>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hidden Exercise ID -->
+                <input type="hidden" id="exerciseId" th:value="${exercise.id}">
+
+                <!-- Recording Section -->
+                <div id="recordingContainer" class="recording-container">
+                    <div class="icon-status">
+                        <i class="fas fa-microphone-alt"></i>
+                    </div>
+
+                    <h5 class="mb-3">Ready to speak?</h5>
+
+                    <!-- Timer -->
+                    <div id="recordingTimer" class="recording-timer d-none">
+                        ⏱️ 0:00
+                    </div>
+
+                    <!-- Recording Buttons -->
+                    <div class="mb-3">
+                        <button id="startRecordingBtn" class="btn btn-recording btn-start" title="Start Recording">
+                            <i class="fas fa-microphone"></i>
+                        </button>
+                        <button id="stopRecordingBtn" class="btn btn-recording btn-stop" disabled title="Stop Recording">
+                            <i class="fas fa-stop"></i>
+                        </button>
+                    </div>
+
+                    <small class="text-muted d-block">
+                        Click microphone to start recording, click stop when done
+                    </small>
+                </div>
+
+                <!-- Transcript Display -->
+                <div id="transcriptDisplay" class="transcript-display">
+                    <p class="no-transcript">
+                        <i class="fas fa-comments me-2"></i>Your transcript will appear here...
+                    </p>
+                </div>
+
+                <!-- Audio Preview -->
+                <div class="audio-preview text-center">
+                    <audio id="audioPreview" controls style="display:none; width: 100%;"></audio>
+                </div>
+
+                <!-- Submit Button -->
+                <div class="text-center">
+                    <button id="submitSpeakingBtn" class="btn btn-submit-custom text-white" disabled>
+                        <i class="fas fa-paper-plane me-2"></i>Submit Answer
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Result Container -->
+        <div id="speakingResult" class="mt-4"></div>
+
+        <!-- Info Box -->
+        <div class="card border-info mt-4">
+            <div class="card-body">
+                <h6 class="text-info mb-3">
+                    <i class="fas fa-info-circle me-2"></i>Tips for better results:
+                </h6>
+                <ul class="mb-0 small">
+                    <li>Speak clearly and naturally</li>
+                    <li>Use a quiet environment without background noise</li>
+                    <li>Try to match the exact pronunciation and intonation</li>
+                    <li>Take your time - there's no time limit</li>
+                    <li>If results are unclear, try again</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Browser Support Info -->
+        <div class="alert alert-info mt-4">
+            <i class="fas fa-browser me-2"></i>
+            <strong>Browser Compatibility:</strong> This feature works best in Chrome, Edge, or Firefox.
+            Make sure you allow microphone access in your browser settings.
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/speaking-exercise.js"></script>
+
+    <script>
+        // Auto-show timer when recording starts
+        document.addEventListener('DOMContentLoaded', function() {
+            const recordingContainer = document.getElementById('recordingContainer');
+            const timerDisplay = document.getElementById('recordingTimer');
+
+            const observer = new MutationObserver(() => {
+                if (recordingContainer.classList.contains('recording')) {
+                    timerDisplay.classList.remove('d-none');
+                } else {
+                    timerDisplay.classList.add('d-none');
+                    timerDisplay.textContent = '⏱️ 0:00';
+                }
+            });
+
+            observer.observe(recordingContainer, { attributes: true, attributeFilter: ['class'] });
+        });
+    </script>
+</body>
+</html>

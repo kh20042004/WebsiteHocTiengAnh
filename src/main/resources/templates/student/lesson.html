@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 
 <head>
     <meta charset="UTF-8">
@@ -139,15 +139,65 @@
                     th:utext="${lesson.content}">Nội dung bài học</div>
             </div>
 
-            <!-- AUDIO (nếu có) -->
-            <div th:if="${lesson.audioUrl}" class="bg-white border border-slate-200 rounded-2xl p-6 mb-6">
-                <h2 class="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                    <iconify-icon icon="mdi:volume-high" class="text-green-500"></iconify-icon>
-                    Nghe & Nói
-                </h2>
-                <audio controls class="w-full" th:src="${lesson.audioUrl}">
-                    Trình duyệt của bạn không hỗ trợ audio.
-                </audio>
+            <!-- AUDIO & LISTENING SECTION -->
+            <!-- Display audio if available -->
+            <div th:if="${lesson.audioUrl}" class="bg-gradient-to-br from-green-50 to-emerald-50 border border-emerald-200 rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                        <iconify-icon icon="mdi:headphones" class="text-green-600 text-xl"></iconify-icon>
+                        Listening - Luyện Nghe
+                    </h2>
+                </div>
+
+                <!-- Audio Player with Enhanced Controls -->
+                <div class="bg-white rounded-xl p-4 mb-4 shadow-sm">
+                    <audio controls class="w-full" th:src="${lesson.audioUrl}" data-enhanced-player="true">
+                        Trình duyệt của bạn không hỗ trợ audio.
+                    </audio>
+                </div>
+
+                <!-- Listening Tips -->
+                <div class="bg-white rounded-lg p-3 text-sm text-slate-600 border-l-4 border-green-500">
+                    <div class="font-medium text-slate-700 mb-1">💡 Mẹo luyện nghe:</div>
+                    <ul class="list-disc list-inside space-y-1 text-xs text-slate-600">
+                        <li>Nghe từ từ (sử dụng nút tốc độ 0.75x)</li>
+                        <li>Luyện nghe lặp lại nhiều lần (bật chế độ lặp)</li>
+                        <li>Tạm dừng và lặp lại các phần khó</li>
+                        <li>Đọc kỹ nội dung bài học sau khi nghe</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- No audio yet - Show teacher button to generate -->
+            <div th:unless="${lesson.audioUrl}" class="bg-blue-50 border-2 border-blue-200 rounded-2xl p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="text-lg font-semibold text-slate-900 flex items-center gap-2">
+                        <iconify-icon icon="mdi:headphones-off" class="text-blue-600 text-xl"></iconify-icon>
+                        Listening - Luyện Nghe
+                    </h2>
+                </div>
+
+                <!-- If logged in user is teacher, show generate button -->
+                <div class="text-center py-8">
+                    <iconify-icon icon="mdi:file-music-outline" class="text-blue-400 text-5xl mb-3 inline-block opacity-50"></iconify-icon>
+                    <p class="text-slate-600 mb-4">Chưa tạo audio listening cho bài học này.</p>
+                    
+                    <!-- Show message for teacher, hide for student -->
+                    <div sec:authorize="hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')">
+                        <p class="text-sm text-slate-500 mb-6">Bấm nút dưới để tạo audio từ nội dung bài học bằng AI Voice.</p>
+                        
+                        <button data-action="generate-audio" th:data-lesson-id="${lesson.id}"
+                            class="btn btn-primary btn-lg flex items-center gap-2 mx-auto">
+                            <iconify-icon icon="mdi:microphone-plus-outline"></iconify-icon>
+                            Tạo Audio Listening (AI Voice)
+                        </button>
+                    </div>
+                    
+                    <!-- Message for students -->
+                    <div sec:authorize="!hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')">
+                        <p class="text-sm text-slate-500">Chờ giáo viên tạo audio để luyện nghe bài học này.</p>
+                    </div>
+                </div>
             </div>
 
             <!-- BÀI TẬP -->
@@ -482,6 +532,13 @@
             animation: bounce-in 0.5s ease-out;
         }
     </style>
+
+    <!-- AUDIO GENERATOR & PLAYER SCRIPTS -->
+    <!-- Axios HTTP client for API calls -->
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <!-- Scripts for audio TTS generation and player controls -->
+    <script th:src="@{/js/audio-generator.js}"></script>
+    <script th:src="@{/js/audio-player.js}"></script>
 
 </body>
 </html>

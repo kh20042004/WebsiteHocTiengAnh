@@ -31,11 +31,6 @@
                             Quay lại
                         </a>
                     </div>
-                    <a th:href="'/dashboard/teacher/exams/' + ${exam.id} + '/fraud-dashboard'"
-                       class="flex items-center gap-2 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium transition-colors">
-                        <iconify-icon icon="solar:shield-warning-linear" width="18"></iconify-icon>
-                        Dashboard Gian Lận
-                    </a>
                 </div>
                 <div th:if="${exam != null}">
                     <h1 class="text-3xl font-bold text-slate-900 mb-2" th:text="${exam.title}">Tên đề thi</h1>
@@ -84,6 +79,7 @@
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Chuyển Tab</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Copy/Paste</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">DevTools</th>
+                                <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Gian Lận</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Trạng thái</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Thao tác</th>
                             </tr>
@@ -140,6 +136,20 @@
                                         <span th:text="${submission.devToolsAttempts ?: 0}">0</span>
                                     </span>
                                 </td>
+                                <!-- Gian Lận Column -->
+                                <td class="px-6 py-4">
+                                    <!-- Detect fraud: DevTools opened OR high tab switches OR high copy/paste -->
+                                    <span th:if="${(submission.devToolsAttempts ?: 0) > 0 || (submission.tabChangeCount ?: 0) > 5 || ((submission.copyAttempts ?: 0) + (submission.pasteAttempts ?: 0)) > 5}"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1 text-xs font-bold rounded-full bg-red-100 text-red-700">
+                                        <iconify-icon icon="solar:shield-warning-linear" width="16"></iconify-icon>
+                                        Fraud
+                                    </span>
+                                    <span th:unless="${(submission.devToolsAttempts ?: 0) > 0 || (submission.tabChangeCount ?: 0) > 5 || ((submission.copyAttempts ?: 0) + (submission.pasteAttempts ?: 0)) > 5}"
+                                        class="inline-flex items-center gap-1 px-3 py-1 text-xs font-medium rounded-full bg-emerald-100 text-emerald-700">
+                                        <iconify-icon icon="solar:shield-check-linear" width="16"></iconify-icon>
+                                        OK
+                                    </span>
+                                </td>
                                 <td class="px-6 py-4">
                                     <span class="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full"
                                         th:classappend="${submission.status == 'GRADED'} ? 'bg-emerald-100 text-emerald-800' : (${submission.status == 'SUBMITTED'} ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-800')"
@@ -153,11 +163,6 @@
                                             class="text-violet-600 hover:text-violet-700 text-sm font-medium flex items-center gap-1">
                                             <iconify-icon icon="solar:eye-linear" width="16"></iconify-icon>
                                             Xem bài
-                                        </a>
-                                        <a th:href="'/dashboard/teacher/exams/' + ${exam.id} + '/submissions/' + ${submission.id} + '/fraud-detail'"
-                                            class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1">
-                                            <iconify-icon icon="solar:shield-warning-linear" width="16"></iconify-icon>
-                                            Fraud
                                         </a>
                                     </div>
                                 </td>

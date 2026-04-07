@@ -156,6 +156,7 @@
                             <option value="TRUE_FALSE">Đúng/Sai</option>
                             <option value="MATCHING">Nối từ</option>
                             <option value="SHORT_ANSWER">Trả lời ngắn</option>
+                            <option value="SPEAKING_EXERCISE">Speaking Exercise 🎤</option>
                         </select>
                     </div>
                     <div>
@@ -170,8 +171,36 @@
                     </div>
                 </div>
 
+                <!-- PHẦN SPEAKING EXERCISE -->
+                <div id="speakingSection" class="hidden border-t border-slate-200 pt-4 space-y-4">
+                    <h3 class="text-sm font-semibold text-slate-700">⚙️ Cài đặt Speaking Exercise</h3>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-1">Cụm từ/câu chuẩn <span class="text-red-500">*</span></label>
+                        <input id="exCorrectPhrase" type="text" 
+                            placeholder="Ví dụ: Hello, my name is John"
+                            class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                        <p class="text-xs text-slate-500 mt-1">Cụm từ mà học sinh cần nói</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Độ chính xác tối thiểu (%)</label>
+                            <input id="exMinAccuracy" type="number" min="0" max="100" value="70" step="5"
+                                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <p class="text-xs text-slate-500 mt-1">Mặc định: 70%</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-1">Thời gian ghi âm tối đa (giây)</label>
+                            <input id="exRecordingTimeout" type="number" min="30" value="60"
+                                class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 outline-none">
+                            <p class="text-xs text-slate-500 mt-1">Mặc định: 60 giây</p>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- PHẦN CÂU HỎI -->
-                <div class="border-t border-slate-200 pt-4">
+                <div id="questionsSection" class="border-t border-slate-200 pt-4">
                     <div class="flex items-center justify-between mb-3">
                         <h3 class="text-sm font-semibold text-slate-700">Danh sách câu hỏi</h3>
                         <button onclick="addQuestion()"
@@ -299,9 +328,24 @@
 
         // Làm mới form câu hỏi khi đổi loại bài tập
         function updateQuestionForm() {
-            document.getElementById('questionsContainer').innerHTML = '';
-            questionCount = 0;
-            addQuestion();
+            const type = document.getElementById('exType').value;
+            const questionsSection = document.getElementById('questionsSection');
+            const speakingSection = document.getElementById('speakingSection');
+            
+            if (type === 'SPEAKING_EXERCISE') {
+                // Ẩn phần câu hỏi, hiển thị phần speaking
+                questionsSection.classList.add('hidden');
+                speakingSection.classList.remove('hidden');
+            } else {
+                // Hiển thị phần câu hỏi, ẩn phần speaking
+                questionsSection.classList.remove('hidden');
+                speakingSection.classList.add('hidden');
+                
+                // Reset câu hỏi
+                document.getElementById('questionsContainer').innerHTML = '';
+                questionCount = 0;
+                addQuestion();
+            }
         }
 
         // Thu thập dữ liệu các câu hỏi và gửi lên API
@@ -321,35 +365,58 @@
                 return;
             }
 
-            // Thu thập câu hỏi từ DOM
-            const questionDivs = document.querySelectorAll('#questionsContainer > div');
-            const questions = [];
-            let questionIdx = 1;
+            let payload = { lessonId, unitId, title, instruction, type, maxScore, xpReward };
 
-            questionDivs.forEach(div => {
-                const questionText = div.querySelector('.q-text')?.value?.trim();
-                if (!questionText) return;
+            // Xử lý tùy theo loại bài tập
+            if (type === 'SPEAKING_EXERCISE') {
+                // Cho SPEAKING_EXERCISE, lấy fields riêng
+                const correctPhrase = document.getElementById('exCorrectPhrase').value.trim();
+                const minAccuracy = parseFloat(document.getElementById('exMinAccuracy').value) / 100 || 0.70;
+                const recordingTimeoutSeconds = parseInt(document.getElementById('exRecordingTimeout').value) || 60;
 
-                const answerEl = div.querySelector('.q-answer');
-                const correctAnswer = answerEl ? (answerEl.tagName === 'SELECT' ? answerEl.value : answerEl.value.trim()) : '';
-                const explanation = div.querySelector('.q-explanation')?.value?.trim() || '';
-                const optionEls = div.querySelectorAll('.q-option');
-                const options = Array.from(optionEls).map(o => o.value.trim()).filter(v => v);
+                if (!correctPhrase) {
+                    errorEl.textContent = 'Vui lòng nhập cụm từ/câu chuẩn!';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
 
-                questions.push({
-                    questionIndex: questionIdx++,
-                    questionText,
-                    options,
-                    correctAnswer,
-                    explanation,
-                    score: Math.round(maxScore / Math.max(questionDivs.length, 1))
+                payload.correctPhrase = correctPhrase;
+                payload.minAccuracy = minAccuracy;
+                payload.recordingTimeoutSeconds = recordingTimeoutSeconds;
+                payload.questions = []; // Không có câu hỏi cho SPEAKING
+            } else {
+                // Cho các loại khác, lấy danh sách câu hỏi
+                const questionDivs = document.querySelectorAll('#questionsContainer > div');
+                const questions = [];
+                let questionIdx = 1;
+
+                questionDivs.forEach(div => {
+                    const questionText = div.querySelector('.q-text')?.value?.trim();
+                    if (!questionText) return;
+
+                    const answerEl = div.querySelector('.q-answer');
+                    const correctAnswer = answerEl ? (answerEl.tagName === 'SELECT' ? answerEl.value : answerEl.value.trim()) : '';
+                    const explanation = div.querySelector('.q-explanation')?.value?.trim() || '';
+                    const optionEls = div.querySelectorAll('.q-option');
+                    const options = Array.from(optionEls).map(o => o.value.trim()).filter(v => v);
+
+                    questions.push({
+                        questionIndex: questionIdx++,
+                        questionText,
+                        options,
+                        correctAnswer,
+                        explanation,
+                        score: Math.round(maxScore / Math.max(questionDivs.length, 1))
+                    });
                 });
-            });
 
-            if (questions.length === 0) {
-                errorEl.textContent = 'Vui lòng thêm ít nhất một câu hỏi!';
-                errorEl.classList.remove('hidden');
-                return;
+                if (questions.length === 0) {
+                    errorEl.textContent = 'Vui lòng thêm ít nhất một câu hỏi!';
+                    errorEl.classList.remove('hidden');
+                    return;
+                }
+
+                payload.questions = questions;
             }
 
             try {
@@ -359,7 +426,7 @@
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + token
                     },
-                    body: JSON.stringify({ lessonId, unitId, title, instruction, type, maxScore, xpReward, questions })
+                    body: JSON.stringify(payload)
                 });
 
                 const data = await res.json();

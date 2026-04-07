@@ -409,6 +409,10 @@ public class ContentService {
                 .maxScore(request.getMaxScore() != null ? request.getMaxScore() : 10)
                 .xpReward(request.getXpReward() != null ? request.getXpReward() : 5)
                 .timeLimitMinutes(request.getTimeLimitMinutes())
+                // SPEAKING_EXERCISE fields
+                .correctPhrase(request.getCorrectPhrase())
+                .minAccuracy(request.getMinAccuracy())
+                .recordingTimeoutSeconds(request.getRecordingTimeoutSeconds())
                 .isActive(true)
                 .createdAt(now)
                 .updatedAt(now)
@@ -500,6 +504,10 @@ public class ContentService {
                 .timeLimitMinutes(exercise.getTimeLimitMinutes())
                 .isActive(exercise.getIsActive())
                 .createdAt(exercise.getCreatedAt())
+                // SPEAKING_EXERCISE fields
+                .correctPhrase(exercise.getCorrectPhrase())
+                .minAccuracy(exercise.getMinAccuracy())
+                .recordingTimeoutSeconds(exercise.getRecordingTimeoutSeconds())
                 .build();
     }
 }

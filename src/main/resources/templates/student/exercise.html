@@ -66,7 +66,8 @@
             </div>
 
             <!-- PHẦN LÀM BÀI -- phần hiển thị (JavaScript quản lý) -->
-            <div id="quizArea">
+            <!-- CÁC BÀI TẬP THÔNG THƯỜNG (TRẮC NGHIỆM, ĐÚNG/SAI, ETC.) -->
+            <div id="quizArea" th:if="${exercise.type != 'SPEAKING_EXERCISE'}">
                 <!-- Hiển thị từng câu hỏi -->
                 <div th:each="question, stat : ${exercise.questions}"
                     th:id="'q-' + ${stat.index}"
@@ -130,6 +131,74 @@
                             Câu tiếp theo →
                         </button>
                     </div>
+                </div>
+            </div>
+
+            <!-- PHẦN SPEAKING EXERCISE -->
+            <div th:if="${exercise.type == 'SPEAKING_EXERCISE'}" id="speakingExerciseArea" class="space-y-6">
+                <!-- Hướng dẫn -->
+                <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded text-sm">
+                    <p class="text-blue-900 font-medium">💡 Hướng dẫn:</p>
+                    <p class="text-blue-800 mt-1">Nhấn nút 🎤 dưới đây, nói lên cụm từ/câu được yêu cầu, sau đó khóa hoặc nhấn "Gửi đáp án"</p>
+                </div>
+
+                <!-- Cụm từ chuẩn (kiến thức) -->
+                <div class="bg-blue-100 border border-blue-300 rounded-xl p-6">
+                    <p class="text-xs text-blue-700 font-semibold mb-2">📝 CỤM TỪ CÓ MẫU:</p>
+                    <p class="text-2xl font-bold text-blue-900" th:text="${exercise.correctPhrase}">Hello, my name is John</p>
+                </div>
+
+                <!-- Ghi âm -->
+                <div class="bg-white border border-slate-200 rounded-xl p-6">
+                    <p class="text-sm font-semibold text-slate-700 mb-4">🎤 Ghi Âm và Nhật Ký Biên Bản</p>
+                    
+                    <!-- Nút điều khiển ghi âm -->
+                    <div class="flex justify-center gap-4 mb-6">
+                        <button onclick="startRecording()" id="btnStart"
+                            class="w-20 h-20 rounded-full bg-green-500 hover:bg-green-600 text-white shadow-lg flex items-center justify-center text-3xl transition-all transform hover:scale-110">
+                            🎤
+                        </button>
+                        <button onclick="stopRecording()" id="btnStop" class="hidden w-20 h-20 rounded-full bg-red-500 hover:bg-red-600 text-white shadow-lg flex items-center justify-center text-3xl transition-all transform hover:scale-110">
+                            ⏹️
+                        </button>
+                    </div>
+
+                    <!-- Bộ đếm thời gian -->
+                    <div id="timerContainer" class="hidden text-center mb-4">
+                        <p class="text-sm text-slate-600">Thời gian: <span id="timerDisplay">0:00</span></p>
+                    </div>
+
+                    <!-- Trạng thái -->
+                    <div id="recordingStatus" class="text-center text-sm text-slate-500 mb-4">
+                        Sẵn sàng để ghi âm
+                    </div>
+
+                    <!-- Transcript thực tế (khi nhạn dạng được) -->
+                    <div class="bg-slate-50 rounded-lg p-4 min-h-20 mb-4">
+                        <p class="text-xs text-slate-500 mb-2">Văn bản nhập phát hiện:</p>
+                        <div id="transcriptDisplay" class="text-slate-900 text-base">
+                            <span id="finalTranscript" class="font-semibold"></span>
+                            <span id="interimTranscript" class="text-slate-400 italic"></span>
+                        </div>
+                    </div>
+
+                    <!-- Phát lại âm thanh -->
+                    <div id="audioPlayback" class="hidden mb-4">
+                        <p class="text-xs text-slate-500 mb-2">Phát lại ghi âm:</p>
+                        <audio id="audioPlayer" class="w-full" controls></audio>
+                    </div>
+                </div>
+
+                <!-- Nút gửi -->
+                <div id="submitSection" class="flex justify-end">
+                    <button onclick="submitSpeakingExercise()" id="btnSubmitSpeaking" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        🚀 Gửi Đáp Án
+                    </button>
+                </div>
+
+                <!-- Kết quả -->
+                <div id="speakingResultCard" class="hidden bg-white border-2 border-slate-200 rounded-xl p-6">
+                    <!-- Thẻ kết quả sẽ được điền bởi JavaScript -->
                 </div>
             </div>
 
@@ -313,6 +382,222 @@
         // Làm lại bài
         function restartExercise() {
             location.reload();
+        }
+
+        // ===== SPEAKING EXERCISE FUNCTIONS =====
+        
+        // Lấy dữ liệu Speaking Exercise từ Thymeleaf
+        const exerciseId = /*[[${exercise.id}]]*/ '';
+        const correctPhrase = /*[[${exercise.correctPhrase}]]*/ '';
+        const minAccuracyPercent = /*[[${exercise.minAccuracy != null ? exercise.minAccuracy * 100 : 70}]]*/ 70;
+        const recordingTimeout = /*[[${exercise.recordingTimeoutSeconds}]]*/ 60;
+
+        // Web Speech API
+        const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.continuous = true;
+        recognition.interimResults = true;
+        recognition.lang = 'en-US';
+
+        // MediaRecorder
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+        let timerInterval;
+        let recordingSeconds = 0;
+
+        // Event listeners
+        recognition.onstart = function() {
+            document.getElementById('recordingStatus').textContent = '🔴 Đang ghi âm...';
+            document.getElementById('timerContainer').classList.remove('hidden');
+            startTimer();
+        };
+
+        recognition.onresult = function(event) {
+            let finalTranscript = '';
+            let interimTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; i++) {
+                const transcript = event.results[i][0].transcript;
+                if (event.results[i].isFinal) {
+                    finalTranscript += transcript + ' ';
+                } else {
+                    interimTranscript += transcript;
+                }
+            }
+
+            document.getElementById('finalTranscript').textContent = finalTranscript;
+            document.getElementById('interimTranscript').textContent = interimTranscript;
+        };
+
+        recognition.onerror = function(event) {
+            document.getElementById('recordingStatus').textContent = '❌ Lỗi: ' + event.error;
+        };
+
+        function startRecording() {
+            audioChunks = [];
+            recordingSeconds = 0;
+            isRecording = true;
+            
+            document.getElementById('btnStart').classList.add('hidden');
+            document.getElementById('btnStop').classList.remove('hidden');
+            document.getElementById('finalTranscript').textContent = '';
+            document.getElementById('interimTranscript').textContent = '';
+            document.getElementById('audioPlayback').classList.add('hidden');
+            document.getElementById('btnSubmitSpeaking').classList.add('hidden');
+
+            // Bắt đầu ghi âm từ microphone
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(stream => {
+                    mediaRecorder = new MediaRecorder(stream);
+                    mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
+                    mediaRecorder.onstart = () => recognition.start();
+                    mediaRecorder.start();
+                })
+                .catch(err => {
+                    document.getElementById('recordingStatus').textContent = '❌ Không thể truy cập microphone';
+                });
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            clearInterval(timerInterval);
+            recognition.stop();
+            mediaRecorder.stop();
+
+            mediaRecorder.onstop = () => {
+                const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+                const audioUrl = URL.createObjectURL(audioBlob);
+                document.getElementById('audioPlayer').src = audioUrl;
+                document.getElementById('audioPlayback').classList.remove('hidden');
+                document.getElementById('btnSubmitSpeaking').classList.remove('hidden');
+                document.getElementById('btnStart').classList.remove('hidden');
+                document.getElementById('btnStop').classList.add('hidden');
+                document.getElementById('recordingStatus').textContent = '✅ Hoàn thành ghi âm';
+                document.getElementById('timerContainer').classList.add('hidden');
+                
+                // Lưu audio blob để gửi sau
+                window.audioBlob = audioBlob;
+            };
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                recordingSeconds++;
+                const mins = Math.floor(recordingSeconds / 60);
+                const secs = recordingSeconds % 60;
+                document.getElementById('timerDisplay').textContent = 
+                    mins + ':' + (secs < 10 ? '0' : '') + secs;
+                
+                if (recordingSeconds >= recordingTimeout) {
+                    stopRecording();
+                }
+            }, 1000);
+        }
+
+        async function submitSpeakingExercise() {
+            const finalTranscript = document.getElementById('finalTranscript').textContent.trim();
+            if (!finalTranscript) {
+                alert('Vui lòng nói cụm từ trước khi gửi!');
+                return;
+            }
+
+            // Gửi audio + transcript lên API
+            const formData = new FormData();
+            formData.append('audio', window.audioBlob, 'recording.webm');
+            formData.append('transcript', finalTranscript);
+
+            try {
+                document.getElementById('btnSubmitSpeaking').disabled = true;
+                const res = await fetch(`/api/speaking/exercises/${exerciseId}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer ' + token
+                    },
+                    body: formData
+                });
+
+                const response = await res.json();
+                console.log('API Response:', response);
+
+                if (res.ok && response.data) {
+                    displaySpeakingResult(response.data);
+                } else {
+                    alert('Lỗi: ' + (response.message || 'Không thể nộp bài'));
+                }
+            } catch (err) {
+                alert('Lỗi kết nối: ' + err.message);
+            }
+        }
+
+        function displaySpeakingResult(data) {
+            const resultCard = document.getElementById('speakingResultCard');
+            const isPassed = data.passed;
+            const accuracy = Math.round(data.accuracy);
+            const feedback = data.feedback || 'Không có phản hồi';
+
+            resultCard.innerHTML = `
+                <div class="border-b-4 ${isPassed ? 'border-green-500' : 'border-yellow-500'} pb-4 mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h3 class="text-lg font-bold text-slate-900">Kết quả</h3>
+                        <span class="text-3xl">${isPassed ? '✅' : '⚠️'}</span>
+                    </div>
+                    <p class="text-sm ${isPassed ? 'text-green-700' : 'text-yellow-700'}">
+                        ${isPassed ? 'Tuyệt vời! Bạn đã hoàn thành bài tập.' : 'Bạn chưa đạt yêu cầu. Hãy thử lại!'}
+                    </p>
+                </div>
+
+                <div class="grid grid-cols-3 gap-3 mb-6">
+                    <div class="bg-blue-50 rounded-lg p-3 text-center">
+                        <p class="text-2xl font-bold text-blue-600">${data.score}/${data.maxScore}</p>
+                        <p class="text-xs text-slate-500">Điểm</p>
+                    </div>
+                    <div class="bg-green-50 rounded-lg p-3 text-center">
+                        <p class="text-2xl font-bold text-green-600">${accuracy}%</p>
+                        <p class="text-xs text-slate-500">Độ chính xác</p>
+                    </div>
+                    <div class="bg-yellow-50 rounded-lg p-3 text-center">
+                        <p class="text-2xl font-bold text-yellow-600">${xpReward}</p>
+                        <p class="text-xs text-slate-500">XP!</p>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-sm font-semibold text-slate-700 mb-2">📊 Thanh tiến trình độ chính xác:</p>
+                    <div class="w-full bg-slate-200 rounded-full h-3">
+                        <div class="bg-gradient-to-r from-blue-500 to-emerald-500 h-3 rounded-full" style="width: ${accuracy}%"></div>
+                    </div>
+                </div>
+
+                <div class="mb-6 p-4 bg-slate-50 rounded-lg">
+                    <p class="text-sm font-semibold text-slate-700 mb-2">💬 Phản hồi:</p>
+                    <p class="text-slate-800">${feedback}</p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <p class="text-xs text-slate-500 mb-1">📝 Câu chuẩn</p>
+                        <p class="text-sm bg-green-50 p-3 rounded text-green-900 font-medium">${data.correctAnswer}</p>
+                    </div>
+                    <div>
+                        <p class="text-xs text-slate-500 mb-1">🗣️ Bạn nói</p>
+                        <p class="text-sm bg-blue-50 p-3 rounded text-blue-900 font-medium">${data.userTranscript}</p>
+                    </div>
+                </div>
+
+                <div class="flex gap-3">
+                    <button onclick="restartExercise()" 
+                        class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+                        🔄 Làm lại
+                    </button>
+                    <a href="/dashboard/student/learn/lessons/${/*[[${exercise.lessonId}]]*/''}'"
+                        class="flex-1 bg-slate-600 hover:bg-slate-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors text-center">
+                        📚 Quay lại bài học
+                    </a>
+                </div>
+            `;
+
+            resultCard.classList.remove('hidden');
+            document.getElementById('speakingExerciseArea').scrollIntoView({ behavior: 'smooth' });
         }
     </script>
     </main>

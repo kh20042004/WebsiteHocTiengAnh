@@ -49,4 +49,35 @@ public class ExerciseSubmission {
 
     /** Ghi chú */
     private String notes;
+
+    // ========== SPEAKING EXERCISES FIELDS ==========
+    /**
+     * URL audio ghi âm (upload lên Cloudinary)
+     * Dành cho bài tập SPEAKING_EXERCISE
+     */
+    private String audioUrl;
+
+    /**
+     * Text do Web Speech API trích xuất từ audio ghi âm
+     * Ví dụ: "Hello, my name is John"
+     */
+    private String userTranscript;
+
+    /**
+     * Đáp án chuẩn để so sánh
+     * Lưu lại từ Exercise.correctPhrase tại thời điểm nộp
+     */
+    private String correctAnswer;
+
+    /**
+     * Điểm chính xác (0-100%)
+     * Tính toán dựa trên similarity giữa userTranscript và correctAnswer
+     */
+    private Double accuracyScore;
+
+    /**
+     * Nhận xét tự động từ SpeakingService
+     * Ví dụ: "Good pronunciation! Missed word: 'name'"
+     */
+    private String feedback;
 }

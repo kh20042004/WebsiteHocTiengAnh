@@ -269,7 +269,7 @@ public class ContentDTO {
 
         /**
          * Loại bài tập:
-         * MULTIPLE_CHOICE, FILL_IN_BLANK, TRUE_FALSE, MATCHING, ORDERING
+         * MULTIPLE_CHOICE, FILL_IN_BLANK, TRUE_FALSE, MATCHING, ORDERING, SPEAKING_EXERCISE
          */
         private String type;
 
@@ -287,6 +287,16 @@ public class ContentDTO {
 
         /** Thời gian làm bài (phút), null = không giới hạn */
         private Integer timeLimitMinutes;
+
+        // ========== SPEAKING EXERCISE FIELDS ==========
+        /** Cụm từ/câu chuẩn để so sánh (dành cho SPEAKING_EXERCISE) */
+        private String correctPhrase;
+
+        /** Độ chính xác tối thiểu (0.0-1.0, null = mặc định 0.6) */
+        private Double minAccuracy;
+
+        /** Thời gian ghi âm tối đa (giây, null = không giới hạn) */
+        private Integer recordingTimeoutSeconds;
     }
 
     /**
@@ -336,5 +346,15 @@ public class ContentDTO {
 
         /** Thời điểm tạo */
         private Long createdAt;
+
+        // ========== SPEAKING EXERCISE FIELDS ==========
+        /** Cụm từ/câu chuẩn để so sánh (dành cho SPEAKING_EXERCISE) */
+        private String correctPhrase;
+
+        /** Độ chính xác tối thiểu (0.0-1.0, null = mặc định 0.6) */
+        private Double minAccuracy;
+
+        /** Thời gian ghi âm tối đa (giây, null = không giới hạn) */
+        private Integer recordingTimeoutSeconds;
     }
 }

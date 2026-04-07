@@ -156,14 +156,12 @@
             <artifactId>commons-lang3</artifactId>
         </dependency>
 
-        <!-- Cloudinary - Comment lại, sẽ add sau -->
-        <!--
+        <!-- Cloudinary - File upload & storage -->
         <dependency>
             <groupId>com.cloudinary</groupId>
             <artifactId>cloudinary-http44</artifactId>
             <version>1.36.0</version>
         </dependency>
-        -->
 
         <!-- Swagger/SpringDoc OpenAPI -->
         <dependency>

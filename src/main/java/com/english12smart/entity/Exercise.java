@@ -91,6 +91,52 @@ public class Exercise {
      */
     private Integer timeLimitMinutes;
 
+    // ========== LISTENING EXERCISES ==========
+    /**
+     * URL audio file (dành cho bài tập LISTENING_COMPREHENSION)
+     * Hoặc có thể để trống nếu xài audio từ Lesson
+     */
+    private String audioUrl;
+
+    /**
+     * Hướng dẫn luyện nghe cụ thể (ví dụ: "Nghe đoạn hội thoại và chọn câu trả lời đúng")
+     */
+    private String listeningPrompt;
+
+    /**
+     * Số lần học sinh có thể lặp lại audio (mặc định = 1, -1 = không giới hạn)
+     */
+    private Integer listeningRepeatCount;
+
+    /**
+     * Nội dung transcript/nội dung bài nghe (có thể để trống nếu không muốn cho học sinh xem)
+     */
+    private String transcriptionText;
+
+    /**
+     * Cho phép học sinh xem transcript sau khi phát xong audio (true) hay không (false)
+     */
+    private Boolean showTranscriptionAfter;
+
+    // ========== SPEAKING EXERCISES ==========
+    /**
+     * Cụm từ/câu chuẩn để so sánh (dành cho SPEAKING_EXERCISE)
+     * Ví dụ: "Hello, my name is John"
+     */
+    private String correctPhrase;
+
+    /**
+     * Độ chính xác tối thiểu để đạt điểm (0.0-1.0)
+     * Ví dụ: 0.75 = 75% độ chính xác
+     * null = mặc định 0.6 (60%)
+     */
+    private Double minAccuracy;
+
+    /**
+     * Thời gian ghi âm tối đa (giây), null = không giới hạn (mặc định 60s)
+     */
+    private Integer recordingTimeoutSeconds;
+
     // ========== TRẠNG THÁI ==========
     /**
      * Trạng thái: true = hiển thị, false = ẩn
@@ -132,6 +178,17 @@ public class Exercise {
          * Nội dung câu hỏi
          */
         private String questionText;
+
+        /**
+         * URL audio cho câu hỏi này (dành cho listening questions)
+         * Nếu được set, câu hỏi này có audio riêng
+         */
+        private String audioUrl;
+
+        /**
+         * Thời gian tối đa nghe audio (giây), null = không giới hạn
+         */
+        private Integer audioTimeoutSeconds;
 
         /**
          * Các lựa chọn (dành cho MULTIPLE_CHOICE, TRUE_FALSE, MATCHING)

@@ -4,6 +4,7 @@ import com.english12smart.entity.Lesson;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -48,6 +49,24 @@ public interface LessonRepository extends MongoRepository<Lesson, String> {
      * Dùng cho dropdown trong form tạo bài tập
      */
     List<Lesson> findByIsActiveTrueOrderByOrderIndexAsc();
+
+    // ========== AUDIO GENERATION QUERIES ==========
+
+    /**
+     * Lấy tất cả bài học có status audio là PENDING
+     * (Dùng để cleanup failed jobs)
+     */
+    List<Lesson> findByAudioStatusAndAudioGeneratedAtBefore(String status, LocalDateTime dateTime);
+
+    /**
+     * Lấy bài học theo audio status
+     */
+    List<Lesson> findByAudioStatus(String audioStatus);
+
+    /**
+     * Kiểm tra xem lesson có audio không
+     */
+    boolean existsByIdAndAudioUrlNotNull(String id);
 
     /**
      * Xoá tất cả bài học của một Unit (khi xoá Unit)
