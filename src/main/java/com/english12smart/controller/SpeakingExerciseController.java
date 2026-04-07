@@ -117,12 +117,13 @@ public class SpeakingExerciseController {
             log.info("Accuracy calculated: {}%", accuracy);
 
             // 7. Sinh feedback
-            Double minAccuracy = exercise.getMinAccuracy() != null ? exercise.getMinAccuracy() : 60.0;
+            Double minAccuracy = exercise.getMinAccuracy() != null ? exercise.getMinAccuracy() : 80.0;
             String feedback = speakingService.generateFeedback(userTranscript, correctPhrase, accuracy, minAccuracy);
 
-            // 8. Tính điểm (based on accuracy)
+            // 8. Tính điểm: nếu đạt minAccuracy thì 100 điểm, không thì 0 điểm
             Integer maxScore = exercise.getMaxScore() != null ? exercise.getMaxScore() : 100;
-            Integer score = (int) ((accuracy / 100) * maxScore);
+            Boolean isPassed = speakingService.isPassed(accuracy, minAccuracy);
+            Integer score = isPassed ? maxScore : 0;
 
             // 9. Tạo ExerciseSubmission
             ExerciseSubmission submission = ExerciseSubmission.builder()
@@ -137,7 +138,7 @@ public class SpeakingExerciseController {
                     .feedback(feedback)
                     .score(score)
                     .maxScore(maxScore)
-                    .status(speakingService.isPassed(accuracy, minAccuracy) ? "COMPLETED" : "COMPLETED")
+                    .status("COMPLETED")
                     .submittedAt(System.currentTimeMillis())
                     .createdAt(System.currentTimeMillis())
                     .build();
@@ -157,7 +158,7 @@ public class SpeakingExerciseController {
                     .correctAnswer(correctPhrase)
                     .userTranscript(userTranscript)
                     .audioUrl(audioUrl)
-                    .passed(speakingService.isPassed(accuracy, minAccuracy))
+                    .passed(isPassed)
                     .build();
 
             return ResponseEntity.ok(
