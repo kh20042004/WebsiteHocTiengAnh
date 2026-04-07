@@ -111,12 +111,13 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- Action button -->
                         <div class="ml-4 flex-shrink-0">
-                            <span th:if="${ex['status'] == 'COMPLETED' or ex['status'] == 'GRADED'}"
-                                class="px-6 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium inline-block">Xem lại</span>
-                            <span th:if="${ex['status'] != 'COMPLETED' and ex['status'] != 'GRADED'}"
-                                class="px-6 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors cursor-pointer inline-block">Làm bài</span>
+                            <a th:if="${ex['status'] == 'COMPLETED' or ex['status'] == 'GRADED'}"
+                                class="px-6 py-2 bg-slate-100 text-slate-600 rounded-lg text-sm font-medium inline-block"
+                                th:href="@{/assignment/{id}/result(id=${ex['id']})}">Xem lại</a>
+                            <a th:if="${ex['status'] != 'COMPLETED' and ex['status'] != 'GRADED'}"
+                                class="px-6 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600 transition-colors cursor-pointer inline-block"
+                                th:href="@{/assignment/{id}/do(id=${ex['id']})}">Làm bài</a>
                         </div>
                     </div>
                 </div>

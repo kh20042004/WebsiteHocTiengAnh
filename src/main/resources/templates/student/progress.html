@@ -454,12 +454,173 @@
             });
         }
 
-        // Charts
+        // ========== FETCH REAL PROGRESS DATA FROM API ==========
+        let progressChartInstance = null;
+        let skillsChartInstance = null;
+
         document.addEventListener('DOMContentLoaded', function () {
-            // Weekly progress chart
+            // Lấy userID từ cookie (hoặc localStorage)
+            const studentId = getStudentIdFromContext();
+            
+            if (studentId) {
+                console.log('📊 Fetching progress stats for student:', studentId);
+                fetchProgressStats(studentId);
+            } else {
+                console.warn('⚠️ Student ID not found, using default charts');
+                initializeDefaultCharts();
+            }
+        });
+
+        /**
+         * Lấy Student ID từ context
+         */
+        function getStudentIdFromContext() {
+            // Cách 1: Từ URL (nếu có route parameter)
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.has('studentId')) {
+                return urlParams.get('studentId');
+            }
+            
+            // Cách 2: Từ data attribute nếu được set trong template
+            const pageElement = document.querySelector('[data-student-id]');
+            if (pageElement) {
+                return pageElement.getAttribute('data-student-id');
+            }
+            
+            // Cách 3: Gọi API để lấy info user hiện tại
+            return null; // Will use /my-stats endpoint
+        }
+
+        /**
+         * Fetch thống kê tiến độ từ API
+         */
+        function fetchProgressStats(studentId) {
+            const endpoint = studentId 
+                ? `/api/progress-stats/student/${studentId}`
+                : '/api/progress-stats/my-stats';
+
+            fetch(endpoint)
+                .then(response => {
+                    if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('✅ Progress stats fetched:', data);
+                    updateChartsWithData(data);
+                    updateActivityTimeline(data.recentActivities);
+                })
+                .catch(error => {
+                    console.error('❌ Error fetching progress stats:', error);
+                    initializeDefaultCharts();
+                });
+        }
+
+        /**
+         * Cập nhật charts với dữ liệu thực tế
+         */
+        function updateChartsWithData(data) {
+            // Weekly activity chart
             const progressCtx = document.getElementById('progressChart');
             if (progressCtx) {
-                new Chart(progressCtx, {
+                // Nếu chart đã tồn tại, destroy trước
+                if (progressChartInstance) {
+                    progressChartInstance.destroy();
+                }
+
+                const weeklyData = data.weeklyData || [45, 60, 30, 75, 90, 50, 65]; // Fallback to default
+                progressChartInstance = new Chart(progressCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
+                        datasets: [{
+                            label: 'Thời gian học (phút)',
+                            data: weeklyData,
+                            backgroundColor: 'rgba(139, 92, 246, 0.2)',
+                            borderColor: 'rgb(139, 92, 246)',
+                            borderWidth: 2,
+                            borderRadius: 6,
+                            borderSkipped: false
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11 } } },
+                            x: { grid: { display: false }, ticks: { font: { size: 12 } } }
+                        }
+                    }
+                });
+            }
+
+            // Skills radar chart
+            const skillsCtx = document.getElementById('skillsChart');
+            if (skillsCtx) {
+                if (skillsChartInstance) {
+                    skillsChartInstance.destroy();
+                }
+
+                const skillsData = data.skillsData || [85, 75, 90, 70, 80, 88]; // Fallback to default
+                skillsChartInstance = new Chart(skillsCtx, {
+                    type: 'radar',
+                    data: {
+                        labels: ['Listening', 'Speaking', 'Reading', 'Writing', 'Grammar', 'Vocabulary'],
+                        datasets: [{
+                            label: '% Kỹ năng',
+                            data: skillsData,
+                            backgroundColor: 'rgba(139, 92, 246, 0.15)',
+                            borderColor: 'rgb(139, 92, 246)',
+                            borderWidth: 2,
+                            pointBackgroundColor: 'rgb(139, 92, 246)',
+                            pointRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: {
+                            r: {
+                                beginAtZero: true,
+                                max: 100,
+                                ticks: { display: false, stepSize: 25 },
+                                grid: { color: 'rgba(0,0,0,0.07)' },
+                                pointLabels: { font: { size: 11 } }
+                            }
+                        }
+                    }
+                });
+            }
+        }
+
+        /**
+         * Cập nhật activity timeline với dữ liệu thực tế
+         */
+        function updateActivityTimeline(activities) {
+            if (!activities || activities.length === 0) {
+                console.log('ℹ️ No recent activities to display');
+                return;
+            }
+
+            const timelineContainer = document.querySelector('.space-y-5');
+            if (!timelineContainer) return;
+
+            // Clear existing dummy activities (giữ container nhưng xóa children)
+            // timelineContainer.innerHTML = '';
+
+            console.log('📝 Rendering activities:', activities);
+            // TODO: Render activity items thực tế từ data API
+            // Hiện tại giữ activities hardcode, sẽ cải tiến sau
+        }
+
+        /**
+         * Initialize default charts (fallback nếu API fail)
+         */
+        function initializeDefaultCharts() {
+            const progressCtx = document.getElementById('progressChart');
+            if (progressCtx) {
+                progressChartInstance = new Chart(progressCtx, {
                     type: 'bar',
                     data: {
                         labels: ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'],
@@ -485,10 +646,9 @@
                 });
             }
 
-            // Skills radar/doughnut chart
             const skillsCtx = document.getElementById('skillsChart');
             if (skillsCtx) {
-                new Chart(skillsCtx, {
+                skillsChartInstance = new Chart(skillsCtx, {
                     type: 'radar',
                     data: {
                         labels: ['Listening', 'Speaking', 'Reading', 'Writing', 'Grammar', 'Vocabulary'],
@@ -518,7 +678,7 @@
                     }
                 });
             }
-        });
+        }
     </script>
 
     <!-- SHARED STUDENT FOOTER -->

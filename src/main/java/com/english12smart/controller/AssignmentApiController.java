@@ -32,6 +32,12 @@ public class AssignmentApiController {
             ApiResponseDTO.success(assignmentService.createAssignment(request, currentUser.getId(), isAdmin)));
     }
 
+    /** GET /api/assignments/{id} - Lấy thông tin bài tập */
+    @GetMapping("/{id}")
+    public ResponseEntity<ApiResponseDTO<AssignmentDTO.Response>> getAssignment(@PathVariable String id) {
+        return ResponseEntity.ok(ApiResponseDTO.success(assignmentService.getAssignmentById(id)));
+    }
+
     /** PUT /api/assignments/{id} - Cập nhật bài tập */
     @PutMapping("/{id}")
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")

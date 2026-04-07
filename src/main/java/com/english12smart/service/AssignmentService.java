@@ -36,6 +36,15 @@ public class AssignmentService {
     }
 
     /**
+     * Lấy thông tin chi tiết một bài tập
+     */
+    public AssignmentDTO.Response getAssignmentById(String assignmentId) {
+        Assignment assignment = assignmentRepository.findById(assignmentId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài tập: " + assignmentId));
+        return toResponse(assignment);
+    }
+
+    /**
      * Tạo bài tập mới (hỗ trợ multi-class)
      * 
      * Flow:

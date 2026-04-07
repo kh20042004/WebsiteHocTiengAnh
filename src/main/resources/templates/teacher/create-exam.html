@@ -19,6 +19,7 @@
     <script th:src="@{/js/tailwind-config.js}"></script>
     <link rel="stylesheet" th:href="@{/css/landing.css}">
     <script th:src="@{/js/teacher-dropdown.js}"></script>
+    <script th:src="@{/js/ai-suggestion-helper.js}"></script>
 </head>
 
 <body class="bg-slate-50 text-slate-600 antialiased font-sans">
@@ -326,14 +327,20 @@
                     </div>
                 </div>
 
-                <!-- ========== NÚTBUTTONSUBMIT ========== -->
+                <!-- ========== NÚT BUTTON SUBMIT ========== -->
                 <!-- Hủy bỏ hoặc Tạo đề thi -->
-                <div class="flex items-center justify-between">
+                <div class="flex items-center justify-between gap-3">
                     <!-- Nút Hủy - Quay lại danh sách đề thi mà không lưu -->
                     <a href="/dashboard/teacher/exams"
                         class="px-6 py-2.5 text-slate-600 border border-slate-300 rounded-lg text-sm font-medium hover:bg-slate-50 transition-colors">
                         Hủy
                     </a>
+                    <!-- Nút Gợi ý từ AI -->
+                    <button type="button" onclick="aiHelper.openExamSuggestionModal()"
+                        class="px-6 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 flex items-center gap-2 transition-colors">
+                        <iconify-icon icon="mdi:robot" width="18"></iconify-icon>
+                        Gợi ý từ AI
+                    </button>
                     <!-- Nút Tạo đề thi - Submit form lên API -->
                     <button type="submit"
                         class="px-8 py-2.5 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 flex items-center gap-2 transition-colors">
@@ -344,6 +351,95 @@
             </form>
         </div>
     </main>
+
+    <!-- ============== MODAL GỢI Ý BÀI KIỂM TRA ============== -->
+    <div id="aiExamModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-black bg-opacity-50" onclick="aiHelper.closeModal('aiExamModal')"></div>
+
+            <!-- Modal Box -->
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 space-y-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <iconify-icon icon="mdi:robot" width="24" class="text-blue-500"></iconify-icon>
+                        Gợi Ý Bài Kiểm Tra
+                    </h3>
+                    <button type="button" onclick="aiHelper.closeModal('aiExamModal')"
+                            class="text-slate-400 hover:text-slate-600">
+                        <iconify-icon icon="mdi:close" width="20"></iconify-icon>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <div class="space-y-4">
+                    <!-- Unit -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Unit/Chủ Đề <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="aiExamUnit" placeholder="ví dụ: Unit 1-5"
+                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Mức Độ -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Mức Độ
+                        </label>
+                        <select id="aiExamSkillLevel" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg">
+                            <option value="A2">A2</option>
+                            <option value="B1" selected>B1 - Trung cấp</option>
+                            <option value="B2">B2</option>
+                        </select>
+                    </div>
+
+                    <!-- Thời Gian -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Thời Gian (Phút)
+                        </label>
+                        <input type="number" id="aiExamDuration" value="45" min="15" max="180"
+                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Số Câu Hỏi -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Số Câu Hỏi
+                        </label>
+                        <input type="number" id="aiExamTotalQuestions" value="20" min="5" max="50"
+                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="aiExamLoading" class="hidden flex items-center justify-center py-4">
+                    <div class="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                    <p class="ml-3 text-sm text-slate-600">Đang tạo bài kiểm tra...</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="aiHelper.closeModal('aiExamModal')"
+                            class="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                        Đóng
+                    </button>
+                    <button type="button" onclick="aiHelper.suggestExam()"
+                            class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <iconify-icon icon="mdi:robot" width="18"></iconify-icon>
+                        Gợi Ý
+                    </button>
+                </div>
+
+                <!-- Hints -->
+                <p class="text-xs text-slate-500 text-center">
+                    ✓ AI sẽ tạo cấu trúc bài kiểm tra và gợi ý tiêu đề
+                </p>
+            </div>
+        </div>
+    </div>
 
     <!-- ========== MODAL TƯ TẳNG HIỂN THỊ MÃ PIN ========== -->
     <!-- Modal này hiển thị sau khi tạo đề thi thành công

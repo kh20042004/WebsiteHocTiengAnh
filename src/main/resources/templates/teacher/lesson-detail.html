@@ -60,7 +60,7 @@
                         <p class="text-slate-500 mt-1" th:text="${lesson.description}">Mô tả</p>
                     </div>
                     <div class="text-right">
-                        <div class="text-3xl font-bold text-blue-600" th:text="${exercises.size()}">0</div>
+                        <div class="text-3xl font-bold text-blue-600" th:text="${exercises != null ? exercises.size() : 0}">0</div>
                         <div class="text-xs text-slate-400">bài tập</div>
                     </div>
                 </div>
@@ -110,7 +110,7 @@
                     <p class="text-xs text-slate-400 mb-3" th:text="${ex.instruction}">Hướng dẫn</p>
                     <div class="flex items-center justify-between text-xs text-slate-500">
                         <!-- Số câu hỏi -->
-                        <span th:text="${#lists.size(ex.questions)} + ' câu hỏi'">0 câu hỏi</span>
+                        <span th:text="${ex.questions != null ? #lists.size(ex.questions) : 0} + ' câu hỏi'">0 câu hỏi</span>
                         <span class="text-blue-600 font-medium" th:text="${ex.maxScore} + ' điểm'">100 điểm</span>
                     </div>
                 </div>

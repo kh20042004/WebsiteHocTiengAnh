@@ -370,6 +370,18 @@ public class ContentService {
     }
 
     /**
+     * Lấy multiple exercises by IDs (dùng cho student làm bài)
+     */
+    public List<ContentDTO.ExerciseResponse> getExercisesByIds(List<String> exerciseIds) {
+        log.info("Lấy {} bài tập by IDs", exerciseIds.size());
+
+        return exerciseRepository.findAllById(exerciseIds)
+                .stream()
+                .map(this::convertToExerciseResponse)
+                .collect(java.util.stream.Collectors.toList());
+    }
+
+    /**
      * Tạo bài tập mới
      * @param request   - Thông tin bài tập
      * @param createdBy - ID người tạo

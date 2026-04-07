@@ -4,6 +4,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}"/>
     <title>Tạo Câu Hỏi - English 12 Smart</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,8 +14,10 @@
     <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
     <script th:src="@{/js/tailwind-config.js}"></script>
     <link rel="stylesheet" th:href="@{/css/landing.css}">
+    <script th:src="@{/js/notification-manager.js}"></script>
     <script th:src="@{/js/teacher-dropdown.js}"></script>
     <script th:src="@{/js/teacher-exercise-manager.js}"></script>
+    <script th:src="@{/js/ai-suggestion-helper.js}"></script>
 </head>
 
 <body class="bg-slate-50 text-slate-600 antialiased font-sans">
@@ -210,6 +214,11 @@
                             class="flex-1 px-6 py-3 border border-slate-300 rounded-lg text-slate-700 font-medium hover:bg-slate-50 transition-colors text-center">
                             Huỷ bỏ
                         </a>
+                        <button type="button" onclick="aiHelper.openExerciseSuggestionModal()"
+                            class="flex-1 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <iconify-icon icon="mdi:robot" width="20"></iconify-icon>
+                            Gợi ý từ AI
+                        </button>
                         <button type="submit"
                             class="flex-1 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
                             <iconify-icon icon="mdi:check-circle" width="20"></iconify-icon>
@@ -222,31 +231,105 @@
         </div>
     </main>
 
+    <!-- ============== MODAL GỢI Ý BÀI TẬP ============== -->
+    <div id="aiExerciseModal" class="hidden fixed inset-0 z-50 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen px-4 py-8">
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-black bg-opacity-50" onclick="aiHelper.closeModal('aiExerciseModal')"></div>
+
+            <!-- Modal Box -->
+            <div class="relative bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 space-y-6">
+                <!-- Header -->
+                <div class="flex items-center justify-between">
+                    <h3 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <iconify-icon icon="mdi:robot" width="24" class="text-blue-500"></iconify-icon>
+                        Gợi Ý Bài Tập Từ AI
+                    </h3>
+                    <button type="button" onclick="aiHelper.closeModal('aiExerciseModal')"
+                            class="text-slate-400 hover:text-slate-600">
+                        <iconify-icon icon="mdi:close" width="20"></iconify-icon>
+                    </button>
+                </div>
+
+                <!-- Form -->
+                <div class="space-y-4">
+                    <!-- Unit -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Unit/Chủ Đề <span class="text-red-500">*</span>
+                        </label>
+                        <input type="text" id="aiExerciseUnit" placeholder="ví dụ: Unit 5: Future Tenses"
+                               class="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+
+                    <!-- Mức Độ -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Mức Độ
+                        </label>
+                        <select id="aiExerciseSkillLevel" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg">
+                            <option value="A1">A1 - Sơ cấp</option>
+                            <option value="A2">A2 - Sơ cấp cao</option>
+                            <option value="B1" selected>B1 - Trung cấp</option>
+                            <option value="B2">B2 - Trung cấp cao</option>
+                        </select>
+                    </div>
+
+                    <!-- Loại Bài -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Loại Bài
+                        </label>
+                        <select id="aiExerciseType" class="w-full px-4 py-2.5 border border-slate-300 rounded-lg">
+                            <option value="multiple_choice" selected>Multiple Choice (Trắc nghiệm)</option>
+                            <option value="fill_blank">Fill in the Blank (Điền từ)</option>
+                            <option value="matching">Matching (Ghép cặp)</option>
+                            <option value="essay">Essay (Viết luận)</option>
+                        </select>
+                    </div>
+
+                    <!-- Yêu cầu thêm -->
+                    <div>
+                        <label class="block text-sm font-medium text-slate-900 mb-1.5">
+                            Yêu Cầu Thêm (Tùy Chọn)
+                        </label>
+                        <textarea id="aiExerciseCustomPrompt" rows="2" placeholder="ví dụ: Focus on phrasal verbs"
+                                  class="w-full px-4 py-2.5 border border-slate-300 rounded-lg resize-none"></textarea>
+                    </div>
+                </div>
+
+                <!-- Loading -->
+                <div id="aiExerciseLoading" class="hidden flex items-center justify-center py-4">
+                    <div class="w-5 h-5 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                    <p class="ml-3 text-sm text-slate-600">Đang gợi ý...</p>
+                </div>
+
+                <!-- Buttons -->
+                <div class="flex gap-3 pt-4">
+                    <button type="button" onclick="aiHelper.closeModal('aiExerciseModal')"
+                            class="flex-1 px-4 py-2.5 border border-slate-300 rounded-lg font-medium text-slate-700 hover:bg-slate-50 transition-colors">
+                        Đóng
+                    </button>
+                    <button type="button" onclick="aiHelper.suggestExercise()"
+                            class="flex-1 px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <iconify-icon icon="mdi:robot" width="18"></iconify-icon>
+                        Gợi Ý
+                    </button>
+                </div>
+
+                <!-- Hints -->
+                <p class="text-xs text-slate-500 text-center">
+                    ✓ AI sẽ gợi ý và tự động điền vào form
+                </p>
+            </div>
+        </div>
+    </div>
+
     <!-- Notification script -->
     <script>
-        /**
-         * NotificationManager - Hiển thị thông báo cho người dùng
-         * Hỗ trợ: success, error, warning
-         */
-        const NotificationManager = {
-            success: (msg) => {
-                console.log('✅ ' + msg);
-                alert(msg);
-            },
-            error: (msg) => {
-                console.error('❌ ' + msg);
-                const errorDiv = document.getElementById('errorMessage');
-                if (errorDiv) {
-                    errorDiv.textContent = msg;
-                    errorDiv.classList.remove('hidden');
-                }
-                alert('Lỗi: ' + msg);
-            },
-            warning: (msg) => {
-                console.warn('⚠️ ' + msg);
-                alert('⚠️ ' + msg);
-            }
-        };
+        // Khởi tạo AI Helper singleton
+        const aiHelper = new AISuggestionHelper();
+        console.log('✅ AI Suggestion Helper initialized');
     </script>
 
 </body>

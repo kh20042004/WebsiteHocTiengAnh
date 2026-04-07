@@ -220,7 +220,7 @@
                 }
 
                 const data = await response.json();
-                if (data.status !== 'success') {
+                if (data.statusCode !== 200 && data.statusCode !== 201) {
                     throw new Error(data.message || 'Lỗi tải bài tập');
                 }
 
@@ -258,7 +258,7 @@
 
                 // Fetch exercises từ API
                 const ids = exerciseIds.join(',');
-                const response = await fetch(`/api/exercise?ids=${ids}`, {
+                const response = await fetch(`/api/exercises?ids=${ids}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
@@ -269,7 +269,7 @@
                 }
 
                 const data = await response.json();
-                if (data.status !== 'success') {
+                if (data.statusCode !== 200 && data.statusCode !== 201) {
                     throw new Error(data.message || 'Lỗi tải câu hỏi');
                 }
 
@@ -297,23 +297,29 @@
                 div.className = 'exercise-container bg-white rounded-lg shadow-md p-6 border-l-4 border-blue-500';
 
                 let inputHtml = '';
+                
+                // Trích xuất thông tin câu hỏi đầu tiên từ bài tập
+                const question = exercise.questions && exercise.questions.length > 0 ? exercise.questions[0] : {};
 
                 // Tạo input dựa vào exercise type
                 if (exercise.type === 'MULTIPLE_CHOICE') {
                     // Radio buttons
                     inputHtml = '<div class="space-y-3">';
-                    exercise.options.forEach(option => {
-                        inputHtml += `
-                            <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer">
-                                <input 
-                                    type="radio" 
-                                    name="exercise_${exercise.id}" 
-                                    value="${option}" 
-                                    class="answer-input w-4 h-4 text-blue-600">
-                                <span class="ml-3 text-gray-700">${escapeHtml(option)}</span>
-                            </label>
-                        `;
-                    });
+                    // Sử dụng options từ question thay vì exercise
+                    if (question.options) {
+                        question.options.forEach(option => {
+                            inputHtml += `
+                                <label class="flex items-center p-3 border border-gray-200 rounded-lg hover:bg-blue-50 cursor-pointer">
+                                    <input 
+                                        type="radio" 
+                                        name="exercise_${exercise.id}" 
+                                        value="${escapeHtml(option)}" 
+                                        class="answer-input w-4 h-4 text-blue-600">
+                                    <span class="ml-3 text-gray-700">${escapeHtml(option)}</span>
+                                </label>
+                            `;
+                        });
+                    }
                     inputHtml += '</div>';
 
                 } else if (exercise.type === 'TRUE_FALSE') {
@@ -357,13 +363,16 @@
                     inputHtml = '<p class="text-red-600">Loại câu hỏi không được hỗ trợ</p>';
                 }
 
+                // Dùng nội dung câu hỏi đầu tiên 
+                const qText = question.questionText || exercise.instruction || 'Không có nội dung câu hỏi';
+
                 div.innerHTML = `
                     <div class="mb-4">
                         <h3 class="text-lg font-bold text-gray-900 mb-2">
                             Câu ${index + 1}: 
                             <span class="badge badge-info ml-2">${getExerciseTypeDisplay(exercise.type)}</span>
                         </h3>
-                        <p class="text-gray-700 text-base leading-relaxed">${escapeHtml(exercise.questionText)}</p>
+                        <p class="text-gray-700 text-base leading-relaxed">${escapeHtml(qText)}</p>
                     </div>
                     <div class="mt-6">
                         ${inputHtml}
@@ -608,7 +617,7 @@
 
                 const data = await response.json();
 
-                if (!response.ok || data.status !== 'success') {
+                if (!response.ok || (data.statusCode !== 200 && data.statusCode !== 201)) {
                     throw new Error(data.message || 'Lỗi nộp bài');
                 }
 

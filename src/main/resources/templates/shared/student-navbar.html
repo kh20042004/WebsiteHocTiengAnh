@@ -33,8 +33,33 @@
                             th:classappend="${currentPage == 'exams' ? 'text-brand-600' : 'hover:text-brand-600 transition-colors'}">Kiểm tra</a>
                     </nav>
 
-                    <!-- User Menu -->
-                    <div class="hidden md:flex items-center gap-3">
+                    <!-- User Menu & Notifications -->
+                    <div class="hidden md:flex items-center gap-4">
+                        
+                        <!-- Notifications -->
+                        <div class="relative">
+                            <button id="notification-button" class="relative p-2 text-slate-500 hover:text-brand-600 transition-colors rounded-full hover:bg-slate-100 focus:outline-none">
+                                <iconify-icon icon="solar:bell-bing-linear" width="24"></iconify-icon>
+                                <!-- Badge hiển thị số lượng chưa đọc -->
+                                <span id="notification-badge" class="absolute top-1 right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white hidden">0</span>
+                            </button>
+                            
+                            <!-- Notification Dropdown -->
+                            <div id="notification-dropdown" class="hidden absolute right-0 mt-2 w-80 bg-white rounded-lg shadow-xl border border-slate-200 z-50">
+                                <div class="px-4 py-3 border-b border-slate-100 flex justify-between items-center">
+                                    <h3 class="text-sm font-semibold text-slate-900">Thông báo</h3>
+                                    <button id="mark-all-read-btn" class="text-xs text-brand-600 hover:text-brand-800 font-medium">Đánh dấu đã đọc</button>
+                                </div>
+                                <div id="notification-list" class="max-h-80 overflow-y-auto w-full">
+                                    <!-- Các item thông báo sẽ được render bằng JS ở đây -->
+                                    <div class="p-4 text-center text-sm text-slate-500">Đang tải...</div>
+                                </div>
+                                <div class="border-t border-slate-100 p-2 text-center">
+                                    <a href="#" class="text-xs font-medium text-brand-600 hover:text-brand-800 inline-block py-1">Xem tất cả</a>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="relative">
                             <button id="user-menu-button"
                                 class="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-100 transition-colors">
@@ -129,6 +154,7 @@
         </header>
 
         <script th:src="@{/js/navbar-dropdown.js}"></script>
+        <script th:src="@{/js/notification-manager.js}"></script>
     </th:block>
 </body>
 

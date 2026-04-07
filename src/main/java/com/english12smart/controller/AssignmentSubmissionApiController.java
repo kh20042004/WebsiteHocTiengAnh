@@ -39,6 +39,22 @@ public class AssignmentSubmissionApiController {
     // ========== DEPENDENCIES ==========
     private final AssignmentSubmissionService submissionService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final com.english12smart.service.AssignmentService assignmentService;
+
+    // ========== GET ASSIGNMENT DETAILS - GET /api/assignment/{assignmentId} ==========
+    /**
+     * Lấy thông tin chi tiết một bài tập (dùng cho student làm bài)
+     * Endpoint: GET /api/assignment/{assignmentId}
+     */
+    @GetMapping("/{assignmentId}")
+    public org.springframework.http.ResponseEntity<com.english12smart.dto.ApiResponseDTO<com.english12smart.dto.AssignmentDTO.Response>> getAssignment(
+            @PathVariable String assignmentId) {
+        log.info("API: Lấy thông tin Assignment: {}", assignmentId);
+        
+        com.english12smart.dto.AssignmentDTO.Response assignment = assignmentService.getAssignmentById(assignmentId);
+        return org.springframework.http.ResponseEntity.ok(
+            com.english12smart.dto.ApiResponseDTO.success("Lấy thông tin bài tập thành công", assignment));
+    }
 
     // ========== SUBMIT ASSIGNMENT - POST /api/assignment/{assignmentId}/submit ==========
     /**

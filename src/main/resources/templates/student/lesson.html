@@ -246,11 +246,23 @@
         });
 
         // Check if lesson progress is 100% and show completion modal
+        // IMPORTANT: Only show ONCE per session to avoid duplicate congratulations messages
         function checkLessonCompletion() {
             const progressValue = '[[${progress != null ? progress.progressPercent : 0}]]';
+            const lessonId = '[[${lesson != null ? lesson.id : ""}]]';
             const progressPercent = parseInt(progressValue) || 0;
             
-            if (progressPercent === 100) {
+            // Key để lưu flag: completion-shown-{lessonId}
+            const completionKey = `completion-shown-${lessonId}`;
+            const hasShownCompletion = sessionStorage.getItem(completionKey);
+            
+            // Chỉ hiển thị modal nếu:
+            // 1. Bài học đã hoàn thành (100%)
+            // 2. Chưa hiển thị completion modal trong session này
+            if (progressPercent === 100 && !hasShownCompletion) {
+                // Đánh dấu rằng completion modal đã được hiển thị
+                sessionStorage.setItem(completionKey, 'true');
+                
                 // Show modal with brief delay for UX
                 setTimeout(() => {
                     showCompletionModal();

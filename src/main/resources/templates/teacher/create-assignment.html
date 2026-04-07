@@ -102,6 +102,23 @@
                             </select>
                             <p class="text-xs text-slate-500 mt-1">Để trống để lấy tất cả bài tập từ Unit được chọn</p>
                         </div>
+
+                        <!-- Assignment Type -->
+                        <div>
+                            <label class="block text-sm font-medium text-slate-700 mb-2">
+                                Loại bài tập <span class="text-red-500">*</span>
+                            </label>
+                            <select id="assignmentType" required
+                                class="w-full px-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                                <option value="">-- Chọn loại bài tập --</option>
+                                <option value="LISTENING">Listening (Nghe hiểu)</option>
+                                <option value="SPEAKING">Speaking (Nói)</option>
+                                <option value="READING">Reading (Đọc hiểu)</option>
+                                <option value="WRITING">Writing (Viết)</option>
+                                <option value="GRAMMAR">Grammar (Ngữ pháp)</option>
+                                <option value="VOCABULARY">Vocabulary (Từ vựng)</option>
+                            </select>
+                        </div>
                     </div>
 
                     <!-- Section 3: Chọn Bài Tập -->
@@ -229,7 +246,6 @@
     <!-- SHARED NOTIFICATION -->
     <th:block th:insert="teacher/shared/notification"></th:block>
     <script th:src="@{/js/teacher-notification.js}"></script>
-    <script th:src="@{/js/teacher-assignment-manager.js}"></script>
 
 </body>
 

@@ -36,4 +36,9 @@ public interface ExerciseSubmissionRepository extends MongoRepository<ExerciseSu
      * Đếm tổng số bài tập đã nộp
      */
     Long countByLessonIdAndStudentId(String lessonId, String studentId);
+
+    /**
+     * Lấy tất cả bài tập của học sinh (sorted by submitted time)
+     */
+    List<ExerciseSubmission> findByStudentIdOrderBySubmittedAtDesc(String studentId);
 }

@@ -96,7 +96,7 @@ const AssignmentManager = (() => {
                 <label class="flex items-start gap-3 p-3 border border-slate-200 rounded-lg cursor-pointer hover:bg-slate-50 transition-colors">
                     <input type="checkbox" class="exercise-checkbox w-4 h-4 mt-1" 
                         value="${exercise.id}" ${isSelected ? 'checked' : ''}
-                        onchange="AssignmentManager.toggleExercise('${exercise.id}')">
+                        onchange="toggleExercise('${exercise.id}')">
                     <div class="flex-1">
                         <div class="flex items-start justify-between gap-2">
                             <div>
@@ -157,6 +157,7 @@ const AssignmentManager = (() => {
      */
     function validateForm() {
         const title = document.getElementById('assignmentTitle').value.trim();
+        const type = document.getElementById('assignmentType').value;
         const unitId = document.getElementById('unitSelect').value;
         const deadlineDate = document.getElementById('deadlineDate').value;
         const deadlineTime = document.getElementById('deadlineTime').value;
@@ -174,6 +175,11 @@ const AssignmentManager = (() => {
 
         if (!unitId) {
             NotificationManager.error('Vui lòng chọn Unit');
+            return false;
+        }
+
+        if (!type) {
+            NotificationManager.error('Vui lòng chọn loại bài tập');
             return false;
         }
 
@@ -214,6 +220,7 @@ const AssignmentManager = (() => {
 
         const title = document.getElementById('assignmentTitle').value.trim();
         const description = document.getElementById('assignmentDescription').value.trim();
+        const type = document.getElementById('assignmentType').value;
         const unitId = document.getElementById('unitSelect').value;
         const deadlineDate = document.getElementById('deadlineDate').value;
         const deadlineTime = document.getElementById('deadlineTime').value;
@@ -222,18 +229,24 @@ const AssignmentManager = (() => {
             document.querySelectorAll('input[name="selectedClasses"]:checked')
         ).map(input => input.value);
 
+        // Convert deadline to epoch millis
+        const deadlineDateTime = new Date(`${deadlineDate}T${deadlineTime}`);
+        const dueDate = deadlineDateTime.getTime();
+
         const payload = {
             title,
             description,
+            type,
             unitId,
-            deadline: `${deadlineDate}T${deadlineTime}`,
+            dueDate,
             exerciseIds: selectedExercises,
-            gradeType: gradingMode,
-            classIds: selectedClasses
+            gradingMode,
+            classroomIds: selectedClasses
         };
 
+        const button = event.target.closest('button');
+
         try {
-            const button = event.target.closest('button');
             button.disabled = true;
             button.innerHTML = '<iconify-icon icon="mdi:loading" width="18" class="animate-spin"></iconify-icon> Đang tạo...';
 

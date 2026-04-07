@@ -203,6 +203,25 @@ public class ContentApiController {
     }
 
     /**
+     * GET /api/units/{unitId}/exercises — Lấy TẤT CẢ bài tập trong Unit (qua các Lesson)
+     */
+    @GetMapping("/units/{unitId}/exercises")
+    public ResponseEntity<ApiResponseDTO<List<ContentDTO.ExerciseResponse>>> getExercisesByUnit(
+            @PathVariable String unitId) {
+        log.info("API: Lấy tất cả bài tập của Unit: {}", unitId);
+
+        // Lấy tất cả lesson trong unit, rồi lấy hết exercises
+        List<ContentDTO.LessonResponse> lessons = contentService.getLessonsByUnit(unitId);
+        List<ContentDTO.ExerciseResponse> allExercises = new java.util.ArrayList<>();
+
+        for (ContentDTO.LessonResponse lesson : lessons) {
+            allExercises.addAll(contentService.getExercisesByLesson(lesson.getId()));
+        }
+
+        return ResponseEntity.ok(ApiResponseDTO.success("Lấy danh sách bài tập thành công", allExercises));
+    }
+
+    /**
      * GET /api/exercises/{exerciseId} — Lấy chi tiết một bài tập
      */
     @GetMapping("/exercises/{exerciseId}")
@@ -242,7 +261,19 @@ public class ContentApiController {
         contentService.deleteExercise(exerciseId);
         return ResponseEntity.ok(ApiResponseDTO.<Void>success("Xoá bài tập thành công", null));
     }
+    /**
+     * GET /api/exercises?ids=id1,id2,id3 — Lấy multiple exercises by IDs (dùng cho student làm bài)
+     */
+    @GetMapping("/exercises")
+    public ResponseEntity<ApiResponseDTO<List<ContentDTO.ExerciseResponse>>> getExercisesByIds(
+            @RequestParam String ids) {
+        log.info("API: Lấy exercises by IDs: {}", ids);
 
+        List<String> exerciseIds = java.util.Arrays.asList(ids.split(","));
+        List<ContentDTO.ExerciseResponse> exercises = contentService.getExercisesByIds(exerciseIds);
+
+        return ResponseEntity.ok(ApiResponseDTO.success("Lấy danh sách bài tập thành công", exercises));
+    }
     // =============================================================
     //  HELPER: Lấy userId từ JWT trong request
     // =============================================================
