@@ -100,11 +100,13 @@ public class LandingController {
 
             // Tìm user trong database để lấy fullName và role
             User user = userRepository.findByEmail(email);
-            if (user != null && user.getFullName() != null && !user.getFullName().isEmpty()) {
-                model.addAttribute("username", user.getFullName());
-            } else {
-                // Fallback về email nếu không có fullName
-                model.addAttribute("username", email);
+            if (user != null) {
+                model.addAttribute("currentUser", user);
+                if (user.getFullName() != null && !user.getFullName().isEmpty()) {
+                    model.addAttribute("username", user.getFullName());
+                } else {
+                    model.addAttribute("username", email);
+                }
             }
 
             // Xác định display name cho role

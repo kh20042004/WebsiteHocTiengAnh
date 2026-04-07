@@ -251,10 +251,10 @@
                                 <iconify-icon icon="solar:headphones-round-sound-bold" width="16" class="text-amber-500"></iconify-icon>
                                 <span class="text-sm font-medium text-slate-700">Listening</span>
                             </div>
-                            <span class="text-sm font-semibold text-amber-600">85%</span>
+                            <span id="skill-val-listening" class="text-sm font-semibold text-amber-600">0%</span>
                         </div>
                         <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-amber-400 rounded-full" style="width: 85%"></div>
+                            <div id="skill-bar-listening" class="h-full bg-amber-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                     <!-- Speaking -->
@@ -264,10 +264,10 @@
                                 <iconify-icon icon="solar:microphone-2-bold" width="16" class="text-emerald-500"></iconify-icon>
                                 <span class="text-sm font-medium text-slate-700">Speaking</span>
                             </div>
-                            <span class="text-sm font-semibold text-emerald-600">75%</span>
+                            <span id="skill-val-speaking" class="text-sm font-semibold text-emerald-600">0%</span>
                         </div>
                         <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-emerald-400 rounded-full" style="width: 75%"></div>
+                            <div id="skill-bar-speaking" class="h-full bg-emerald-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                     <!-- Reading -->
@@ -277,10 +277,10 @@
                                 <iconify-icon icon="solar:document-text-bold" width="16" class="text-blue-500"></iconify-icon>
                                 <span class="text-sm font-medium text-slate-700">Reading</span>
                             </div>
-                            <span class="text-sm font-semibold text-blue-600">90%</span>
+                            <span id="skill-val-reading" class="text-sm font-semibold text-blue-600">0%</span>
                         </div>
                         <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-blue-400 rounded-full" style="width: 90%"></div>
+                            <div id="skill-bar-reading" class="h-full bg-blue-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                     <!-- Writing -->
@@ -290,10 +290,10 @@
                                 <iconify-icon icon="solar:pen-new-square-bold" width="16" class="text-purple-500"></iconify-icon>
                                 <span class="text-sm font-medium text-slate-700">Writing</span>
                             </div>
-                            <span class="text-sm font-semibold text-purple-600">70%</span>
+                            <span id="skill-val-writing" class="text-sm font-semibold text-purple-600">0%</span>
                         </div>
                         <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-purple-400 rounded-full" style="width: 70%"></div>
+                            <div id="skill-bar-writing" class="h-full bg-purple-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                     <!-- Grammar -->
@@ -303,10 +303,10 @@
                                 <iconify-icon icon="solar:notebook-bookmark-bold" width="16" class="text-rose-500"></iconify-icon>
                                 <span class="text-sm font-medium text-slate-700">Grammar</span>
                             </div>
-                            <span class="text-sm font-semibold text-rose-600">80%</span>
+                            <span id="skill-val-grammar" class="text-sm font-semibold text-rose-600">0%</span>
                         </div>
                         <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-rose-400 rounded-full" style="width: 80%"></div>
+                            <div id="skill-bar-grammar" class="h-full bg-rose-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                     <!-- Vocabulary -->
@@ -316,10 +316,10 @@
                                 <iconify-icon icon="solar:book-bookmark-bold" width="16" class="text-indigo-500"></iconify-icon>
                                 <span class="text-sm font-medium text-slate-700">Vocabulary</span>
                             </div>
-                            <span class="text-sm font-semibold text-indigo-600">88%</span>
+                            <span id="skill-val-vocabulary" class="text-sm font-semibold text-indigo-600">0%</span>
                         </div>
                         <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                            <div class="h-full bg-indigo-400 rounded-full" style="width: 88%"></div>
+                            <div id="skill-bar-vocabulary" class="h-full bg-indigo-400 rounded-full transition-all duration-1000" style="width: 0%"></div>
                         </div>
                     </div>
                 </div>
@@ -330,62 +330,8 @@
                 <!-- Activity Timeline -->
                 <div class="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-6">
                     <h3 class="text-base font-medium text-slate-900 mb-5">Hoạt động gần đây</h3>
-                    <div class="space-y-5">
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                                <iconify-icon icon="solar:check-circle-bold" width="20"></iconify-icon>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
-                                    <h4 class="font-medium text-slate-900 text-sm">Hoàn thành Listening - Unit 3</h4>
-                                    <span class="text-xs text-slate-400 flex-shrink-0">2 giờ trước</span>
-                                </div>
-                                <p class="text-xs text-slate-500">Điểm: 9.5/10 • 25 phút</p>
-                                <div class="mt-1.5 flex items-center gap-2">
-                                    <span class="text-xs bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded font-medium">+50 XP</span>
-                                    <span class="text-xs bg-amber-50 text-amber-700 px-2 py-0.5 rounded">🏆 Perfect Score</span>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
-                                <iconify-icon icon="solar:book-2-bold" width="20"></iconify-icon>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
-                                    <h4 class="font-medium text-slate-900 text-sm">Học từ vựng mới - Unit 2</h4>
-                                    <span class="text-xs text-slate-400 flex-shrink-0">5 giờ trước</span>
-                                </div>
-                                <p class="text-xs text-slate-500">25/30 từ • Độ chính xác: 88%</p>
-                                <div class="mt-1.5"><span class="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-medium">+30 XP</span></div>
-                            </div>
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center">
-                                <iconify-icon icon="solar:microphone-2-bold" width="20"></iconify-icon>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
-                                    <h4 class="font-medium text-slate-900 text-sm">Luyện Speaking - Unit 1</h4>
-                                    <span class="text-xs text-slate-400 flex-shrink-0">1 ngày trước</span>
-                                </div>
-                                <p class="text-xs text-slate-500">Điểm phát âm: 8.0/10 • 15 phút</p>
-                                <div class="mt-1.5"><span class="text-xs bg-purple-50 text-purple-700 px-2 py-0.5 rounded font-medium">+40 XP</span></div>
-                            </div>
-                        </div>
-                        <div class="flex gap-4">
-                            <div class="flex-shrink-0 h-10 w-10 rounded-full bg-rose-50 text-rose-600 flex items-center justify-center">
-                                <iconify-icon icon="solar:document-text-bold" width="20"></iconify-icon>
-                            </div>
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
-                                    <h4 class="font-medium text-slate-900 text-sm">Làm bài Reading - Unit 2</h4>
-                                    <span class="text-xs text-slate-400 flex-shrink-0">2 ngày trước</span>
-                                </div>
-                                <p class="text-xs text-slate-500">Điểm: 7.5/10 • 30 phút</p>
-                                <div class="mt-1.5"><span class="text-xs bg-rose-50 text-rose-700 px-2 py-0.5 rounded font-medium">+35 XP</span></div>
-                            </div>
-                        </div>
+                    <div id="recent-activities-container" class="space-y-5">
+                        <div class="text-sm text-slate-500 italic text-center py-4">Đang tải lịch sử hoạt động...</div>
                     </div>
                 </div>
 
@@ -592,26 +538,75 @@
                     }
                 });
             }
+
+            // Update Progress bars (Listening, Speaking, Reading, Writing, Grammar, Vocabulary)
+            const skillsData = data.skillsData || [0, 0, 0, 0, 0, 0];
+            const skillIds = ['listening', 'speaking', 'reading', 'writing', 'grammar', 'vocabulary'];
+
+            for (let i = 0; i < 6; i++) {
+                const valEl = document.getElementById(`skill-val-${skillIds[i]}`);
+                const barEl = document.getElementById(`skill-bar-${skillIds[i]}`);
+                if (valEl && barEl) {
+                    valEl.textContent = `${skillsData[i]}%`;
+                    barEl.style.width = `${skillsData[i]}%`;
+                }
+            }
         }
 
-        /**
-         * Cập nhật activity timeline với dữ liệu thực tế
-         */
         function updateActivityTimeline(activities) {
+            const timelineContainer = document.getElementById('recent-activities-container');
+            if (!timelineContainer) return;
+
             if (!activities || activities.length === 0) {
-                console.log('ℹ️ No recent activities to display');
+                timelineContainer.innerHTML = '<div class="text-sm text-slate-500 italic text-center py-4">Chưa có hoạt động nào gần đây.</div>';
                 return;
             }
 
-            const timelineContainer = document.querySelector('.space-y-5');
-            if (!timelineContainer) return;
-
-            // Clear existing dummy activities (giữ container nhưng xóa children)
-            // timelineContainer.innerHTML = '';
+            // Xóa loading/dummy elements
+            timelineContainer.innerHTML = '';
 
             console.log('📝 Rendering activities:', activities);
-            // TODO: Render activity items thực tế từ data API
-            // Hiện tại giữ activities hardcode, sẽ cải tiến sau
+            
+            activities.forEach(activity => {
+                // Xác định icon và màu sắc tuỳ loại activity
+                let iconClass = "solar:check-circle-bold";
+                let bgColor = "bg-blue-50";
+                let textColor = "text-blue-600";
+                let badgeColor = "bg-blue-50 text-blue-700";
+                let scoreText = activity.score > 0 ? `Điểm: ${activity.score}/${activity.maxScore}` : "Đã tham gia";
+
+                if (activity.type === 'exam') {
+                    iconClass = "solar:document-text-bold";
+                    bgColor = "bg-purple-50";
+                    textColor = "text-purple-600";
+                    badgeColor = "bg-purple-50 text-purple-700";
+                } else if (activity.score === 100) {
+                    iconClass = "solar:star-bold";
+                    bgColor = "bg-amber-50";
+                    textColor = "text-amber-500";
+                    badgeColor = "bg-amber-50 text-amber-700";
+                }
+
+                const actHtml = `
+                    <div class="flex gap-4">
+                        <div class="flex-shrink-0 h-10 w-10 rounded-full ${bgColor} ${textColor} flex items-center justify-center">
+                            <iconify-icon icon="${iconClass}" width="20"></iconify-icon>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <div class="flex items-center justify-between flex-wrap gap-1 mb-1">
+                                <h4 class="font-medium text-slate-900 text-sm">${activity.title}</h4>
+                                <span class="text-xs text-slate-400 flex-shrink-0">${activity.timeAgo}</span>
+                            </div>
+                            <p class="text-xs text-slate-500">${scoreText}</p>
+                            ${activity.score > 0 ? `
+                            <div class="mt-1.5 flex items-center gap-2">
+                                <span class="text-xs ${badgeColor} px-2 py-0.5 rounded font-medium">+10 XP</span>
+                            </div>` : ''}
+                        </div>
+                    </div>
+                `;
+                timelineContainer.insertAdjacentHTML('beforeend', actHtml);
+            });
         }
 
         /**

@@ -33,15 +33,18 @@ public class ProgressService {
     private final LessonProgressRepository progressRepo;
     private final LessonRepository lessonRepo;
     private final ExerciseRepository exerciseRepo;
+    private final com.english12smart.repository.UserRepository userRepository;
 
     public ProgressService(ExerciseSubmissionRepository submissionRepo,
                           LessonProgressRepository progressRepo,
                           LessonRepository lessonRepo,
-                          ExerciseRepository exerciseRepo) {
+                          ExerciseRepository exerciseRepo,
+                          com.english12smart.repository.UserRepository userRepository) {
         this.submissionRepo = submissionRepo;
         this.progressRepo = progressRepo;
         this.lessonRepo = lessonRepo;
         this.exerciseRepo = exerciseRepo;
+        this.userRepository = userRepository;
     }
 
     /**
@@ -246,6 +249,27 @@ public class ProgressService {
 
         submissionRepo.save(submission);
         log.info("Đã ghi nhận submission {}", submission.getId());
+
+        // Cộng điểm XP cho User
+        var user = userRepository.findById(studentId).orElse(null);
+        if (user != null) {
+            long totalXP = user.getTotalXP() != null ? user.getTotalXP() : 0L;
+            int xpEarned = maxScore > 0 ? (score * 10 / maxScore) : 0; // Thưởng tối đa 10 XP cho mỗi bài tập
+            if (xpEarned > 0) {
+                user.setTotalXP(totalXP + xpEarned);
+                
+                // Cập nhật level nếu đủ điểm
+                long newXP = user.getTotalXP();
+                if (newXP >= 7000) user.setLevel("Advanced");
+                else if (newXP >= 3500) user.setLevel("Upper-Intermediate");
+                else if (newXP >= 1500) user.setLevel("Intermediate");
+                else if (newXP >= 500) user.setLevel("Pre-Intermediate");
+                else user.setLevel("Elementary");
+                
+                userRepository.save(user);
+                log.info("Đã cộng {} XP cho học sinh {}", xpEarned, studentId);
+            }
+        }
 
         // Tính lại tiến độ bài học
         calculateLessonProgress(lessonId, studentId);
