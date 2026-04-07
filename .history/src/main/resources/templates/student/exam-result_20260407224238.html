@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kết Quả Bài Thi - English 12 Smart</title>
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+    <!-- STUDENT NAVBAR với currentPage='exams' -->
+    <th:block th:replace="shared/student-navbar :: student-navbar(currentPage='exams')"></th:block>
+
+    <main class="pt-20 pb-12">
+        <!-- Redirect nếu chưa có kết quả -->
+        <div th:if="${result == null}" class="mx-auto max-w-2xl px-4 pt-20 text-center">
+            <p class="text-slate-500 mb-4">Không tìm thấy kết quả bài thi.</p>
+            <a href="/dashboard/student/exams"
+                class="px-6 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700">
+                Về trang kiểm tra
+            </a>
+        </div>
+
+        <!-- Nội dung kết quả -->
+        <div th:if="${result != null}">
+            <!-- Banner kết quả tổng quan -->
+            <div class="py-12"
+                th:classappend="${result.percentage != null and result.percentage >= 80} ? 'bg-gradient-to-r from-emerald-500 to-emerald-700' : (${result.percentage != null and result.percentage >= 50} ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-red-500 to-red-600')">
+                <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 text-center text-white">
+                    <!-- Icon kết quả -->
+                    <div class="h-20 w-20 rounded-full bg-white/20 flex items-center justify-center mx-auto mb-4">
+                        <iconify-icon th:icon="${result.percentage != null and result.percentage >= 50} ? 'solar:medal-ribbons-star-bold' : 'solar:restart-bold'"
+                            width="40" class="text-white"></iconify-icon>
+                    </div>
+                    <!-- Điểm số lớn -->
+                    <div class="text-6xl font-black mb-2" th:text="${result.scoreDisplay}">8/10</div>
+                    <div class="text-2xl font-medium opacity-90 mb-1" th:text="${result.percentageDisplay}">80.0%</div>
+                    <!-- Tên đề thi -->
+                    <p class="text-white/80 text-sm mt-3" th:text="${result.examTitle}">Kiểm tra Unit 1</p>
+                    <!-- Thông điệp theo kết quả -->
+                    <p class="mt-2 font-medium"
+                        th:text="${result.percentage != null and result.percentage >= 80 ? 'Xuất sắc! Bạn làm rất tốt!' : (result.percentage != null and result.percentage >= 50 ? 'Khá tốt! Hãy tiếp tục cố gắng.' : 'Cần cố gắng thêm. Đừng nản lòng nhé!')}">
+                        Xuất sắc!
+                    </p>
+                </div>
+            </div>
+
+            <div class="mx-auto max-w-2xl px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+
+                <!-- Thống kê chi tiết -->
+                <div class="grid grid-cols-3 gap-4">
+                    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                        <div class="text-2xl font-bold text-slate-900 mb-1" th:text="${result.scoreDisplay}">8/10</div>
+                        <div class="text-xs text-slate-500">Điểm số</div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                        <div class="text-2xl font-bold text-slate-900 mb-1" th:text="${result.timeTakenDisplay}">5m 30s</div>
+                        <div class="text-xs text-slate-500">Thời gian làm</div>
+                    </div>
+                    <div class="bg-white rounded-xl border border-slate-200 p-4 text-center">
+                        <div class="text-2xl font-bold mb-1"
+                            th:classappend="${result.percentage != null and result.percentage >= 80} ? 'text-emerald-600' : (${result.percentage != null and result.percentage >= 50} ? 'text-amber-600' : 'text-red-600')"
+                            th:text="${result.percentageDisplay}">80%</div>
+                        <div class="text-xs text-slate-500">Tỷ lệ đúng</div>
+                    </div>
+                </div>
+
+                <!-- Chi tiết từng câu hỏi -->
+                <div class="bg-white rounded-xl border border-slate-200">
+                    <div class="p-5 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Chi Tiết Từng Câu</h2>
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        <!-- JavaScript object để lưu questionResults map từ backend -->
+                        <script th:inline="javascript">
+                            // Convert questionResults Map từ backend sang JavaScript object
+                            window.questionResults = [[${result.questionResults}]] || {};
+                            window.studentAnswers = [[${result.answers}]] || {};
+                            window.correctAnswers = [[${result.correctAnswers}]] || {};
+                        </script>
+
+                        <!-- Duyệt qua từng câu hỏi trong đề thi -->
+                        <div th:if="${exam != null}" th:each="question : ${exam.questions}"
+                            class="p-5"
+                            th:attr="data-question-index=${question.questionIndex}">
+                            <!-- Tiêu đề câu hỏi với icon đúng/sai -->
+                            <div class="flex items-start gap-3">
+                                <!-- Icon kết quả câu hỏi này (được cập nhật theo JS) -->
+                                <div class="shrink-0 mt-0.5 question-result-icon"
+                                    th:attr="data-question-index=${question.questionIndex}">
+                                    <iconify-icon icon="solar:check-circle-bold" width="20" class="text-emerald-500 icon-correct" style="display: none;"></iconify-icon>
+                                    <iconify-icon icon="solar:close-circle-bold" width="20" class="text-red-500 icon-incorrect" style="display: none;"></iconify-icon>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <!-- Số thứ tự và nội dung câu hỏi -->
+                                    <p class="text-sm font-medium text-slate-800 mb-3">
+                                        <span class="text-slate-400 mr-1" th:text="'Câu ' + (${question.questionIndex} + 1) + ':'">Câu 1:</span>
+                                        <span th:text="${question.questionText}">Nội dung câu hỏi</span>
+                                    </p>
+
+                                    <!-- Lựa chọn trả lời (cho MULTIPLE_CHOICE và TRUE_FALSE) -->
+                                    <div th:if="${question.options != null and not #lists.isEmpty(question.options)}"
+                                        class="space-y-1.5 mb-3">
+                                        <div th:each="opt : ${question.options}"
+                                            class="px-3 py-2 rounded-lg text-sm border transition-colors"
+                                            th:classappend="${opt == question.correctAnswer} ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600'">
+                                            <span th:if="${opt == question.correctAnswer}" class="mr-1">✓</span>
+                                            <span th:text="${opt}">Lựa chọn</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Thẻ ẩn để lưu đáp án học sinh (sẽ được hiển thị qua JS) -->
+                                    <div class="hidden student-answer-data" 
+                                        th:attr="data-question-index=${question.questionIndex}, data-student-answer=${result.answers[question.questionIndex] != null ? result.answers[question.questionIndex] : ''}"></div>
+
+                                    <!-- Đáp án học sinh và đáp án đúng - so sánh -->
+                                    <div class="flex flex-col gap-2 text-sm mb-3">
+                                        <div>
+                                            <span class="text-slate-500 text-xs">Đáp án học sinh: </span>
+                                            <span class="font-semibold px-2 py-0.5 rounded student-answer-display"
+                                                th:attr="data-question-index=${question.questionIndex}"
+                                                th:text="${result.answers[question.questionIndex] != null ? result.answers[question.questionIndex] : '(Không có đáp án)'}">
+                                                A
+                                            </span>
+                                        </div>
+                                        <div>
+                                            <span class="text-slate-500 text-xs">Đáp án đúng: </span>
+                                            <span class="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded"
+                                                th:text="${question.correctAnswer}">A</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Giải thích đáp án -->
+                                    <div th:if="${question.explanation != null and not #strings.isEmpty(question.explanation)}"
+                                        class="mt-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-700">
+                                        <span class="font-medium">Giải thích: </span>
+                                        <span th:text="${question.explanation}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hiển thị khi không có thông tin đề thi -->
+                        <div th:if="${exam == null}" class="p-8 text-center text-slate-400 text-sm">
+                            <iconify-icon icon="solar:diploma-linear" width="32" class="mb-2 opacity-40"></iconify-icon>
+                            <p>Không thể tải chi tiết câu hỏi</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a href="/dashboard/student/exams"
+                        class="flex-1 px-6 py-3 text-center text-slate-600 border border-slate-200 rounded-xl font-medium hover:bg-slate-100 transition-colors">
+                        <iconify-icon icon="solar:arrow-left-linear" width="16" class="inline mr-1"></iconify-icon>
+                        Về trang Kiểm tra
+                    </a>
+                    <a href="/dashboard/student"
+                        class="flex-1 px-6 py-3 text-center bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700 transition-colors">
+                        <iconify-icon icon="solar:home-linear" width="16" class="inline mr-1"></iconify-icon>
+                        Về trang chủ
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- STUDENT FOOTER -->
+    <th:block th:insert="shared/student-footer"></th:block>
+
+    <!-- Script để cập nhật icon đúng/sai và highlight đáp án -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Lặp qua mỗi câu hỏi
+            const questionContainers = document.querySelectorAll('[data-question-index]');
+            
+            questionContainers.forEach(container => {
+                const questionIndex = parseInt(container.getAttribute('data-question-index'));
+                const isCorrect = window.questionResults?.[questionIndex];
+                
+                // Cập nhật icon đúng/sai
+                const iconContainer = container.querySelector('.question-result-icon');
+                if (iconContainer) {
+                    const correctIcon = iconContainer.querySelector('.icon-correct');
+                    const incorrectIcon = iconContainer.querySelector('.icon-incorrect');
+                    
+                    if (isCorrect === true) {
+                        // Câu đúng
+                        if (correctIcon) correctIcon.style.display = '';
+                        if (incorrectIcon) incorrectIcon.style.display = 'none';
+                    } else if (isCorrect === false) {
+                        // Câu sai
+                        if (correctIcon) correctIcon.style.display = 'none';
+                        if (incorrectIcon) incorrectIcon.style.display = '';
+                    }
+                }
+                
+                // Cập nhật màu sắc đáp án học sinh (nếu cần)
+                const studentAnswerDisplay = container.querySelector('.student-answer-display');
+                if (studentAnswerDisplay) {
+                    // Xóa tất cả background class cũ
+                    studentAnswerDisplay.classList.remove('bg-emerald-50', 'text-emerald-700', 'bg-red-50', 'text-red-700');
+                    
+                    if (isCorrect === true) {
+                        // Đáp án đúng - xanh
+                        studentAnswerDisplay.classList.add('bg-emerald-50', 'text-emerald-700');
+                    } else if (isCorrect === false) {
+                        // Đáp án sai - đỏ
+                        studentAnswerDisplay.classList.add('bg-red-50', 'text-red-700');
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>

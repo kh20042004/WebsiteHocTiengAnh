@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Gian Lận - English 12 Smart</title>
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+    <!-- TEACHER HEADER -->
+    <th:block th:with="currentPage='exams'" th:insert="teacher/shared/header"></th:block>
+
+    <main class="pt-20 pb-12">
+        <div class="mx-auto max-w-4xl px-4 sm:px-6 lg:px-8">
+            <!-- Header Section -->
+            <div class="mb-8">
+                <a href="#" onclick="history.back()" class="flex items-center gap-2 text-violet-600 hover:text-violet-700 font-medium mb-4">
+                    <iconify-icon icon="solar:arrow-left-linear" width="20"></iconify-icon>
+                    Quay lại
+                </a>
+
+                <div class="bg-gradient-to-r from-violet-500 to-violet-700 rounded-xl p-6 text-white">
+                    <div class="flex items-start justify-between">
+                        <div>
+                            <p class="text-sm text-violet-100 mb-1">Báo Cáo Gian Lận</p>
+                            <h1 class="text-2xl font-bold" id="studentName">Loading...</h1>
+                        </div>
+                        <div class="text-right" id="riskBadge">
+                            <span class="inline-block px-3 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm font-semibold">
+                                Đang tải...
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8" id="statsContainer">
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <p class="text-xs text-slate-500 mb-1">Trust Score</p>
+                    <p class="text-2xl font-bold text-violet-600" id="trustScore">--</p>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <p class="text-xs text-slate-500 mb-1">Tổng Vi Phạm</p>
+                    <p class="text-2xl font-bold text-red-600" id="violationCount">0</p>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <p class="text-xs text-slate-500 mb-1">Device Activities</p>
+                    <p class="text-2xl font-bold text-yellow-600" id="deviceActivities">0</p>
+                </div>
+                <div class="bg-white rounded-lg border border-slate-200 p-4">
+                    <p class="text-xs text-slate-500 mb-1">Copy/Paste Attempts</p>
+                    <p class="text-2xl font-bold text-orange-600" id="copyPasteAttempts">0</p>
+                </div>
+            </div>
+
+            <!-- Fraud Events Timeline -->
+            <div class="bg-white rounded-xl border border-slate-200 overflow-hidden">
+                <div class="border-b border-slate-200 bg-slate-50 px-6 py-4">
+                    <h2 class="font-semibold text-slate-900">📋 Lịch Sử Sự Kiện Gian Lận</h2>
+                </div>
+
+                <div class="divide-y divide-slate-200" id="fraudTimelineContainer">
+                    <!-- Timeline items will be inserted here -->
+                    <div class="p-6 text-center text-slate-400">
+                        <iconify-icon icon="solar:hourglass-linear" width="32" class="mb-2 opacity-40"></iconify-icon>
+                        <p>Đang tải sự kiện...</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-8 flex gap-3 justify-center">
+                <button onclick="history.back()" class="px-6 py-2 border border-slate-200 rounded-lg text-slate-600 hover:bg-slate-50 font-medium">
+                    Quay Lại
+                </button>
+                <button onclick="flagAsReviewed()" class="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 font-medium">
+                    ✓ Đã Xem
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- TEACHER FOOTER -->
+    <th:block th:insert="teacher/shared/footer"></th:block>
+
+    <script>
+        // Lấy submissionId từ URL parameters
+        const urlParams = new URLSearchParams(window.location.search);
+        const examId = document.location.pathname.split('/')[4];
+        const submissionId = document.location.pathname.split('/')[6];
+
+        /**
+         * Tải fraud summary
+         */
+        async function loadFraudSummary() {
+            try {
+                const response = await fetch(`/api/exams/${examId}/submissions/${submissionId}/fraud-summary`);
+                const data = await response.json();
+
+                if (data.code !== 0) {
+                    showError(data.message);
+                    return;
+                }
+
+                const analysis = data.data;
+
+                // Update header
+                document.getElementById('studentName').textContent = analysis.studentName;
+
+                // Update risk badge
+                const riskLevel = analysis.riskLevel;
+                const riskBadgeEl = document.getElementById('riskBadge');
+                let badgeClass = 'bg-emerald-600';
+                let badgeText = '✓ Bình Thường';
+                
+                if (riskLevel === 'HIGH') {
+                    badgeClass = 'bg-red-600';
+                    badgeText = '⚠️ Rủi Ro Cao';
+                } else if (riskLevel === 'MEDIUM') {
+                    badgeClass = 'bg-yellow-600';
+                    badgeText = '⚠️ Rủi Ro Trung Bình';
+                }
+
+                riskBadgeEl.innerHTML = `<span class="${badgeClass} text-white px-4 py-2 rounded-full text-sm font-semibold">${badgeText}</span>`;
+
+                // Update stats
+                document.getElementById('trustScore').textContent = analysis.trustScore + '%';
+                document.getElementById('violationCount').textContent = analysis.fraudLogCount;
+                document.getElementById('deviceActivities').textContent = 
+                    (analysis.devTools || 0) + (analysis.fullscreenExitCount || 0);
+                document.getElementById('copyPasteAttempts').textContent = 
+                    (analysis.copyAttempts || 0) + (analysis.pasteAttempts || 0);
+
+                // Load fraud logs timeline
+                loadFraudLogs();
+
+            } catch (error) {
+                console.error('Error loading fraud summary:', error);
+                showError('Lỗi tải dữ liệu');
+            }
+        }
+
+        /**
+         * Tải và hiển thị fraud logs trong timeline
+         */
+        async function loadFraudLogs() {
+            try {
+                const response = await fetch(`/api/exams/${examId}/submissions/${submissionId}/fraud-logs`);
+                const data = await response.json();
+
+                if (data.code !== 0) {
+                    showError(data.message);
+                    return;
+                }
+
+                const fraudLogs = data.data.fraudLogs || [];
+                const container = document.getElementById('fraudTimelineContainer');
+
+                if (fraudLogs.length === 0) {
+                    container.innerHTML = `
+                        <div class="p-8 text-center text-slate-400">
+                            <iconify-icon icon="solar:check-circle-bold" width="40" class="text-emerald-500 mb-2"></iconify-icon>
+                            <p class="font-medium">Không phát hiện sự kiện gian lận</p>
+                        </div>
+                    `;
+                    return;
+                }
+
+                // Sắp xếp theo thời gian (mới nhất trước)
+                fraudLogs.sort((a, b) => new Date(b.detectedAt) - new Date(a.detectedAt));
+
+                const timelineHTML = fraudLogs.map(log => {
+                    const icon = getFraudIcon(log.fraudType);
+                    const time = new Date(log.detectedAt).toLocaleTimeString('vi-VN');
+                    const date = new Date(log.detectedAt).toLocaleDateString('vi-VN');
+                    const severityColor = getSeverityColor(log.severity);
+
+                    return `
+                        <div class="px-6 py-4 hover:bg-slate-50 transition-colors">
+                            <div class="flex gap-4">
+                                <div class="shrink-0 mt-1">
+                                    <div class="w-10 h-10 rounded-full ${severityColor} flex items-center justify-center text-white">
+                                        <iconify-icon icon="${icon}" width="20"></iconify-icon>
+                                    </div>
+                                </div>
+                                <div class="flex-1">
+                                    <div class="flex items-start justify-between mb-1">
+                                        <p class="font-semibold text-slate-900">${getFraudLabel(log.fraudType)}</p>
+                                        <span class="${getSeverityBadgeColor(log.severity)} text-xs font-medium px-2 py-1 rounded">
+                                            ${getSeverityLabel(log.severity)}
+                                        </span>
+                                    </div>
+                                    <p class="text-sm text-slate-600 mb-2">${log.details || 'N/A'}</p>
+                                    <div class="flex gap-4 text-xs text-slate-500">
+                                        <span>🕐 ${time}</span>
+                                        <span>📅 ${date}</span>
+                                        ${log.count ? `<span>🔁 ${log.count}x</span>` : ''}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                container.innerHTML = timelineHTML;
+
+            } catch (error) {
+                console.error('Error loading fraud logs:', error);
+            }
+        }
+
+        /**
+         * Đánh dấu đã xem báo cáo
+         */
+        async function flagAsReviewed() {
+            // Implementation will go here
+            alert('Đã đánh dấu xem');
+        }
+
+        // Helper functions
+        function getFraudIcon(type) {
+            const iconMap = {
+                'TAB_CHANGE': 'solar:window-frame-linear',
+                'COPY_ATTEMPT': 'solar:copy-linear',
+                'PASTE_ATTEMPT': 'solar:paste-linear',
+                'DEV_TOOLS': 'solar:code-linear',
+                'RIGHT_CLICK': 'solar:cursor-linear',
+                'FULLSCREEN_EXIT': 'solar:exit-linear',
+                'CUT_ATTEMPT': 'solar:scissors-linear'
+            };
+            return iconMap[type] || 'solar:info-circle-linear';
+        }
+
+        function getFraudLabel(type) {
+            const labelMap = {
+                'TAB_CHANGE': 'Rời Khỏi Tab',
+                'COPY_ATTEMPT': 'Cố Gắng Copy',
+                'PASTE_ATTEMPT': 'Cố Gắng Paste',
+                'DEV_TOOLS': 'Mở DevTools',
+                'RIGHT_CLICK': 'Click Chuột Phải',
+                'FULLSCREEN_EXIT': 'Thoát Fullscreen',
+                'CUT_ATTEMPT': 'Cố Gắng Cut'
+            };
+            return labelMap[type] || 'Sự Kiện Bất Thường';
+        }
+
+        function getSeverityColor(severity) {
+            if (severity === 'HIGH') return 'bg-red-500';
+            if (severity === 'MEDIUM') return 'bg-yellow-500';
+            return 'bg-blue-500';
+        }
+
+        function getSeverityBadgeColor(severity) {
+            if (severity === 'HIGH') return 'bg-red-100 text-red-700';
+            if (severity === 'MEDIUM') return 'bg-yellow-100 text-yellow-700';
+            return 'bg-blue-100 text-blue-700';
+        }
+
+        function getSeverityLabel(severity) {
+            if (severity === 'HIGH') return '🔴 Cao';
+            if (severity === 'MEDIUM') return '🟡 Trung Bình';
+            return '🔵 Thấp';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('fraudTimelineContainer');
+            container.innerHTML = `
+                <div class="p-8 text-center">
+                    <iconify-icon icon="solar:danger-linear" width="40" class="text-red-500 mb-2"></iconify-icon>
+                    <p class="text-red-600 font-medium">${message}</p>
+                </div>
+            `;
+        }
+
+        // Initialize on page load
+        window.addEventListener('load', () => {
+            loadFraudSummary();
+        });
+    </script>
+</body>
+</html>

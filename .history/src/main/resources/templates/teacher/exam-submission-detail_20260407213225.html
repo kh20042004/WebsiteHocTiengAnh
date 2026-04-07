@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="vi" class="scroll-smooth" xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi Tiết Bài Làm - English 12 Smart</title>
+    <link rel="icon" type="image/png" th:href="@{/images/logo.png}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>window.process = { env: { NODE_ENV: 'development' } };</script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/iconify-icon@1.0.8/dist/iconify-icon.min.js"></script>
+    <script th:src="@{/js/tailwind-config.js}"></script>
+    <link rel="stylesheet" th:href="@{/css/landing.css}">
+</head>
+
+<body class="bg-slate-50 text-slate-600 antialiased font-sans">
+    <!-- TEACHER HEADER -->
+    <th:block th:with="currentPage='exams'" th:insert="teacher/shared/header"></th:block>
+
+    <main class="pt-20 pb-12">
+        <!-- Nội dung chi tiết bài làm -->
+        <div th:if="${submission != null}">
+            <!-- Banner kết quả tổng quan -->
+            <div class="py-12"
+                th:classappend="${submission.percentage != null and submission.percentage >= 80} ? 'bg-gradient-to-r from-emerald-500 to-emerald-700' : (${submission.percentage != null and submission.percentage >= 50} ? 'bg-gradient-to-r from-amber-500 to-amber-600' : 'bg-gradient-to-r from-red-500 to-red-600')">
+                <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-white">
+                    <!-- Header với thông tin học sinh -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div>
+                            <p class="text-sm text-white/80 mb-1">Bài làm của học sinh</p>
+                            <h1 class="text-3xl font-bold" th:text="${submission.studentName}">Họ tên học sinh</h1>
+                        </div>
+                        <div class="text-right">
+                            <p class="text-sm text-white/80 mb-1">Trạng thái</p>
+                            <p class="text-lg font-semibold"
+                                th:text="${submission.status == 'GRADED' ? 'Đã chấm' : (submission.status == 'SUBMITTED' ? 'Chờ chấm' : submission.status)}">
+                                Status
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Điểm số lớn -->
+                    <div class="grid grid-cols-3 gap-4">
+                        <!-- Điểm số -->
+                        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                            <p class="text-sm text-white/80 mb-1">Điểm số</p>
+                            <p class="text-3xl font-bold" th:text="${submission.scoreDisplay}">8/10</p>
+                        </div>
+                        <!-- Phần trăm -->
+                        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                            <p class="text-sm text-white/80 mb-1">Tỷ lệ đúng</p>
+                            <p class="text-3xl font-bold" th:text="${submission.percentageDisplay}">80%</p>
+                        </div>
+                        <!-- Thời gian làm -->
+                        <div class="bg-white/10 backdrop-blur-sm rounded-lg p-4 border border-white/20">
+                            <p class="text-sm text-white/80 mb-1">Thời gian làm</p>
+                            <p class="text-3xl font-bold" th:text="${submission.timeTakenDisplay}">5m 30s</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 mt-8 space-y-6">
+
+                <!-- Chi tiết từng câu hỏi -->
+                <div class="bg-white rounded-xl border border-slate-200">
+                    <div class="p-5 border-b border-slate-100">
+                        <h2 class="text-base font-semibold text-slate-900">Chi Tiết Từng Câu Hỏi</h2>
+                    </div>
+                    <div class="divide-y divide-slate-100">
+                        <!-- Duyệt qua từng câu hỏi trong đề thi -->
+                        <div th:if="${exam != null}" th:each="question : ${exam.questions}"
+                            class="p-5">
+                            <!-- Tiêu đề câu hỏi với icon đúng/sai -->
+                            <div class="flex items-start gap-3">
+                                <!-- Icon kết quả câu hỏi này -->
+                                <div class="shrink-0 mt-0.5">
+                                    <span th:if="${studentAnswers.get(question.questionIndex) == question.correctAnswer}">
+                                        <iconify-icon icon="solar:check-circle-bold" width="20" class="text-emerald-500"></iconify-icon>
+                                    </span>
+                                    <span th:unless="${studentAnswers.get(question.questionIndex) == question.correctAnswer}">
+                                        <iconify-icon icon="solar:close-circle-bold" width="20" class="text-red-500"></iconify-icon>
+                                    </span>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <!-- Số thứ tự và nội dung câu hỏi -->
+                                    <p class="text-sm font-medium text-slate-800 mb-3">
+                                        <span class="text-slate-400 mr-1" th:text="'Câu ' + (${question.questionIndex} + 1) + ':'">Câu 1:</span>
+                                        <span th:text="${question.questionText}">Nội dung câu hỏi</span>
+                                    </p>
+
+                                    <!-- Lựa chọn trả lời của học sinh -->
+                                    <div class="mb-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                        <p class="text-xs text-blue-600 font-medium mb-1">📝 Trả lời của học sinh:</p>
+                                        <p class="text-sm text-slate-800 font-semibold" 
+                                            th:text="${studentAnswers.get(question.questionIndex) != null ? studentAnswers.get(question.questionIndex) : '(Không trả lời)'}">
+                                            Trả lời
+                                        </p>
+                                    </div>
+
+                                    <!-- Lựa chọn trả lời (cho MULTIPLE_CHOICE và TRUE_FALSE) -->
+                                    <div th:if="${question.options != null and not #lists.isEmpty(question.options)}"
+                                        class="space-y-1.5 mb-3">
+                                        <div th:each="opt : ${question.options}"
+                                            class="px-3 py-2 rounded-lg text-sm border transition-colors"
+                                            th:classappend="${opt == question.correctAnswer} ? 'bg-emerald-50 border-emerald-300 text-emerald-800 font-medium' : (${opt == studentAnswers.get(question.questionIndex) and opt != question.correctAnswer} ? 'bg-red-50 border-red-300 text-red-800 font-medium' : 'bg-slate-50 border-slate-200 text-slate-600')">
+                                            <span th:if="${opt == question.correctAnswer}" class="mr-1">✓</span>
+                                            <span th:if="${opt == studentAnswers.get(question.questionIndex) and opt != question.correctAnswer}" class="mr-1">✗</span>
+                                            <span th:text="${opt}">Lựa chọn</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Đáp án đúng -->
+                                    <div class="flex flex-wrap gap-4 text-sm">
+                                        <div>
+                                            <span class="text-slate-500 text-xs">Đáp án đúng: </span>
+                                            <span class="font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded"
+                                                th:text="${question.correctAnswer}">A</span>
+                                        </div>
+                                        <div th:if="${question.score}">
+                                            <span class="text-slate-500 text-xs">Điểm câu này: </span>
+                                            <span class="font-semibold text-violet-700 bg-violet-50 px-2 py-0.5 rounded"
+                                                th:text="${question.score}">1</span>
+                                        </div>
+                                    </div>
+
+                                    <!-- Giải thích đáp án -->
+                                    <div th:if="${question.explanation != null and not #strings.isEmpty(question.explanation)}"
+                                        class="mt-2 px-3 py-2 bg-blue-50 border border-blue-100 rounded-lg text-sm text-blue-700">
+                                        <span class="font-medium">💡 Giải thích: </span>
+                                        <span th:text="${question.explanation}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hiển thị khi không có thông tin đề thi -->
+                        <div th:if="${exam == null}" class="p-8 text-center text-slate-400 text-sm">
+                            <iconify-icon icon="solar:diploma-linear" width="32" class="mb-2 opacity-40"></iconify-icon>
+                            <p>Không thể tải chi tiết câu hỏi</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Nút hành động -->
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <a th:href="'/dashboard/teacher/exams/' + ${exam.id} + '/results'"
+                        class="flex-1 px-6 py-3 text-center text-slate-600 border border-slate-200 rounded-xl font-medium hover:bg-slate-100 transition-colors">
+                        <iconify-icon icon="solar:arrow-left-linear" width="16" class="inline mr-1"></iconify-icon>
+                        Quay lại kết quả
+                    </a>
+                    <a href="/dashboard/teacher/exams"
+                        class="flex-1 px-6 py-3 text-center bg-violet-600 text-white rounded-xl font-medium hover:bg-violet-700 transition-colors">
+                        <iconify-icon icon="solar:home-linear" width="16" class="inline mr-1"></iconify-icon>
+                        Danh sách đề thi
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Không tìm thấy bài làm -->
+        <div th:if="${submission == null}" class="mx-auto max-w-2xl px-4 pt-20 text-center">
+            <p class="text-slate-500 mb-4">Không tìm thấy bài làm này.</p>
+            <a href="/dashboard/teacher/exams"
+                class="px-6 py-2 bg-violet-600 text-white rounded-lg text-sm font-medium hover:bg-violet-700">
+                Về danh sách đề thi
+            </a>
+        </div>
+    </main>
+
+    <!-- TEACHER FOOTER -->
+    <th:block th:insert="teacher/shared/footer"></th:block>
+</body>
+</html>
