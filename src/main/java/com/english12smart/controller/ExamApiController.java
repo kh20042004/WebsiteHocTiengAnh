@@ -415,6 +415,19 @@ public class ExamApiController {
         return ResponseEntity.ok(ApiResponseDTO.success(result));
     }
 
+    /**
+     * DELETE /api/exams/submissions/{submissionId}/reset
+     * Xóa bài làm để học sinh làm lại
+     */
+    @DeleteMapping("/submissions/{submissionId}/reset")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
+    public ResponseEntity<ApiResponseDTO<String>> resetSubmission(@PathVariable String submissionId) {
+        User currentUser = getCurrentUser();
+        boolean isAdmin = "ADMIN".equalsIgnoreCase(currentUser.getRole());
+        examService.resetStudentSubmission(submissionId, currentUser.getId(), isAdmin);
+        return ResponseEntity.ok(ApiResponseDTO.success("Đã xóa bài làm, học sinh có thể thi lại"));
+    }
+
     // ======================================================================
     // Helper: Lấy ID của user đang đăng nhập
     // ======================================================================

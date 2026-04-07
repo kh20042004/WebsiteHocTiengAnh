@@ -346,13 +346,46 @@ if (!window.ExamManagerLoaded) {
                     <p class="text-xs text-emerald-600 mt-1">✓ Đáp án: ${escapeHtml(q.correctAnswer)}</p>
                     ${q.explanation ? `<p class="text-xs text-slate-400 mt-0.5">💡 ${escapeHtml(q.explanation)}</p>` : ''}
                 </div>
-                <!-- Nút xóa câu hỏi này -->
-                <button type="button" onclick="ExamManager.removeCustomQuestion(${idx})"
-                    class="text-slate-400 hover:text-red-500 transition-colors shrink-0">
-                    <iconify-icon icon="solar:trash-bin-2-linear" width="18"></iconify-icon>
-                </button>
+                <div class="flex gap-2">
+                    <!-- Nút sửa câu hỏi -->
+                    <button type="button" onclick="ExamManager.editCustomQuestion(${idx})"
+                        class="text-slate-400 hover:text-blue-500 transition-colors shrink-0" title="Sửa câu hỏi">
+                        <iconify-icon icon="solar:pen-linear" width="18"></iconify-icon>
+                    </button>
+                    <!-- Nút xóa câu hỏi này -->
+                    <button type="button" onclick="ExamManager.removeCustomQuestion(${idx})"
+                        class="text-slate-400 hover:text-red-500 transition-colors shrink-0" title="Xóa câu hỏi">
+                        <iconify-icon icon="solar:trash-bin-2-linear" width="18"></iconify-icon>
+                    </button>
+                </div>
             </div>`;
         list.appendChild(div);
+    }
+
+    /**
+     * Sửa câu hỏi tự soạn
+     * Đưa dữ liệu câu hỏi ngược lại vào form và xóa khỏi danh sách
+     * @param {number} idx - Chỉ số câu hỏi
+     */
+    function editCustomQuestion(idx) {
+        const q = customQuestions[idx];
+        if (!q) return;
+
+        // Điền lại dữ liệu vào form
+        document.getElementById('newQuestionText').value = q.questionText || '';
+        document.getElementById('newQuestionType').value = q.type || 'MULTIPLE_CHOICE';
+        document.getElementById('newQuestionOptions').value = q.options && q.options.length > 0 ? q.options.join('\n') : '';
+        document.getElementById('newQuestionAnswer').value = q.correctAnswer || '';
+        document.getElementById('newQuestionExplanation').value = q.explanation || '';
+        document.getElementById('newQuestionScore').value = q.score || 1;
+
+        onQuestionTypeChange();
+
+        // Xóa câu hỏi cũ
+        removeCustomQuestion(idx);
+
+        // Cuộn tới form
+        document.getElementById('newQuestionText').focus();
     }
 
     /**
@@ -442,24 +475,24 @@ if (!window.ExamManagerLoaded) {
             // ========== VÔ HIỆU HÓA NÚT SUBMIT: Tránh double click ==========
             const submitBtn = form.querySelector('button[type="submit"]');
             submitBtn.disabled = true;
-            submitBtn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin inline mr-1"></iconify-icon> Đang tạo...';
+            // Gọi API
+            const urlParams = new URLSearchParams(window.location.search);
+            const examId = urlParams.get('examId');
+            const isEdit = !!examId;
 
-            // ========== XÂY DỰNG PAYLOAD GỬI LÊN API ==========
-            const payload = {
-                title: title,
-                description: description || null,
-                classroomId: classroomId,
-                timeLimitMinutes: timeLimitMinutes,
-                questions: filteredCustom,
-                exerciseIds: Array.from(selectedExerciseIds)
-            };
+            const url = isEdit ? '/api/exams/' + examId : '/api/exams';
+            const method = isEdit ? 'PUT' : 'POST';
 
-            console.log('📤 Gửi API tạo đề thi:', payload);
+            // Cập nhật text nút submit
+            if (isEdit) {
+                submitBtn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin inline mr-1"></iconify-icon> Đang cập nhật...';
+            } else {
+                submitBtn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin inline mr-1"></iconify-icon> Đang tạo...';
+            }
 
-            // ========== GỌI API ==========
             const token = localStorage.getItem('accessToken') || '';
-            const res = await fetch('/api/exams', {
-                method: 'POST',
+            const res = await fetch(url, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                     'Authorization': 'Bearer ' + token
@@ -472,12 +505,18 @@ if (!window.ExamManagerLoaded) {
 
             // ========== Xử LÝ Kết QUẢ ==========
             if (!res.ok || statusCode !== 200) {
-                throw new Error(data.message || 'Tạo đề thi thất bại');
+                throw new Error(data.message || (isEdit ? 'Cập nhật đề thi thất bại' : 'Tạo đề thi thất bại'));
             }
 
-            // Thành công - Hiển thị modal với mã PIN
-            console.log('✅ Tạo đề thi thành công! Mã PIN:', data.data.pinCode);
-            document.getElementById('createdPinCode').textContent = data.data.pinCode;
+            // Thành công
+            if (isEdit) {
+                alert('Cập nhật đề thi thành công!');
+                window.location.href = '/dashboard/teacher/exams';
+            } else {
+                console.log('✅ Tạo đề thi thành công! Mã PIN:', data.data.pinCode);
+                document.getElementById('createdPinCode').textContent = data.data.pinCode;
+                document.getElementById('pinModal').classList.remove('hidden');
+            }
             document.getElementById('pinModal').classList.remove('hidden');
 
         } catch (err) {
@@ -529,6 +568,98 @@ if (!window.ExamManagerLoaded) {
         return div.innerHTML;
     }
 
+    /**
+     * Tải dữ liệu đề thi lên form nếu đang ở chế độ chỉnh sửa
+     */
+    async function loadExamForEdit() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const examId = urlParams.get('examId');
+        if (!examId) return;
+
+        try {
+            const token = localStorage.getItem('accessToken') || '';
+            const res = await fetch('/api/exams/' + examId, {
+                headers: { 'Authorization': 'Bearer ' + token }
+            });
+            const data = await res.json();
+            const statusCode = data.code || data.statusCode;
+            if (!res.ok || statusCode !== 200) throw new Error(data.message || "Không thể tải đề thi");
+
+            const exam = data.data;
+
+            // 1. Điền thông tin cơ bản
+            const form = document.getElementById('createExamForm');
+            if (!form) return;
+
+            form.title.value = exam.title || '';
+            form.description.value = exam.description || '';
+            
+            // Xử lý selected option cho select lớp học
+            if (exam.classroomId) {
+                form.classroomId.value = exam.classroomId;
+            }
+            if (exam.timeLimitMinutes) {
+                form.timeLimitMinutes.value = exam.timeLimitMinutes;
+            } else {
+                form.timeLimitMinutes.value = '';
+            }
+
+            // Đổi nút button
+            const submitBtn = form.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<iconify-icon icon="solar:diploma-linear" width="18"></iconify-icon> Cập nhật đề thi';
+            }
+            const titleEl = document.querySelector('h1.font-medium');
+            if (titleEl) titleEl.textContent = 'Chỉnh Sửa Đề Thi';
+
+            // 2. Điền mảng customQuestions và selectedExerciseIds
+            const bankBtn = document.getElementById('tabBank');
+            const customBtn = document.getElementById('tabCustom');
+            let hasCustom = false;
+            let hasBank = false;
+
+            if (exam.questions && exam.questions.length > 0) {
+                exam.questions.forEach(q => {
+                    if (q.sourceExerciseId) {
+                        selectedExerciseIds.add(q.sourceExerciseId);
+                        hasBank = true;
+                    } else {
+                        // Câu hỏi tự soạn
+                        const newQ = {
+                            questionIndex: customQuestions.length,
+                            questionText: q.questionText,
+                            type: q.type,
+                            options: q.options || [],
+                            correctAnswer: q.correctAnswer,
+                            explanation: q.explanation || null,
+                            score: q.score || 1,
+                            sourceExerciseId: null
+                        };
+                        customQuestions.push(newQ);
+                        renderCustomQuestion(newQ, customQuestions.length - 1);
+                        hasCustom = true;
+                    }
+                });
+            }
+
+            document.getElementById('selectedExerciseIds').value = [...selectedExerciseIds].join(',');
+            updateQuestionSummary();
+
+            if (hasCustom && !hasBank) {
+                switchTab('custom');
+            }
+
+        } catch (err) {
+            console.error('Lỗi tải đề thi để sửa:', err);
+            alert('Lỗi tải đề thi để sửa: ' + err.message);
+        }
+    }
+
+    // Tự động fetch data edit nếu có examId
+    window.addEventListener('DOMContentLoaded', () => {
+        loadExamForEdit();
+    });
+
     // Expose các hàm public ra ngoài module
     return {
         switchTab,
@@ -538,6 +669,7 @@ if (!window.ExamManagerLoaded) {
         onQuestionTypeChange,
         addCustomQuestion,
         removeCustomQuestion,
+        editCustomQuestion,
         createExam,
         copyCreatedPin
     };

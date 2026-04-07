@@ -9,6 +9,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
+import com.english12smart.repository.UserRepository;
+import com.english12smart.entity.User;
+
 /**
  * ========== PROGRESS STATS API ==========
  * API endpoints để lấy dữ liệu thống kê tiến độ
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.*;
 public class ProgressStatsApiController {
 
     private final ProgressStatsService progressStatsService;
+    private final UserRepository userRepository;
 
     /**
      * GET /api/progress-stats/my-stats
@@ -31,13 +35,15 @@ public class ProgressStatsApiController {
             Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
             String email = authentication.getName();
 
-            // Lấy studentId từ email (thực tế nên query database để lấy ID)
-            // Tạm thời sử dụng email làm key
+            // Lấy studentId từ email
             log.info("📊 Lấy progress stats cho user: {}", email);
 
-            // FIXME: Lấy student ID thực sự từ database
-            // Tạm thời return mock data, cần sửa lại
-            ProgressStatsDTO stats = new ProgressStatsDTO();
+            User user = userRepository.findByEmail(email);
+            if (user == null) {
+                return ResponseEntity.status(404).build();
+            }
+
+            ProgressStatsDTO stats = progressStatsService.getProgressStats(user.getId());
             return ResponseEntity.ok(stats);
 
         } catch (Exception e) {

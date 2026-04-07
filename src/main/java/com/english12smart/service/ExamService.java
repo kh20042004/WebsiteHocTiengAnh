@@ -627,6 +627,32 @@ public class ExamService {
     }
 
     /**
+     * Cho phép học sinh làm lại bài (Xóa bài làm cũ)
+     */
+    public void resetStudentSubmission(String submissionId, String teacherId, boolean adminOverride) {
+        log.info("Giáo viên {} yêu cầu làm lại bài cho submission: {}", teacherId, submissionId);
+        
+        ExamSubmission submission = examSubmissionRepository.findById(submissionId)
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy bài làm"));
+                
+        Exam exam = examRepository.findById(submission.getExamId())
+                .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy đề thi"));
+                
+        if (!adminOverride && !exam.getTeacherId().equals(teacherId)) {
+            throw new BadRequestException("Bạn không có quyền thực hiện trên đề thi này");
+        }
+        
+        examSubmissionRepository.delete(submission);
+        
+        if (exam.getSubmittedCount() > 0) {
+            exam.setSubmittedCount(exam.getSubmittedCount() - 1);
+            examRepository.save(exam);
+        }
+        
+        log.info("Đã xóa bài làm {} của học sinh {}, cho phép làm lại.", submissionId, submission.getStudentId());
+    }
+
+    /**
      * Lấy lịch sử thi của học sinh (các bài thi đã làm)
      *
      * @param studentId ID học sinh

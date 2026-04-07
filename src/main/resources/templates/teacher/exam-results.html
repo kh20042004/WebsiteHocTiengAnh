@@ -148,17 +148,23 @@
                                     </span>
                                 </td>
                                 <td class="px-6 py-4">
-                                    <div class="flex items-center gap-2">
+                                    <div class="flex items-center gap-2 flex-wrap">
                                         <a th:href="'/dashboard/teacher/exams/' + ${exam.id} + '/submission/' + ${submission.id}"
-                                            class="text-violet-600 hover:text-violet-700 text-sm font-medium flex items-center gap-1">
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-violet-50 text-violet-600 hover:bg-violet-100 rounded-lg text-sm font-medium transition-colors">
                                             <iconify-icon icon="solar:eye-linear" width="16"></iconify-icon>
-                                            Xem bài
+                                            Xem
                                         </a>
                                         <a th:href="'/dashboard/teacher/exams/' + ${exam.id} + '/submissions/' + ${submission.id} + '/fraud-detail'"
-                                            class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center gap-1">
+                                            class="inline-flex items-center gap-1 px-3 py-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg text-sm font-medium transition-colors">
                                             <iconify-icon icon="solar:shield-warning-linear" width="16"></iconify-icon>
-                                            Fraud
+                                            Gian lận
                                         </a>
+                                        <button type="button" th:attr="onclick=|ExamResults.resetSubmission('${submission.id}')|"
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 bg-amber-50 text-amber-600 hover:bg-amber-100 rounded-lg text-sm font-medium transition-colors"
+                                                title="Xóa bài để học sinh làm lại">
+                                            <iconify-icon icon="solar:refresh-linear" width="16"></iconify-icon>
+                                            Làm lại
+                                        </button>
                                     </div>
                                 </td>
                             </tr>
@@ -185,6 +191,58 @@
 
     <!-- TEACHER FOOTER -->
     <th:block th:insert="teacher/shared/footer"></th:block>
+
+    <!-- THÊM SWEETALERT2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        const ExamResults = {
+            async resetSubmission(submissionId) {
+                const result = await Swal.fire({
+                    title: 'Bạn có chắc chắn?',
+                    text: 'Mọi dữ liệu điểm số và gian lận cũ sẽ bị xóa sạch, học sinh sẽ phải làm lại từ đầu.',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#f59e0b', /* amber-500 */
+                    cancelButtonColor: '#94a3b8', /* slate-400 */
+                    confirmButtonText: 'Đồng ý, Xóa bài!',
+                    cancelButtonText: 'Hủy bỏ'
+                });
+
+                if (!result.isConfirmed) return;
+                
+                try {
+                    const token = localStorage.getItem('accessToken') || '';
+                    const res = await fetch(`/api/exams/submissions/${submissionId}/reset`, {
+                        method: 'DELETE',
+                        headers: {
+                            'Authorization': 'Bearer ' + token
+                        }
+                    });
+                    
+                    const data = await res.json();
+                    if (res.ok && (data.code === 200 || data.statusCode === 200)) {
+                        await Swal.fire({
+                            title: 'Thành công!',
+                            text: 'Đã xóa bài làm. Học sinh có thể dùng mã PIN tham gia lại.',
+                            icon: 'success',
+                            confirmButtonColor: '#8b5cf6' /* violet-500 */
+                        });
+                        window.location.reload();
+                    } else {
+                        Swal.fire({
+                            title: 'Lỗi',
+                            text: data.message || 'Có lỗi xảy ra khi xóa bài làm.',
+                            icon: 'error',
+                            confirmButtonColor: '#ef4444' /* red-500 */
+                        });
+                    }
+                } catch (e) {
+                    Swal.fire('Lỗi kết nối', e.message, 'error');
+                }
+            }
+        };
+    </script>
 </body>
 
 </html>
