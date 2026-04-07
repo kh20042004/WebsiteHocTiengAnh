@@ -57,7 +57,7 @@
                 <div class="mt-4">
                     <div class="flex items-center justify-between text-xs text-slate-400 mb-1">
                         <span>Tiến độ</span>
-                        <span id="progressText">0 / <span th:text="${#lists.size(exercise.questions)}">0</span></span>
+                        <span id="progressText">0 / <span th:text="${exercise.questions != null ? #lists.size(exercise.questions) : 0}">0</span></span>
                     </div>
                     <div class="w-full bg-slate-100 rounded-full h-2">
                         <div id="progressBar" class="bg-emerald-500 h-2 rounded-full transition-all" style="width:0%"></div>
@@ -76,7 +76,7 @@
                     <!-- Số câu -->
                     <p class="text-xs text-slate-400 mb-3">
                         Câu <span th:text="${stat.index + 1}">1</span>
-                        / <span th:text="${#lists.size(exercise.questions)}">N</span>
+                        / <span th:text="${exercise.questions != null ? #lists.size(exercise.questions) : 0}">N</span>
                     </p>
 
                     <!-- Nội dung câu hỏi -->
@@ -84,7 +84,7 @@
 
                     <!-- ĐÁP ÁN: Trắc nghiệm -->
                     <div th:if="${exercise.type == 'MULTIPLE_CHOICE'}" class="space-y-2"
-                        th:attr="data-qidx=${stat.index}, data-correct=${question.correctAnswer}">
+                        th:attr="data-qidx=${stat.index}, data-correct=${question.correctAnswer}, data-expl=${question.explanation ?: ''}">
                         <button th:each="opt, optStat : ${question.options}"
                             th:attr="data-label=${optStat.index == 0 ? 'A' : (optStat.index == 1 ? 'B' : (optStat.index == 2 ? 'C' : 'D'))}"
                             th:text="${optStat.index == 0 ? 'A. ' : (optStat.index == 1 ? 'B. ' : (optStat.index == 2 ? 'C. ' : 'D. '))} + ${opt}"
@@ -95,7 +95,7 @@
 
                     <!-- ĐÁP ÁN: Đúng/Sai -->
                     <div th:if="${exercise.type == 'TRUE_FALSE'}" class="flex gap-3"
-                        th:attr="data-qidx=${stat.index}, data-correct=${question.correctAnswer}">
+                        th:attr="data-qidx=${stat.index}, data-correct=${question.correctAnswer}, data-expl=${question.explanation ?: ''}">
                         <button onclick="selectTFAnswer(this, 'True')"
                             class="tf-option flex-1 border border-slate-200 text-slate-700 px-4 py-3 rounded-xl text-sm font-medium hover:border-green-400 hover:bg-green-50 transition-all">
                             ✓ True (Đúng)
@@ -108,7 +108,7 @@
 
                     <!-- ĐÁP ÁN: Điền vào chỗ trống / Trả lời ngắn -->
                     <div th:if="${exercise.type == 'FILL_IN_BLANK' or exercise.type == 'SHORT_ANSWER'}"
-                        th:attr="data-qidx=${stat.index}, data-correct=${question.correctAnswer}">
+                        th:attr="data-qidx=${stat.index}, data-correct=${question.correctAnswer}, data-expl=${question.explanation ?: ''}">
                         <input type="text" placeholder="Nhập câu trả lời của bạn..."
                             class="fill-input w-full border border-slate-300 rounded-xl px-4 py-3 text-sm focus:ring-2 focus:ring-emerald-500 outline-none"
                             onkeydown="if(event.key==='Enter') checkFillAnswer(this.closest('[data-qidx]'), this)">
@@ -119,13 +119,13 @@
                     </div>
 
                     <!-- Phần nhận xét đáp án -->
-                    <div class="hidden mt-4 p-3 rounded-xl text-sm" id="feedback-{{stat.index}}">
+                    <div class="hidden mt-4 p-3 rounded-xl text-sm" th:id="'feedback-' + ${stat.index}">
                         <!-- Sẽ được điền bởi JavaScript -->
                     </div>
 
                     <!-- Nút điều hướng -->
                     <div class="flex justify-end mt-5">
-                        <button th:onclick="'nextQuestion(' + ${stat.index} + ', ' + ${#lists.size(exercise.questions)} + ')'"
+                        <button th:onclick="'nextQuestion(' + ${stat.index} + ', ' + ${exercise.questions != null ? #lists.size(exercise.questions) : 0} + ')'"
                             id="btnNext" class="hidden bg-slate-900 hover:bg-slate-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
                             Câu tiếp theo →
                         </button>
@@ -174,7 +174,7 @@
         const token = localStorage.getItem('token');
         // Dữ liệu bài tập được nhúng từ Thymeleaf
         const exerciseType = /*[[${exercise.type}]]*/ 'MULTIPLE_CHOICE';
-        const totalQuestions = /*[[${#lists.size(exercise.questions)}]]*/ 0;
+        const totalQuestions = /*[[${exercise.questions != null ? #lists.size(exercise.questions) : 0}]]*/ 0;
         const maxScore = /*[[${exercise.maxScore}]]*/ 100;
         const xpReward = /*[[${exercise.xpReward}]]*/ 20;
 
@@ -193,6 +193,7 @@
             container.querySelectorAll('.mc-option').forEach(b => b.disabled = true);
 
             const isCorrect = selected === correct;
+            const explanation = container.dataset.expl;
             answers[qIdx] = { selected, correct, isCorrect };
 
             if (isCorrect) {
@@ -208,6 +209,7 @@
                 });
             }
 
+            showFeedback(qIdx, isCorrect, explanation);
             updateProgress(parseInt(qIdx) + 1);
             showNextButton(container, qIdx);
         }
@@ -221,6 +223,7 @@
             container.querySelectorAll('.tf-option').forEach(b => b.disabled = true);
 
             const isCorrect = value === correct;
+            const explanation = container.dataset.expl;
             answers[qIdx] = { selected: value, correct, isCorrect };
 
             if (isCorrect) {
@@ -236,6 +239,7 @@
                 });
             }
 
+            showFeedback(qIdx, isCorrect, explanation);
             updateProgress(parseInt(qIdx) + 1);
             showNextButton(container, qIdx);
         }
@@ -250,6 +254,7 @@
             container.querySelector('button[onclick*="checkFill"]').disabled = true;
 
             const isCorrect = userAnswer === correct;
+            const explanation = container.dataset.expl;
             answers[qIdx] = { selected: userAnswer, correct, isCorrect };
 
             if (isCorrect) {
@@ -259,13 +264,29 @@
                 input.classList.add('border-red-400', 'bg-red-50');
                 // Hiển thị đáp án đúng
                 const hint = document.createElement('p');
-                hint.className = 'text-xs text-green-700 mt-1';
-                hint.textContent = 'Đáp án: ' + container.dataset.correct;
+                hint.className = 'text-xs text-emerald-700 mt-2 font-medium';
+                hint.textContent = '💡 Đáp án đúng là: ' + container.dataset.correct;
                 input.after(hint);
             }
 
+            showFeedback(qIdx, isCorrect, explanation);
             updateProgress(parseInt(qIdx) + 1);
             showNextButton(container, qIdx);
+        }
+
+        // Hiển thị thông báo nhận xét
+        function showFeedback(qIdx, isCorrect, explanation) {
+            const fbEl = document.getElementById('feedback-' + qIdx);
+            if (!fbEl) return;
+            fbEl.classList.remove('hidden', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800', 'border', 'border-green-300', 'border-red-300');
+            
+            if (isCorrect) {
+                fbEl.classList.add('bg-green-100', 'text-green-800', 'border', 'border-green-300');
+                fbEl.innerHTML = `<strong>✨ Tuyệt vời! Bạn đã trả lời đúng.</strong> ${explanation ? '<br><span class="text-sm mt-1 block opacity-90">' + explanation + '</span>' : ''}`;
+            } else {
+                fbEl.classList.add('bg-red-100', 'text-red-800', 'border', 'border-red-300');
+                fbEl.innerHTML = `<strong>❌ Rất tiếc, câu trả lời chưa chính xác.</strong> ${explanation ? '<br><span class="text-sm mt-1 block opacity-90">Giải thích: ' + explanation + '</span>' : ''}`;
+            }
         }
 
         // Cập nhật thanh tiến trình

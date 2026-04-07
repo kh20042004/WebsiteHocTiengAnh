@@ -72,10 +72,10 @@ public class ContentApiController {
     }
 
     /**
-     * POST /api/units — Tạo Unit mới (chỉ ADMIN)
+     * POST /api/units — Tạo Unit mới (TEACHER / ADMIN)
      */
     @PostMapping("/units")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<ContentDTO.UnitResponse>> createUnit(
             @RequestBody ContentDTO.UnitCreateRequest request,
             HttpServletRequest httpRequest) {
@@ -90,10 +90,10 @@ public class ContentApiController {
     }
 
     /**
-     * PUT /api/units/{unitId} — Cập nhật Unit (chỉ ADMIN)
+     * PUT /api/units/{unitId} — Cập nhật Unit (TEACHER / ADMIN)
      */
     @PutMapping("/units/{unitId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<ContentDTO.UnitResponse>> updateUnit(
             @PathVariable String unitId,
             @RequestBody ContentDTO.UnitUpdateRequest request) {
@@ -104,10 +104,10 @@ public class ContentApiController {
     }
 
     /**
-     * DELETE /api/units/{unitId} — Xoá Unit và toàn bộ nội dung (chỉ ADMIN)
+     * DELETE /api/units/{unitId} — Xoá Unit và toàn bộ nội dung (TEACHER / ADMIN)
      */
     @DeleteMapping("/units/{unitId}")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
+    @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
     public ResponseEntity<ApiResponseDTO<Void>> deleteUnit(@PathVariable String unitId) {
         log.info("API: Xoá Unit: {}", unitId);
 

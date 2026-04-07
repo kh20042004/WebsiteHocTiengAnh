@@ -146,18 +146,29 @@
 
             <!-- Lessons Grid - Danh sách bài học từ các Unit -->
             <div class="bg-white rounded-xl border border-slate-200 p-6">
-                <div class="flex items-center justify-between mb-6">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                     <h2 class="text-xl font-medium text-slate-900">Các bài học đang tiếp tục</h2>
-                    <!-- Filter: Chọn Unit -->
-                    <select
-                        class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
-                        <option value="">Tất cả Units</option>
-                        <!-- Thymeleaf: Lặp qua tất cả units -->
-                        <option th:each="unit : ${units}" th:value="${unit.id}" 
-                            th:text="${'Unit ' + unit.orderIndex + ': ' + unit.title}">
-                            Unit 1: Life Stories
-                        </option>
-                    </select>
+                    <!-- Filters: Search, Unit, Sort -->
+                    <div class="flex flex-wrap items-center gap-3">
+                        <div class="relative">
+                            <iconify-icon icon="mdi:magnify" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></iconify-icon>
+                            <input type="text" id="lessonSearch" placeholder="Tìm bài học..." 
+                                class="pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500 w-full sm:w-48">
+                        </div>
+                        <select id="unitFilter"
+                            class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="ALL">Tất cả Units</option>
+                            <option th:each="unit : ${units}" th:value="${unit.id}" 
+                                th:text="${'Unit ' + unit.orderIndex + ': ' + unit.title}">
+                            </option>
+                        </select>
+                        <select id="lessonSort"
+                            class="px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500">
+                            <option value="newest">Thứ tự mặc định</option>
+                            <option value="progress_desc">Tiến độ (Cao - Thấp)</option>
+                            <option value="progress_asc">Tiến độ (Thấp - Cao)</option>
+                        </select>
+                    </div>
                 </div>
 
                 <!-- Grid: Hiển thị các Lesson cards -->
@@ -167,7 +178,8 @@
                         <!-- Lặp qua tất cả lessons trong unit -->
                         <th:block th:each="lesson, stat : ${unit.lessons}" th:if="${unit.lessons != null and unit.lessons.size() > 0}">
                             <!-- Lesson Card -->
-                            <div class="group border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer">
+                            <div class="lesson-card group border border-slate-200 rounded-xl overflow-hidden hover:shadow-lg transition-all cursor-pointer"
+                                th:attr="data-unit=${unit.id}, data-title=${#strings.toLowerCase(unit.title + ' ' + lesson.title)}, data-progress=${lesson.progressPercent != null ? lesson.progressPercent : 0}, data-index=${unit.orderIndex * 100 + lesson.orderIndex}">
                                 <!-- Card Header: Hình ảnh/Icon theo type của lesson -->
                                 <div th:switch="${lesson.type}"
                                     class="h-40 flex items-center justify-center text-white"
@@ -240,13 +252,15 @@
                     </th:block>
 
                     <!-- Nếu không có bài học nào, hiển thị thông báo -->
-                    <div th:if="${units == null or units.isEmpty()}" class="col-span-full text-center py-12">
+                    <div id="noLessonsMsg" class="hidden col-span-full text-center py-12">
                         <iconify-icon icon="solar:book-open-bold" width="48" class="text-slate-300 mx-auto mb-4"></iconify-icon>
-                        <p class="text-slate-500">Không có bài học nào để hiển thị hiện tại</p>
-                        <a href="/dashboard/student/learn" class="inline-block mt-4 px-4 py-2 bg-brand-500 text-white rounded-lg text-sm font-medium hover:bg-brand-600">
-                            Bắt đầu học
-                        </a>
+                        <p class="text-slate-500">Không tìm thấy bài học nào phù hợp</p>
                     </div>
+                </div>
+                
+                <!-- Phân trang -->
+                <div id="paginationContainer" class="flex items-center justify-center gap-2 mt-8 hidden">
+                    <!-- Sẽ được tạo bằng JS -->
                 </div>
             </div>
 
@@ -410,6 +424,116 @@
     <!-- SHARED STUDENT FOOTER -->
     <th:block th:replace="shared/student-footer :: student-footer"></th:block>
 
+    <script th:inline="javascript">
+        document.addEventListener('DOMContentLoaded', function() {
+            const cards = Array.from(document.querySelectorAll('.lesson-card'));
+            const noLessonsDiv = document.getElementById('noLessonsMsg');
+            const searchInput = document.getElementById('lessonSearch');
+            const unitFilter = document.getElementById('unitFilter');
+            const sortFilter = document.getElementById('lessonSort');
+            const paginationContainer = document.getElementById('paginationContainer');
+            
+            // Xử lý logic nếu grid rỗng ban đầu
+            if (cards.length === 0) {
+                if(noLessonsDiv) noLessonsDiv.classList.remove('hidden');
+                return;
+            }
+
+            const itemsPerPage = 6;
+            let currentPage = 1;
+            let filteredCards = [...cards];
+
+            function renderCards() {
+                if(!searchInput) return;
+                const query = searchInput.value.toLowerCase().trim();
+                const unitId = unitFilter.value;
+                const sortType = sortFilter.value;
+
+                // 1. Lọc
+                filteredCards = cards.filter(card => {
+                    const title = card.getAttribute('data-title') || '';
+                    const cUnit = card.getAttribute('data-unit');
+                    const matchSearch = title.includes(query);
+                    const matchUnit = unitId === 'ALL' || cUnit === unitId;
+                    return matchSearch && matchUnit;
+                });
+
+                // 2. Sắp xếp
+                filteredCards.sort((a, b) => {
+                    const pA = parseInt(a.getAttribute('data-progress'));
+                    const pB = parseInt(b.getAttribute('data-progress'));
+                    const idxA = parseInt(a.getAttribute('data-index'));
+                    const idxB = parseInt(b.getAttribute('data-index'));
+
+                    if (sortType === 'progress_desc') return pB - pA;
+                    if (sortType === 'progress_asc') return pA - pB;
+                    return idxA - idxB;
+                });
+
+                currentPage = 1;
+                updatePagination();
+            }
+
+            function updatePagination() {
+                const totalPages = Math.ceil(filteredCards.length / itemsPerPage);
+                
+                cards.forEach(c => c.style.display = 'none');
+                
+                if (filteredCards.length === 0) {
+                    noLessonsDiv.classList.remove('hidden');
+                    paginationContainer.classList.add('hidden');
+                    return;
+                } else {
+                    noLessonsDiv.classList.add('hidden');
+                }
+
+                const start = (currentPage - 1) * itemsPerPage;
+                const end = start + itemsPerPage;
+                filteredCards.slice(start, end).forEach(c => {
+                    c.style.display = 'block';
+                });
+
+                if (totalPages > 1) {
+                    paginationContainer.classList.remove('hidden');
+                    paginationContainer.innerHTML = '';
+                    
+                    const prevBtn = document.createElement('button');
+                    prevBtn.innerHTML = '←';
+                    prevBtn.className = `px-3 py-1 rounded-md border ${currentPage === 1 ? 'text-slate-300 border-slate-100 cursor-not-allowed' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`;
+                    prevBtn.disabled = currentPage === 1;
+                    prevBtn.onclick = () => { currentPage--; updatePagination(); };
+                    paginationContainer.appendChild(prevBtn);
+
+                    for (let i = 1; i <= totalPages; i++) {
+                        const btn = document.createElement('button');
+                        btn.textContent = i;
+                        if (i === currentPage) {
+                            btn.className = 'px-3 py-1 rounded-md bg-brand-500 text-white font-medium';
+                        } else {
+                            btn.className = 'px-3 py-1 rounded-md border border-slate-200 text-slate-600 hover:bg-slate-50';
+                            btn.onclick = () => { currentPage = i; updatePagination(); };
+                        }
+                        paginationContainer.appendChild(btn);
+                    }
+                    
+                    const nextBtn = document.createElement('button');
+                    nextBtn.innerHTML = '→';
+                    nextBtn.className = `px-3 py-1 rounded-md border ${currentPage === totalPages ? 'text-slate-300 border-slate-100 cursor-not-allowed' : 'text-slate-600 border-slate-200 hover:bg-slate-50'}`;
+                    nextBtn.disabled = currentPage === totalPages;
+                    nextBtn.onclick = () => { currentPage++; updatePagination(); };
+                    paginationContainer.appendChild(nextBtn);
+                } else {
+                    paginationContainer.classList.add('hidden');
+                }
+            }
+
+            searchInput.addEventListener('input', renderCards);
+            unitFilter.addEventListener('change', renderCards);
+            sortFilter.addEventListener('change', renderCards);
+
+            renderCards();
+        });
+    </script>
 </body>
 
 </html>

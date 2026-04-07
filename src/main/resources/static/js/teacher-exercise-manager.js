@@ -566,50 +566,30 @@ if (typeof ExerciseManager === 'undefined') {
                 lessonId: document.getElementById('lessonSelect').value,
                 title: document.getElementById('questionTitle').value.trim(),
                 instruction: document.getElementById('instruction').value.trim(),
-                questionType: currentQuestionType,
                 maxScore: parseInt(document.getElementById('maxScore').value) || 10,
-                estimatedDurationMinutes: parseInt(document.getElementById('estimatedDuration').value) || 5,
-                difficulty: document.querySelector('input[name="difficulty"]:checked').value || 'EASY'
+                timeLimitMinutes: parseInt(document.getElementById('estimatedDuration').value) || 5, // mapped to timeLimitMinutes
+                xpReward: 5
             };
 
-            // Validate thông tin cơ bản
-            if (!baseData.lessonId) {
-                throw new Error('Vui lòng chọn Lesson');
-            }
-            if (!baseData.title) {
-                throw new Error('Vui lòng nhập tiêu đề câu hỏi');
-            }
+            if (!baseData.lessonId) throw new Error('Vui lòng chọn Lesson');
+            if (!baseData.title) throw new Error('Vui lòng nhập tiêu đề bài tập');
 
-            // Thu thập dữ liệu cụ thể theo loại câu hỏi
-            let questionContent = {};
+            let specificData = {};
 
             switch (currentQuestionType) {
-                case 'MULTIPLE_CHOICE':
-                    questionContent = getMultipleChoiceData();
-                    break;
-                case 'FILL_BLANK':
-                    questionContent = getFillBlankData();
-                    break;
-                case 'TRUE_FALSE':
-                    questionContent = getTrueFalseData();
-                    break;
-                case 'MATCHING':
-                    questionContent = getMatchingData();
-                    break;
-                case 'SHORT_ANSWER':
-                    questionContent = getShortAnswerData();
-                    break;
+                case 'MULTIPLE_CHOICE': specificData = getMultipleChoiceData(); break;
+                case 'FILL_BLANK': specificData = getFillBlankData(); break;
+                case 'TRUE_FALSE': specificData = getTrueFalseData(); break;
+                case 'MATCHING': specificData = getMatchingData(); break;
+                case 'SHORT_ANSWER': specificData = getShortAnswerData(); break;
             }
 
-            return { ...baseData, ...questionContent };
+            return { ...baseData, ...specificData };
         }
 
-        /**
-         * Thu thập dữ liệu Multiple Choice
-         */
         function getMultipleChoiceData() {
             const content = document.getElementById('mcQuestionContent').value.trim();
-            const correctAnswer = document.querySelector('input[name="mcCorrectAnswer"]:checked').value;
+            const correctAnswer = document.querySelector('input[name="mcCorrectAnswer"]:checked')?.value;
             const explanation = document.getElementById('mcExplanation').value.trim();
 
             if (!content) throw new Error('Vui lòng nhập nội dung câu hỏi');
@@ -617,25 +597,24 @@ if (typeof ExerciseManager === 'undefined') {
 
             const options = [];
             for (let letter of ['A', 'B', 'C', 'D', 'E']) {
-                const answer = document.getElementById(`mcAnswer${letter}`)?.value.trim();
-                if (answer) {
-                    options.push({ letter, text: answer, isCorrect: letter === correctAnswer });
-                }
+                const ans = document.getElementById(`mcAnswer${letter}`)?.value.trim();
+                if (ans) options.push(ans);
             }
 
             if (options.length < 2) throw new Error('Cần ít nhất 2 đáp án');
 
             return {
-                questionContent: content,
-                options,
-                explanation,
-                totalQuestions: 1
+                type: 'MULTIPLE_CHOICE',
+                questions: [{
+                    questionIndex: 1,
+                    questionText: content,
+                    options: options,
+                    correctAnswer: correctAnswer,
+                    explanation: explanation
+                }]
             };
         }
 
-        /**
-         * Thu thập dữ liệu Fill in the Blank
-         */
         function getFillBlankData() {
             const content = document.getElementById('fbQuestionContent').value.trim();
             const correctAnswer = document.getElementById('fbCorrectAnswer').value.trim();
@@ -643,78 +622,75 @@ if (typeof ExerciseManager === 'undefined') {
 
             if (!content) throw new Error('Vui lòng nhập nội dung câu hỏi');
             if (!correctAnswer) throw new Error('Vui lòng nhập từ/cụm từ đúng');
-            if (!content.includes('[...]')) {
-                throw new Error('Câu hỏi phải chứa [...] để chỉ vị trí cần điền');
-            }
+            if (!content.match(/\[\.+\]/)) throw new Error('Câu hỏi phải chứa [...] (3 dấu chấm) để chỉ vị trí cần điền');
 
             return {
-                questionContent: content,
-                correctAnswers: [correctAnswer],
-                explanation,
-                totalQuestions: 1
+                type: 'FILL_IN_BLANK',
+                questions: [{
+                    questionIndex: 1,
+                    questionText: content,
+                    correctAnswer: correctAnswer,
+                    explanation: explanation
+                }]
             };
         }
 
-        /**
-         * Thu thập dữ liệu True/False
-         */
         function getTrueFalseData() {
             const content = document.getElementById('tfQuestionContent').value.trim();
-            const correctAnswer = document.querySelector('input[name="tfCorrectAnswer"]:checked').value;
+            const correctAnswer = document.querySelector('input[name="tfCorrectAnswer"]:checked')?.value;
             const explanation = document.getElementById('tfExplanation').value.trim();
 
             if (!content) throw new Error('Vui lòng nhập nội dung câu phát biểu');
             if (!correctAnswer) throw new Error('Vui lòng chọn Đúng hoặc Sai');
 
             return {
-                questionContent: content,
-                answer: correctAnswer,
-                explanation,
-                totalQuestions: 1
+                type: 'TRUE_FALSE',
+                questions: [{
+                    questionIndex: 1,
+                    questionText: content,
+                    correctAnswer: correctAnswer === 'TRUE' ? 'True' : 'False',
+                    explanation: explanation
+                }]
             };
         }
 
-        /**
-         * Thu thập dữ liệu Matching
-         */
         function getMatchingData() {
-            const leftItems = Array.from(document.querySelectorAll('#matchingLeftItems > div:not(:last-child) span:first-child'))
-                .map(el => el.textContent.trim());
-            const rightItems = Array.from(document.querySelectorAll('#matchingRightItems > div:not(:last-child) span:first-child'))
-                .map(el => el.textContent.trim());
+            const leftItems = Array.from(document.querySelectorAll('#matchingLeftItems > div:not(:last-child) span:first-child')).map(el => el.textContent.trim());
+            const rightItems = Array.from(document.querySelectorAll('#matchingRightItems > div:not(:last-child) span:first-child')).map(el => el.textContent.trim());
             const explanation = document.getElementById('matchingExplanation').value.trim();
 
             if (leftItems.length < 3) throw new Error('Cần ít nhất 3 mục ở cột trái');
             if (rightItems.length < 3) throw new Error('Cần ít nhất 3 tùy chọn ở cột phải');
 
             return {
-                questionContent: 'Ghép các mục ở cột trái với các tùy chọn ở cột phải',
-                leftItems,
-                rightItems,
-                explanation,
-                totalQuestions: 1
+                type: 'MATCHING',
+                questions: [{
+                    questionIndex: 1,
+                    questionText: leftItems.join(' | ') + ' === ' + rightItems.join(' | '),
+                    correctAnswer: 'Matching Exercise', // Placeholder
+                    explanation: explanation
+                }]
             };
         }
 
-        /**
-         * Thu thập dữ liệu Short Answer
-         */
         function getShortAnswerData() {
             const content = document.getElementById('saQuestionContent').value.trim();
             const sampleAnswer = document.getElementById('saSampleAnswer').value.trim();
-            const answerLength = document.querySelector('input[name="saLength"]:checked').value;
-            const gradingCriteria = document.getElementById('saGradingCriteria').value.trim();
+            const explanation = document.getElementById('saGradingCriteria').value.trim();
 
             if (!content) throw new Error('Vui lòng nhập câu hỏi');
             if (!sampleAnswer) throw new Error('Vui lòng nhập đáp án mẫu');
 
             return {
-                questionContent: content,
-                sampleAnswer,
-                answerLength,
-                gradingCriteria,
-                totalQuestions: 1
+                type: 'SHORT_ANSWER',
+                questions: [{
+                    questionIndex: 1,
+                    questionText: content,
+                    correctAnswer: sampleAnswer,
+                    explanation: explanation
+                }]
             };
+
         }
 
         /**

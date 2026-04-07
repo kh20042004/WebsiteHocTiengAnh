@@ -242,8 +242,8 @@
     <!-- ==================== CREATE ASSIGNMENT MODAL ==================== -->
     <div id="createModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
          onclick="if(event.target===this)closeCreateModal()">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div class="p-6 border-b border-slate-200">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-scale-in">
+            <div class="p-6 border-b border-slate-200 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-medium text-slate-900">Giao bài tập mới</h2>
                     <button onclick="closeCreateModal()" class="text-slate-400 hover:text-slate-600">
@@ -251,7 +251,7 @@
                     </button>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-6 overflow-y-auto flex-1">
                 <form id="createForm" class="space-y-4">
                     <div>
                         <label class="block text-sm font-medium text-slate-700 mb-2">Tiêu đề bài tập <span class="text-red-500">*</span></label>
@@ -293,7 +293,7 @@
                     </div>
                 </form>
             </div>
-            <div class="p-6 border-t border-slate-200 flex gap-3">
+            <div class="p-6 border-t border-slate-200 flex gap-3 flex-shrink-0">
                 <button onclick="closeCreateModal()" class="flex-1 px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">Hủy</button>
                 <button type="button" onclick="submitCreate()" id="createSubmitBtn"
                     class="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors">Giao bài tập</button>
@@ -304,8 +304,8 @@
     <!-- ==================== EDIT ASSIGNMENT MODAL ==================== -->
     <div id="editModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4"
          onclick="if(event.target===this)closeEditModal()">
-        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto animate-scale-in">
-            <div class="p-6 border-b border-slate-200">
+        <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] flex flex-col animate-scale-in">
+            <div class="p-6 border-b border-slate-200 flex-shrink-0">
                 <div class="flex items-center justify-between">
                     <h2 class="text-xl font-medium text-slate-900">Chỉnh sửa bài tập</h2>
                     <button onclick="closeEditModal()" class="text-slate-400 hover:text-slate-600">
@@ -313,7 +313,7 @@
                     </button>
                 </div>
             </div>
-            <div class="p-6">
+            <div class="p-6 overflow-y-auto flex-1">
                 <form id="editForm" class="space-y-4">
                     <input type="hidden" id="editId">
                     <div>
@@ -356,7 +356,7 @@
                     </div>
                 </form>
             </div>
-            <div class="p-6 border-t border-slate-200 flex gap-3">
+            <div class="p-6 border-t border-slate-200 flex gap-3 flex-shrink-0">
                 <button onclick="closeEditModal()" class="flex-1 px-6 py-3 border border-slate-200 rounded-lg font-medium hover:bg-slate-50 transition-colors">Hủy</button>
                 <button type="button" onclick="submitEdit()" id="editSubmitBtn"
                     class="flex-1 px-6 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors">Lưu thay đổi</button>
