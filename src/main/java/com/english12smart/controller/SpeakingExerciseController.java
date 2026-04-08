@@ -17,7 +17,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -73,7 +74,6 @@ public class SpeakingExerciseController {
      * }
      */
     @PostMapping("/exercises/{exerciseId}/submit")
-    @PreAuthorize("hasAuthority('ROLE_STUDENT')")
     public ResponseEntity<ApiResponseDTO<SpeakingSubmissionResponse>> submitSpeakingExercise(
             @PathVariable String exerciseId,
             @RequestParam("audio") MultipartFile audioFile,
@@ -87,6 +87,18 @@ public class SpeakingExerciseController {
             if (studentId == null) {
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                         .body(ApiResponseDTO.error(401, "Vui lòng đăng nhập"));
+            }
+
+            User currentUser = userRepository.findById(studentId).orElse(null);
+            if (currentUser == null) {
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                        .body(ApiResponseDTO.error(401, "Phiên đăng nhập không hợp lệ"));
+            }
+
+            String role = currentUser.getRole() != null ? currentUser.getRole().toUpperCase() : "";
+            if (!role.contains("STUDENT")) {
+                return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                        .body(ApiResponseDTO.error(403, "Chỉ học sinh mới có quyền nộp bài nói"));
             }
 
             // 2. Lấy bài tập từ database
@@ -206,6 +218,18 @@ public class SpeakingExerciseController {
                 User user = userRepository.findByEmail(email);
                 if (user != null) {
                     return user.getId();
+                }
+            }
+
+            // Fallback: lấy từ session-based authentication (không cần JWT header)
+            Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+            if (authentication != null
+                    && authentication.isAuthenticated()
+                    && authentication.getName() != null
+                    && !"anonymousUser".equalsIgnoreCase(authentication.getName())) {
+                User sessionUser = userRepository.findByEmail(authentication.getName());
+                if (sessionUser != null) {
+                    return sessionUser.getId();
                 }
             }
 

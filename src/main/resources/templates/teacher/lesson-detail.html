@@ -44,7 +44,9 @@
             </nav>
 
             <!-- HEADER BÀI HỌC -->
-            <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-8">
+            <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-8 cursor-pointer hover:shadow-md transition-shadow"
+                th:data-lesson-id="${lesson.id}"
+                onclick="showLessonLinkModal(this)">
                 <div class="flex items-start justify-between">
                     <div>
                         <div class="flex items-center gap-2 mb-2">
@@ -89,7 +91,9 @@
             <!-- Lưới bài tập -->
             <div th:unless="${#lists.isEmpty(exercises)}" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 <div th:each="ex : ${exercises}"
-                    class="bg-white rounded-xl border border-slate-200 p-5 hover:border-blue-300 transition-colors">
+                    th:data-exercise-id="${ex.id}"
+                    onclick="showExerciseLinkModal(this)"
+                    class="bg-white rounded-xl border border-slate-200 p-5 hover:border-blue-300 hover:shadow-md transition-all cursor-pointer">
                     <div class="flex items-start justify-between mb-3">
                         <span class="text-xs px-2 py-0.5 rounded-full font-medium"
                             th:classappend="${ex.type == 'MULTIPLE_CHOICE'} ? 'bg-blue-100 text-blue-700' :
@@ -101,7 +105,7 @@
                         <button type="button"
                             th:data-exercise-id="${ex.id}"
                             th:data-exercise-title="${ex.title}"
-                            onclick="deleteExerciseFromButton(this)"
+                            onclick="deleteExerciseFromButton(event, this)"
                             class="text-slate-400 hover:text-red-500 transition-colors">
                             <iconify-icon icon="mdi:delete-outline"></iconify-icon>
                         </button>
@@ -221,6 +225,76 @@
                     class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Huỷ</button>
                 <button onclick="submitCreateExercise()"
                     class="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">Tạo bài tập</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HIỂN THỊ LINK BÀI HỌC -->
+    <div id="lessonLinkModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-900">Link bài học</h2>
+                <button onclick="closeLessonLinkModal()" class="text-slate-400 hover:text-slate-600">
+                    <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Đường dẫn bài học (dành cho học sinh)</label>
+                    <div class="flex items-center gap-2">
+                        <input id="lessonLinkInput" type="text" readonly 
+                            class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button onclick="copyLessonLink()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                            <iconify-icon icon="mdi:content-copy" class="text-lg"></iconify-icon>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Sao chép link này để gửi cho học sinh</p>
+                </div>
+            </div>
+            <div class="flex gap-3 p-6 pt-0 border-t border-slate-100">
+                <button onclick="closeLessonLinkModal()"
+                    class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Đóng</button>
+                <button onclick="openLessonInNewTab()"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <iconify-icon icon="mdi:open-in-new" class="text-lg"></iconify-icon>
+                    Xem trước
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL: HIỂN THỊ LINK BÀI TẬP -->
+    <div id="exerciseLinkModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="flex items-center justify-between p-6 border-b border-slate-100">
+                <h2 class="text-lg font-semibold text-slate-900">Link bài tập</h2>
+                <button onclick="closeExerciseLinkModal()" class="text-slate-400 hover:text-slate-600">
+                    <iconify-icon icon="mdi:close" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700 mb-2">Đường dẫn bài tập</label>
+                    <div class="flex items-center gap-2">
+                        <input id="exerciseLinkInput" type="text" readonly 
+                            class="flex-1 border border-slate-300 rounded-lg px-3 py-2 text-sm bg-slate-50 focus:ring-2 focus:ring-blue-500 outline-none">
+                        <button onclick="copyExerciseLink()"
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                            <iconify-icon icon="mdi:content-copy" class="text-lg"></iconify-icon>
+                        </button>
+                    </div>
+                    <p class="text-xs text-slate-500 mt-2">Sao chép link này để chia sẻ với học sinh</p>
+                </div>
+            </div>
+            <div class="flex gap-3 p-6 pt-0 border-t border-slate-100">
+                <button onclick="closeExerciseLinkModal()"
+                    class="flex-1 border border-slate-200 text-slate-700 px-4 py-2 rounded-lg text-sm font-medium hover:bg-slate-50">Đóng</button>
+                <button onclick="openExerciseInNewTab()"
+                    class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors flex items-center justify-center gap-2">
+                    <iconify-icon icon="mdi:open-in-new" class="text-lg"></iconify-icon>
+                    Xem trước
+                </button>
             </div>
         </div>
     </div>
@@ -447,9 +521,10 @@
 
         /**
          * Wrapper function để lấy dữ liệu từ data-* attributes của button
-         * Được gọi từ onclick="deleteExerciseFromButton(this)"
+         * Được gọi từ onclick="deleteExerciseFromButton(event, this)"
          */
-        function deleteExerciseFromButton(button) {
+        function deleteExerciseFromButton(event, button) {
+            event.stopPropagation(); // Ngăn không cho sự kiện click lan tỏa đến parent div
             const id = button.getAttribute('data-exercise-id');
             const title = button.getAttribute('data-exercise-title');
             deleteExercise(id, title);
@@ -473,6 +548,120 @@
             } catch (err) {
                 showToast('Lỗi kết nối server!', 'error');
             }
+        }
+
+        /**
+         * Hiển thị modal với link bài tập
+         * Được gọi từ onclick="showExerciseLinkModal(this)" trên exercise card
+         */
+        function showExerciseLinkModal(card) {
+            const exerciseId = card.getAttribute('data-exercise-id');
+            const exerciseTitle = card.querySelector('h3').textContent;
+            
+            // Tạo link
+            const baseUrl = window.location.origin;
+            const exerciseLink = `${baseUrl}/learn/exercises/${exerciseId}`;
+            
+            // Cập nhật input field
+            document.getElementById('exerciseLinkInput').value = exerciseLink;
+            
+            // Lưu exerciseId để dùng cho các function khác
+            document.getElementById('exerciseLinkModal').dataset.exerciseId = exerciseId;
+            document.getElementById('exerciseLinkModal').dataset.exerciseTitle = exerciseTitle;
+            document.getElementById('exerciseLinkModal').dataset.exerciseLink = exerciseLink;
+            
+            // Hiển thị modal
+            document.getElementById('exerciseLinkModal').classList.remove('hidden');
+        }
+
+        /**
+         * Đóng modal hiển thị link
+         */
+        function closeExerciseLinkModal() {
+            document.getElementById('exerciseLinkModal').classList.add('hidden');
+        }
+
+        /**
+         * Copy link vào clipboard
+         */
+        function copyExerciseLink() {
+            const linkInput = document.getElementById('exerciseLinkInput');
+            const link = linkInput.value;
+            
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Đã sao chép link!', 'success');
+            }).catch(() => {
+                // Fallback cho các trình duyệt cũ
+                linkInput.select();
+                document.execCommand('copy');
+                showToast('Đã sao chép link!', 'success');
+            });
+        }
+
+        /**
+         * Mở bài tập trong tab mới
+         */
+        function openExerciseInNewTab() {
+            const modal = document.getElementById('exerciseLinkModal');
+            const link = modal.dataset.exerciseLink;
+            window.open(link, '_blank');
+        }
+
+        /**
+         * Hiển thị modal với link bài học
+         * Được gọi từ onclick="showLessonLinkModal(this)" trên lesson header
+         */
+        function showLessonLinkModal(headerDiv) {
+            const lessonId = headerDiv.getAttribute('data-lesson-id');
+            const lessonTitle = headerDiv.querySelector('h1').textContent;
+            
+            // Tạo link bài học cho học sinh
+            const baseUrl = window.location.origin;
+            const lessonLink = `${baseUrl}/dashboard/student/learn/lessons/${lessonId}`;
+            
+            // Cập nhật input field
+            document.getElementById('lessonLinkInput').value = lessonLink;
+            
+            // Lưu dữ liệu vào modal dataset
+            document.getElementById('lessonLinkModal').dataset.lessonId = lessonId;
+            document.getElementById('lessonLinkModal').dataset.lessonTitle = lessonTitle;
+            document.getElementById('lessonLinkModal').dataset.lessonLink = lessonLink;
+            
+            // Hiển thị modal
+            document.getElementById('lessonLinkModal').classList.remove('hidden');
+        }
+
+        /**
+         * Đóng modal hiển thị link bài học
+         */
+        function closeLessonLinkModal() {
+            document.getElementById('lessonLinkModal').classList.add('hidden');
+        }
+
+        /**
+         * Copy link bài học vào clipboard
+         */
+        function copyLessonLink() {
+            const linkInput = document.getElementById('lessonLinkInput');
+            const link = linkInput.value;
+            
+            navigator.clipboard.writeText(link).then(() => {
+                showToast('Đã sao chép link bài học!', 'success');
+            }).catch(() => {
+                // Fallback cho các trình duyệt cũ
+                linkInput.select();
+                document.execCommand('copy');
+                showToast('Đã sao chép link bài học!', 'success');
+            });
+        }
+
+        /**
+         * Mở bài học trong tab mới
+         */
+        function openLessonInNewTab() {
+            const modal = document.getElementById('lessonLinkModal');
+            const link = modal.dataset.lessonLink;
+            window.open(link, '_blank');
         }
 
         function showToast(message, type = 'success') {

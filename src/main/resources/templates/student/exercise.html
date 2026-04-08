@@ -125,11 +125,31 @@
                     </div>
 
                     <!-- Nút điều hướng -->
-                    <div class="flex justify-end mt-5">
-                        <button th:onclick="'nextQuestion(' + ${stat.index} + ', ' + ${exercise.questions != null ? #lists.size(exercise.questions) : 0} + ')'"
-                            id="btnNext" class="hidden bg-slate-900 hover:bg-slate-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors">
-                            Câu tiếp theo →
+                    <div class="flex justify-between items-center mt-5">
+                        <!-- Nút Quay lại (Previous) -->
+                        <button th:if="${stat.first == false}"
+                            th:onclick="'previousQuestion(' + ${stat.index} + ')'"
+                            class="btnPrev bg-slate-400 hover:bg-slate-500 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                            <iconify-icon icon="mdi:chevron-left"></iconify-icon>
+                            Quay lại
                         </button>
+                        <div th:if="${stat.first == true}"></div>
+
+                        <!-- Nút Tiếp theo / Hoàn thành -->
+                        <div class="flex gap-3">
+                            <button th:if="${stat.last == false}"
+                                th:onclick="'nextQuestion(' + ${stat.index} + ', ' + ${exercise.questions != null ? #lists.size(exercise.questions) : 0} + ')'"
+                                class="btnNext bg-slate-900 hover:bg-slate-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                Tiếp theo
+                                <iconify-icon icon="mdi:chevron-right"></iconify-icon>
+                            </button>
+                            <button th:if="${stat.last == true}"
+                                th:onclick="'submitExercise()'"
+                                class="btnFinish bg-emerald-600 hover:bg-emerald-700 text-white px-5 py-2 rounded-lg text-sm font-medium transition-colors flex items-center gap-2">
+                                <iconify-icon icon="mdi:check-circle"></iconify-icon>
+                                Hoàn thành
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -280,7 +300,7 @@
 
             showFeedback(qIdx, isCorrect, explanation);
             updateProgress(parseInt(qIdx) + 1);
-            showNextButton(container, qIdx);
+            showNavigationButtons(container, qIdx);
         }
 
         // ===== XỬ LÝ ĐÚNG / SAI =====
@@ -288,12 +308,26 @@
             const container = btn.closest('[data-qidx]');
             const qIdx = container.dataset.qidx;
             const correct = container.dataset.correct;
+            
+            // Normalize: T/F format (database stores as "T" or "F")
+            const correctNormalized = correct ? correct.toUpperCase() : '';
+            const valueLower = value.toLowerCase();
+            const selectedNormalized = valueLower === 'true' ? 'T' : 'F';
+
+            console.log('=== TRUE/FALSE ANSWER ===');
+            console.log('Question Index:', qIdx);
+            console.log('Raw correct value:', correct);
+            console.log('Correct (normalized):', correctNormalized);
+            console.log('Selected value:', value, 'normalized:', selectedNormalized);
+            console.log('Comparison:', selectedNormalized, '===', correctNormalized, '?', selectedNormalized === correctNormalized);
 
             container.querySelectorAll('.tf-option').forEach(b => b.disabled = true);
 
-            const isCorrect = value === correct;
+            const isCorrect = selectedNormalized === correctNormalized;
             const explanation = container.dataset.expl;
             answers[qIdx] = { selected: value, correct, isCorrect };
+
+            console.log('Is correct:', isCorrect);
 
             if (isCorrect) {
                 btn.classList.add('bg-green-100', 'border-green-400', 'text-green-800');
@@ -301,8 +335,8 @@
             } else {
                 btn.classList.add('bg-red-100', 'border-red-400');
                 container.querySelectorAll('.tf-option').forEach(b => {
-                    if ((b.textContent.includes('True') && correct === 'True') ||
-                        (b.textContent.includes('False') && correct === 'False')) {
+                    if ((b.textContent.includes('True') && correctNormalized === 'T') ||
+                        (b.textContent.includes('False') && correctNormalized === 'F')) {
                         b.classList.add('bg-green-50', 'border-green-300');
                     }
                 });
@@ -310,7 +344,7 @@
 
             showFeedback(qIdx, isCorrect, explanation);
             updateProgress(parseInt(qIdx) + 1);
-            showNextButton(container, qIdx);
+            showNavigationButtons(container, qIdx);
         }
 
         // ===== XỬ LÝ ĐIỀN VÀO CHỖ TRỐNG =====
@@ -340,7 +374,7 @@
 
             showFeedback(qIdx, isCorrect, explanation);
             updateProgress(parseInt(qIdx) + 1);
-            showNextButton(container, qIdx);
+            showNavigationButtons(container, qIdx);
         }
 
         // Hiển thị thông báo nhận xét
@@ -365,16 +399,42 @@
             document.getElementById('progressBar').style.width = pct + '%';
         }
 
-        // Hiện nút "Câu tiếp theo" hoặc "Nộp bài"
-        function showNextButton(container, qIdx) {
-            const btn = container.querySelector('#btnNext');
-            if (btn) {
-                btn.classList.remove('hidden');
-                const idx = parseInt(qIdx);
-                if (idx >= totalQuestions - 1) {
-                    btn.textContent = 'Nộp bài ✓';
-                    btn.onclick = () => submitExercise();
+        // Hiện các nút điều hướng (Previous, Next, Finish) phù hợp
+        function showNavigationButtons(container, qIdx) {
+            const idx = parseInt(qIdx);
+            
+            // Hiển thị nút Previous nếu không phải câu đầu
+            const btnPrev = container.querySelector('.btnPrev');
+            if (btnPrev) {
+                if (idx > 0) {
+                    btnPrev.classList.remove('hidden');
+                } else {
+                    btnPrev.classList.add('hidden');
                 }
+            }
+            
+            // Hiển thị nút Next hoặc Finish
+            const btnNext = container.querySelector('.btnNext');
+            const btnFinish = container.querySelector('.btnFinish');
+            
+            if (idx < totalQuestions - 1) {
+                // Không phải câu cuối: hiển thị Next
+                if (btnNext) btnNext.classList.remove('hidden');
+                if (btnFinish) btnFinish.classList.add('hidden');
+            } else {
+                // Câu cuối: hiển thị Finish
+                if (btnNext) btnNext.classList.add('hidden');
+                if (btnFinish) btnFinish.classList.remove('hidden');
+            }
+        }
+
+        // Quay lại câu trước
+        function previousQuestion(currentIdx) {
+            document.getElementById(`q-${currentIdx}`)?.classList.add('hidden');
+            if (currentIdx > 0) {
+                document.getElementById(`q-${currentIdx - 1}`)?.classList.remove('hidden');
+                currentQ = currentIdx - 1;
+                updateProgress(currentIdx); // Cập nhật tiến độ (hiển thị câu hiện tại từ 1)
             }
         }
 
@@ -398,6 +458,28 @@
             document.getElementById('correctCount').textContent = `${correctAnswers}/${totalQuestions}`;
 
             document.getElementById('resultScreen').classList.remove('hidden');
+
+            // Gửi kết quả đến backend để lưu submission
+            if (exerciseId) {
+                fetch('/api/progress/exercise-submit', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        exerciseId: exerciseId,
+                        score: score,
+                        maxScore: maxScore
+                    })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('✅ Submission saved:', data);
+                })
+                .catch(error => {
+                    console.error('❌ Error saving submission:', error);
+                });
+            }
         }
 
         // Làm lại bài
@@ -424,14 +506,35 @@
         let mediaRecorder;
         let audioChunks = [];
         let isRecording = false;
+        let isStoppingRecognition = false;
+        let isRecognitionRunning = false;
+        let recognitionRetryCount = 0;
         let timerInterval;
         let recordingSeconds = 0;
 
+        function safeStartRecognition() {
+            if (isRecognitionRunning || isStoppingRecognition) return;
+            try {
+                recognition.start();
+            } catch (e) {
+                // Ignore InvalidStateError when recognition is already started.
+            }
+        }
+
+        function safeStopRecognition() {
+            if (!isRecognitionRunning) return;
+            try {
+                recognition.stop();
+            } catch (e) {
+                // no-op
+            }
+        }
+
         // Event listeners
         recognition.onstart = function() {
+            isRecognitionRunning = true;
+            recognitionRetryCount = 0;
             document.getElementById('recordingStatus').textContent = '🔴 Đang ghi âm...';
-            document.getElementById('timerContainer').classList.remove('hidden');
-            startTimer();
         };
 
         recognition.onresult = function(event) {
@@ -452,13 +555,46 @@
         };
 
         recognition.onerror = function(event) {
-            document.getElementById('recordingStatus').textContent = '❌ Lỗi: ' + event.error;
+            // Một số trình duyệt trả về lỗi "network" từ dịch vụ nhận dạng,
+            // không phải lỗi mạng của website. Thử tự recover trước khi báo lỗi cứng.
+            if (event.error === 'network' && isRecording && recognitionRetryCount < 2) {
+                recognitionRetryCount++;
+                document.getElementById('recordingStatus').textContent = '⚠️ Dịch vụ nhận dạng đang chập chờn, đang thử lại...';
+                try {
+                    safeStopRecognition();
+                    setTimeout(() => {
+                        if (isRecording) safeStartRecognition();
+                    }, 800);
+                } catch (e) {
+                    // no-op
+                }
+                return;
+            }
+
+            const errorMap = {
+                'network': '❌ Lỗi nhận dạng giọng nói (network). Bạn vẫn có thể ghi âm và nhập transcript thủ công khi nộp.',
+                'not-allowed': '❌ Bạn chưa cấp quyền microphone cho trình duyệt.',
+                'audio-capture': '❌ Không thể truy cập microphone.',
+                'no-speech': '⚠️ Không phát hiện tiếng nói. Hãy nói rõ hơn và thử lại.'
+            };
+
+            document.getElementById('recordingStatus').textContent = errorMap[event.error] || ('❌ Lỗi: ' + event.error);
+        };
+
+        recognition.onend = function() {
+            isRecognitionRunning = false;
+            // Nếu đang ghi âm và không phải do user bấm stop thì tự restart nhận dạng
+            if (isRecording && !isStoppingRecognition) {
+                safeStartRecognition();
+            }
         };
 
         function startRecording() {
             audioChunks = [];
             recordingSeconds = 0;
             isRecording = true;
+            isStoppingRecognition = false;
+            recognitionRetryCount = 0;
             
             document.getElementById('btnStart').classList.add('hidden');
             document.getElementById('btnStop').classList.remove('hidden');
@@ -466,13 +602,16 @@
             document.getElementById('interimTranscript').textContent = '';
             document.getElementById('audioPlayback').classList.add('hidden');
             document.getElementById('btnSubmitSpeaking').classList.add('hidden');
+            document.getElementById('timerContainer').classList.remove('hidden');
+
+            startTimer();
 
             // Bắt đầu ghi âm từ microphone
             navigator.mediaDevices.getUserMedia({ audio: true })
                 .then(stream => {
                     mediaRecorder = new MediaRecorder(stream);
                     mediaRecorder.ondataavailable = (e) => audioChunks.push(e.data);
-                    mediaRecorder.onstart = () => recognition.start();
+                    mediaRecorder.onstart = () => safeStartRecognition();
                     mediaRecorder.start();
                 })
                 .catch(err => {
@@ -482,9 +621,12 @@
 
         function stopRecording() {
             isRecording = false;
+            isStoppingRecognition = true;
             clearInterval(timerInterval);
-            recognition.stop();
-            mediaRecorder.stop();
+            safeStopRecognition();
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                mediaRecorder.stop();
+            }
 
             mediaRecorder.onstop = () => {
                 const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
@@ -503,6 +645,9 @@
         }
 
         function startTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+            }
             timerInterval = setInterval(() => {
                 recordingSeconds++;
                 const mins = Math.floor(recordingSeconds / 60);
@@ -517,10 +662,14 @@
         }
 
         async function submitSpeakingExercise() {
-            const finalTranscript = document.getElementById('finalTranscript').textContent.trim();
+            let finalTranscript = document.getElementById('finalTranscript').textContent.trim();
             if (!finalTranscript) {
-                alert('Vui lòng nói cụm từ trước khi gửi!');
-                return;
+                finalTranscript = prompt('Không nhận được transcript tự động. Vui lòng nhập lại câu bạn vừa nói để nộp bài:') || '';
+                finalTranscript = finalTranscript.trim();
+                if (!finalTranscript) {
+                    alert('Vui lòng nhập transcript trước khi gửi!');
+                    return;
+                }
             }
 
             // Gửi audio + transcript lên API
@@ -530,11 +679,15 @@
 
             try {
                 document.getElementById('btnSubmitSpeaking').disabled = true;
+
+                const requestHeaders = {};
+                if (token && token !== 'null' && token !== 'undefined') {
+                    requestHeaders['Authorization'] = 'Bearer ' + token;
+                }
+
                 const res = await fetch(`/api/speaking/exercises/${exerciseId}/submit`, {
                     method: 'POST',
-                    headers: {
-                        'Authorization': 'Bearer ' + token
-                    },
+                    headers: requestHeaders,
                     body: formData
                 });
 

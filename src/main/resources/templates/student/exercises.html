@@ -156,33 +156,47 @@
             const noResults = document.getElementById('noFilterResults');
             let visibleCount = 0;
 
+            console.log('🔍 Filter triggered:', filter);
+            console.log('📦 Total cards found:', cards.length);
+
             // Update tab styles
             tabs.forEach(tab => {
-                tab.classList.remove('bg-brand-500', 'text-white');
+                tab.classList.remove('bg-blue-500', 'text-white');
                 tab.classList.add('text-slate-600', 'hover:bg-slate-50');
             });
             const activeTab = document.getElementById('tab-' + filter);
             if (activeTab) {
-                activeTab.classList.add('bg-brand-500', 'text-white');
+                activeTab.classList.add('bg-blue-500', 'text-white');
                 activeTab.classList.remove('text-slate-600', 'hover:bg-slate-50');
             }
 
-            cards.forEach(card => {
+            cards.forEach((card, idx) => {
                 const status = card.dataset.status;
                 const isOverdue = card.dataset.overdue === 'true';
-                const isCompleted = status === 'COMPLETED' || status === 'GRADED';
+                const isCompleted = status === 'COMPLETED' || status === 'GRADED' || status === 'SUBMITTED';
                 const isPending = !isCompleted;
+
+                console.log(`Card ${idx}:`, { 
+                    title: card.querySelector('h3')?.textContent || 'N/A',
+                    status, 
+                    isOverdue, 
+                    isCompleted, 
+                    isPending 
+                });
 
                 let show = false;
                 if (filter === 'all') show = true;
-                else if (filter === 'pending') show = isPending && !isOverdue;
+                else if (filter === 'pending') show = isPending;  // Show ALL pending
                 else if (filter === 'completed') show = isCompleted;
-                else if (filter === 'overdue') show = isOverdue && isPending;
+                else if (filter === 'overdue') show = isOverdue && isPending;  // Only pending that are overdue
+
+                console.log(`  → Filter "${filter}" show=${show}`);
 
                 card.classList.toggle('hidden', !show);
                 if (show) visibleCount++;
             });
 
+            console.log('✅ Visible count:', visibleCount);
             if (noResults) noResults.classList.toggle('hidden', visibleCount > 0 || cards.length === 0);
         }
 

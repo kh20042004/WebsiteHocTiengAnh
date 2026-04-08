@@ -467,6 +467,7 @@ public class ContentService {
     private ContentDTO.LessonResponse convertToLessonResponse(Lesson lesson) {
         // Đếm số bài tập trong lesson này
         long totalExercises = exerciseRepository.countByLessonId(lesson.getId());
+        String normalizedAudioText = resolveAudioTextForListening(lesson);
 
         return ContentDTO.LessonResponse.builder()
                 .id(lesson.getId())
@@ -476,6 +477,7 @@ public class ContentService {
                 .type(lesson.getType())
                 .content(lesson.getContent())
                 .audioUrl(lesson.getAudioUrl())
+                .audioText(normalizedAudioText)
                 .vocabulary(lesson.getVocabulary())
                 .orderIndex(lesson.getOrderIndex())
                 .estimatedDurationMinutes(lesson.getEstimatedDurationMinutes())
@@ -484,6 +486,14 @@ public class ContentService {
                 .createdAt(lesson.getCreatedAt())
                 .totalExercises(totalExercises)
                 .build();
+    }
+
+    private String resolveAudioTextForListening(Lesson lesson) {
+        if (lesson.getAudioText() != null && !lesson.getAudioText().trim().isEmpty()) {
+            return lesson.getAudioText().trim();
+        }
+        // Chỉ dùng text đã lưu khi tạo audio từ modal để đảm bảo so sánh đúng nguồn.
+        return "";
     }
 
     /**

@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.util.Set;
 
 /**
  * ProgressDTO - Tiến độ học tập
@@ -46,6 +47,10 @@ public class ProgressDTO {
 
         /** Tổng XP kiếm được */
         private Integer totalXP;
+
+        /** Set ID của các bài tập đã hoàn thành */
+        @Builder.Default
+        private Set<String> completedExerciseIds = Set.of();
     }
 
     /**

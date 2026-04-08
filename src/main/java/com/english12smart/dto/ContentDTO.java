@@ -219,6 +219,9 @@ public class ContentDTO {
         /** URL audio */
         private String audioUrl;
 
+        /** Nội dung text dùng để tạo audio (cho bài nghe) */
+        private String audioText;
+
         /** Danh sách từ vựng */
         private List<Lesson.VocabularyItem> vocabulary;
 

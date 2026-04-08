@@ -93,6 +93,11 @@ public class Lesson {
     private String audioStatus;
 
     /**
+     * Nội dung text được dùng để tạo audio (lưu để so sánh kết quả nghe)
+     */
+    private String audioText;
+
+    /**
      * Danh sách từ vựng trong bài (chỉ dùng cho type = VOCABULARY)
      * Mỗi từ vựng được lưu dạng "word:meaning" hoặc có thể mở rộng
      */

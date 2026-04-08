@@ -97,6 +97,7 @@ public class LessonAudioService {
 
             // Step 6: Update lesson with audio URL
             lesson.setAudioUrl(audioUrl);
+            lesson.setAudioText(content);  // Lưu content dùng để tạo audio
             lesson.setAudioStatus("COMPLETED");
             lesson.setAudioGeneratedAt(LocalDateTime.now());
             lesson.setAudioVoiceType(voiceType);
@@ -173,6 +174,7 @@ public class LessonAudioService {
 
             // Update lesson
             lesson.setAudioUrl(audioUrl);
+            lesson.setAudioText(content);  // Lưu content dùng để tạo audio
             lesson.setAudioStatus("COMPLETED");
             lesson.setAudioGeneratedAt(LocalDateTime.now());
             lesson.setAudioVoiceType(voiceType);
@@ -183,6 +185,82 @@ public class LessonAudioService {
 
         } catch (Exception e) {
             log.error("Error generating audio with custom settings: {}", e.getMessage(), e);
+            lesson.setAudioStatus("FAILED");
+            lessonRepository.save(lesson);
+            throw e;
+        }
+    }
+
+    /**
+     * Generate audio from custom content text
+     * Dùng khi giáo viên nhập nội dung audio mới thay vì dùng lesson.content
+     * @param lessonId - ID of lesson
+     * @param customContent - Custom text content to generate audio from
+     * @param voiceType - Voice type
+     * @param rate - Speech rate
+     * @param pitch - Speech pitch
+     * @return Generated audio URL
+     * @throws Exception if generation fails
+     */
+    @Transactional
+    public String generateAndSaveAudioFromCustomContent(
+            String lessonId,
+            String customContent,
+            String voiceType,
+            String rate,
+            String pitch) throws Exception {
+
+        log.info("Generating audio from custom content: lessonId={}, voice={}, rate={}, pitch={}",
+                lessonId, voiceType, rate, pitch);
+
+        // Fetch lesson
+        Lesson lesson = lessonRepository.findById(lessonId)
+                .orElseThrow(() -> new ResourceNotFoundException("Lesson not found: " + lessonId));
+
+        // Validate custom content
+        if (customContent == null || customContent.trim().isEmpty()) {
+            throw new IllegalArgumentException("Custom audio content is empty");
+        }
+
+        if (voiceType == null || voiceType.trim().isEmpty()) {
+            voiceType = DEFAULT_VOICE;
+        }
+
+        try {
+            // Delete existing audio first
+            deleteAudio(lessonId);
+            
+            lesson.setAudioStatus("PENDING");
+            lessonRepository.save(lesson);
+
+            // Generate audio from custom content
+            EdgeTTSClient.GenerateAudioResponse ttsResponse = edgeTTSClient.generateAudio(
+                    customContent,
+                    voiceType,
+                    rate != null ? rate : "+0%",
+                    pitch != null ? pitch : "+0Hz"
+            );
+
+            if (!ttsResponse.success) {
+                throw new Exception("TTS generation failed: " + ttsResponse.error);
+            }
+
+            // Upload to Cloudinary
+            String audioUrl = uploadToCloudinary(lessonId, ttsResponse.audio_full);
+
+            // Update lesson
+            lesson.setAudioUrl(audioUrl);
+            lesson.setAudioText(customContent);  // Lưu text dùng để tạo audio
+            lesson.setAudioStatus("COMPLETED");
+            lesson.setAudioGeneratedAt(LocalDateTime.now());
+            lesson.setAudioVoiceType(voiceType);
+            lessonRepository.save(lesson);
+
+            log.info("Audio generated from custom content: {}", audioUrl);
+            return audioUrl;
+
+        } catch (Exception e) {
+            log.error("Error generating audio from custom content: {}", e.getMessage(), e);
             lesson.setAudioStatus("FAILED");
             lessonRepository.save(lesson);
             throw e;

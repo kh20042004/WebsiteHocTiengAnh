@@ -75,7 +75,19 @@ public class OAuth2LoginSuccessHandler extends SimpleUrlAuthenticationSuccessHan
         user.setRefreshTokenExpiresAt(jwtTokenProvider.getRefreshTokenExpirationTime());
         userRepository.save(user);
 
-        // Redirect đến trang success để lưu token vào localStorage
+        // ========== LƯU TOKEN VÀO COOKIE (bắt buộc cho server-side authentication) ==========
+        // Tạo cookie cho JWT token (JwtAuthenticationFilter sẽ đọc cookie tên "token")
+        jakarta.servlet.http.Cookie tokenCookie = new jakarta.servlet.http.Cookie("token", accessToken);
+        tokenCookie.setHttpOnly(true); // Không cho JavaScript access (bảo mật)
+        tokenCookie.setPath("/");
+        tokenCookie.setMaxAge(3600); // 1 hour (khớp với JWT expiration)
+        tokenCookie.setSecure(true); // Chỉ gửi qua HTTPS
+        response.addCookie(tokenCookie);
+        
+        log.info("✅ JWT token saved to HttpOnly cookie (name='token')");
+
+
+        // Redirect đến trang success để lưu token vào localStorage (cho client-side)
         String targetUrl = "/oauth2/redirect?email=" + URLEncoder.encode(email, StandardCharsets.UTF_8)
                 + "&name=" + URLEncoder.encode(name != null ? name : "", StandardCharsets.UTF_8)
                 + "&token=" + accessToken

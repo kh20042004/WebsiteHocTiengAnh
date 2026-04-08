@@ -9,9 +9,11 @@ import tempfile
 from io import BytesIO
 from flask import Flask, request, jsonify, send_file
 from flask_cors import CORS
+from werkzeug.exceptions import BadRequest
 import edge_tts
 from datetime import datetime
 import logging
+import time
 
 # Setup logging
 logging.basicConfig(level=logging.INFO)
@@ -33,7 +35,7 @@ class TTSError(Exception):
 
 async def generate_audio_async(text: str, voice: str, rate: str = TTS_RATE, pitch: str = TTS_PITCH) -> bytes:
     """
-    Generate audio from text using edge-tts
+    Generate audio from text using edge-tts with retry logic
     
     Args:
         text: Text to convert to speech
@@ -53,22 +55,47 @@ async def generate_audio_async(text: str, voice: str, rate: str = TTS_RATE, pitc
         
         logger.info(f"Generating audio: voice={voice}, text_len={len(text)}, rate={rate}, pitch={pitch}")
         
-        # Create communicate object
-        communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+        # Retry logic for handling transient Bing API errors
+        max_retries = 3
+        retry_delay = 1  # seconds
         
-        # Collect all audio chunks
-        audio_data = BytesIO()
-        async for chunk in communicate.stream():
-            if chunk["type"] == "audio":
-                audio_data.write(chunk["data"])
-        
-        audio_data.seek(0)
-        logger.info(f"Audio generated successfully: {audio_data.getbuffer().nbytes} bytes")
-        
-        return audio_data.getvalue()
+        for attempt in range(max_retries):
+            try:
+                # Create communicate object
+                communicate = edge_tts.Communicate(text, voice, rate=rate, pitch=pitch)
+                
+                # Collect all audio chunks
+                audio_data = BytesIO()
+                async for chunk in communicate.stream():
+                    if chunk["type"] == "audio":
+                        audio_data.write(chunk["data"])
+                
+                audio_data.seek(0)
+                logger.info(f"Audio generated successfully: {audio_data.getbuffer().nbytes} bytes")
+                
+                return audio_data.getvalue()
+            
+            except Exception as e:
+                error_msg = str(e)
+                logger.warning(f"TTS attempt {attempt + 1}/{max_retries} failed: {error_msg}")
+                
+                # Don't retry on certain errors
+                if "Text too long" in error_msg or "Text cannot be empty" in error_msg:
+                    raise TTSError(error_msg)
+                
+                # Retry on network/API errors but sleep first
+                if attempt < max_retries - 1:
+                    logger.info(f"Retrying in {retry_delay} seconds...")
+                    await asyncio.sleep(retry_delay)
+                    retry_delay *= 2  # Exponential backoff
+                else:
+                    logger.error(f"All {max_retries} attempts failed: {error_msg}")
+                    raise TTSError(f"Failed to generate audio after {max_retries} attempts: {error_msg}")
     
+    except TTSError:
+        raise
     except Exception as e:
-        logger.error(f"Error generating audio: {str(e)}")
+        logger.error(f"Unexpected error generating audio: {str(e)}")
         raise TTSError(f"Error generating audio: {str(e)}")
 
 
@@ -131,23 +158,27 @@ def list_voices():
 def generate_tts():
     """
     Generate audio from text using Edge-TTS
-    
-    Request JSON:
-    {
-        "text": "Hello, how are you?",
-        "voice": "en-US-AriaNeural",
-        "rate": "+0%",
-        "pitch": "+0Hz"
-    }
-    
-    Returns:
-    - 200: MP3 audio file
-    - 400: Bad request (missing text)
-    - 413: Text too long
-    - 500: Server error
     """
     try:
-        data = request.get_json()
+        # Try to parse JSON - handle parsing errors gracefully  
+        try:
+            data = request.get_json(force=True)
+        except BadRequest as br_err:
+            logger.error(f"BadRequest parsing error: {str(br_err)}")
+            # Try to parse raw JSON data
+            import json
+            try:
+                raw_data = request.get_data(as_text=True)
+                if raw_data:
+                    data = json.loads(raw_data)
+                else:
+                    return jsonify({'error': 'No data provided'}), 400
+            except json.JSONDecodeError as je:
+                logger.error(f"JSON decode failed: {str(je)}")
+                return jsonify({'error': f'Invalid JSON: {str(je)}'}), 400
+        except Exception as json_err:
+            logger.error(f"Other JSON parsing error: {str(json_err)}")
+            return jsonify({'error': f'Request error: {str(json_err)}'}), 400
         
         if not data:
             return jsonify({'error': 'No JSON data provided'}), 400
@@ -188,26 +219,27 @@ def generate_tts():
 def generate_tts_base64():
     """
     Generate audio and return as base64 string (for API consumption)
-    
-    Request JSON:
-    {
-        "text": "Hello, how are you?",
-        "voice": "en-US-AriaNeural",
-        "rate": "+0%",
-        "pitch": "+0Hz"
-    }
-    
-    Returns JSON:
-    {
-        "success": true,
-        "audio_base64": "SUQz....",
-        "mime_type": "audio/mpeg",
-        "size_bytes": 12345,
-        "generated_at": "2026-04-08T10:30:00"
-    }
     """
     try:
-        data = request.get_json()
+        # Try to parse JSON - handle parsing errors gracefully
+        try:
+            data = request.get_json(force=True)
+        except BadRequest as br_err:
+            logger.error(f"BadRequest parsing error: {str(br_err)}")
+            # Try to parse raw JSON data
+            import json
+            try:
+                raw_data = request.get_data(as_text=True)
+                if raw_data:
+                    data = json.loads(raw_data)
+                else:
+                    return jsonify({'success': False, 'error': 'No data provided'}), 400
+            except json.JSONDecodeError as je:
+                logger.error(f"JSON decode failed: {str(je)}")
+                return jsonify({'success': False, 'error': f'Invalid JSON: {str(je)}'}), 400
+        except Exception as json_err:
+            logger.error(f"Other JSON parsing error: {str(json_err)}")
+            return jsonify({'success': False, 'error': f'Request error: {str(json_err)}'}), 400
         
         if not data:
             return jsonify({'success': False, 'error': 'No JSON data provided'}), 400

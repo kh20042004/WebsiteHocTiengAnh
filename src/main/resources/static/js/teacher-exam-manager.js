@@ -483,6 +483,24 @@ if (!window.ExamManagerLoaded) {
             const url = isEdit ? '/api/exams/' + examId : '/api/exams';
             const method = isEdit ? 'PUT' : 'POST';
 
+            // ========== BUILD PAYLOAD: Khớp với ExamDTO.CreateRequest ==========
+            const payload = {
+                title: title,
+                description: description || null,
+                classroomId: classroomId,
+                timeLimitMinutes: timeLimitMinutes,
+                questions: filteredCustom.map(q => ({
+                    questionText: q.questionText,
+                    type: q.type,
+                    options: Array.isArray(q.options) ? q.options : [],
+                    correctAnswer: q.correctAnswer,
+                    explanation: q.explanation || null,
+                    score: Number.isFinite(q.score) ? q.score : 1,
+                    sourceExerciseId: q.sourceExerciseId || null
+                })),
+                exerciseIds: [...selectedExerciseIds]
+            };
+
             // Cập nhật text nút submit
             if (isEdit) {
                 submitBtn.innerHTML = '<iconify-icon icon="solar:refresh-linear" width="18" class="animate-spin inline mr-1"></iconify-icon> Đang cập nhật...';

@@ -20,6 +20,8 @@
     </div>
 
     <script>
+        console.log('🔵 [OAuth2] Redirect page loaded');
+
         // Lấy thông tin từ URL params
         const urlParams = new URLSearchParams(window.location.search);
         const email = urlParams.get('email');
@@ -28,20 +30,51 @@
         const role = urlParams.get('role');
         const avatarUrl = urlParams.get('avatarUrl');
 
-        if (email && token) {
-            // Lưu JWT token vào localStorage
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify({ email, name, role, avatarUrl }));
+        console.log('📋 [OAuth2] URL Params:', {
+            email: email,
+            name: name,
+            token: token ? token.substring(0, 20) + '...' : 'NO',
+            role: role,
+            avatarUrl: avatarUrl ? 'YES' : 'NO'
+        });
 
-            // Redirect đến dashboard
-            setTimeout(() => {
-                window.location.href = '/dashboard';
-            }, 1000);
+        if (email && token) {
+            console.log('✅ [OAuth2] Token received. Saving to localStorage...');
+            
+            try {
+                // Lưu JWT token vào localStorage (cho client-side use)
+                localStorage.setItem('token', token);
+                console.log('✅ [OAuth2] Token saved to localStorage');
+                
+                // Lưu user info
+                const userObj = { email, name, role, avatarUrl };
+                localStorage.setItem('user', JSON.stringify(userObj));
+                console.log('✅ [OAuth2] User object saved');
+
+                // Xác định URL dựa trên role
+                let redirectUrl = '/'; // Redirect về home page
+                
+                console.log('🎯 [OAuth2] Redirecting to:', redirectUrl);
+                console.log('💡 Note: Token is also saved in HttpOnly cookie, so server can authenticate');
+                
+                // Redirect đến home page
+                // Token đã được lưu trong cookie (HttpOnly) khi OAuth2LoginSuccessHandler xử lý
+                // Nên server sẽ nhận được token tự động mà không cần gửi trong header
+                setTimeout(() => {
+                    console.log('🚀 [OAuth2] Navigating to:', redirectUrl);
+                    window.location.href = redirectUrl;
+                }, 1000);
+            } catch (error) {
+                console.error('❌ [OAuth2] Error:', error);
+                document.getElementById('msg').textContent = 'Lỗi: ' + error.message;
+            }
         } else {
-            // Nếu không có token, redirect về login
+            console.error('❌ [OAuth2] Missing params!', { email: !!email, token: !!token });
+            
             setTimeout(() => {
-                window.location.href = '/auth/login?error=oauth2';
-            }, 1000);
+                console.log('🚀 [OAuth2] Redirecting to login');
+                window.location.href = '/auth/login?error=oauth2-failed';
+            }, 1500);
         }
     </script>
 </body>

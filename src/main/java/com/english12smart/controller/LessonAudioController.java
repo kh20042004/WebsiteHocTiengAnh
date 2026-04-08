@@ -45,6 +45,7 @@ public class LessonAudioController {
      * Request DTO for audio generation
      */
     public static class GenerateAudioRequest {
+        public String content;  // Custom audio content (optional)
         public String voice;
         public String rate;
         public String pitch;
@@ -52,10 +53,19 @@ public class LessonAudioController {
         public GenerateAudioRequest() {
         }
 
-        public GenerateAudioRequest(String voice, String rate, String pitch) {
+        public GenerateAudioRequest(String content, String voice, String rate, String pitch) {
+            this.content = content;
             this.voice = voice;
             this.rate = rate;
             this.pitch = pitch;
+        }
+
+        public String getContent() {
+            return content;
+        }
+
+        public void setContent(String content) {
+            this.content = content;
         }
 
         public String getVoice() {
@@ -194,12 +204,15 @@ public class LessonAudioController {
      * POST /api/lessons/{lessonId}/generate-audio — Generate audio cho lesson
      * Accessible by: TEACHER (creator), ADMIN
      *
-     * Request body example:
+     * Request body example (with custom content):
      * {
+     *   "content": "Custom audio text to generate",
      *   "voice": "en-US-AriaNeural",
      *   "rate": "+0%",
      *   "pitch": "+0Hz"
      * }
+     * 
+     * Nếu không có "content", sẽ dùng lesson.content
      */
     @PostMapping("/lessons/{lessonId}/generate-audio")
     @PreAuthorize("hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')")
@@ -220,9 +233,20 @@ public class LessonAudioController {
 
             // Generate audio
             String audioUrl;
-            if (rate.equals("+0%") && pitch.equals("+0Hz")) {
+            if (request.getContent() != null && !request.getContent().trim().isEmpty()) {
+                // Use custom content if provided
+                audioUrl = lessonAudioService.generateAndSaveAudioFromCustomContent(
+                        lessonId, 
+                        request.getContent(), 
+                        voice, 
+                        rate, 
+                        pitch
+                );
+            } else if (rate.equals("+0%") && pitch.equals("+0Hz")) {
+                // Use lesson content with default settings
                 audioUrl = lessonAudioService.generateAndSaveAudio(lessonId, voice);
             } else {
+                // Use lesson content with custom settings
                 audioUrl = lessonAudioService.generateAndSaveAudioWithSettings(lessonId, voice, rate, pitch);
             }
 

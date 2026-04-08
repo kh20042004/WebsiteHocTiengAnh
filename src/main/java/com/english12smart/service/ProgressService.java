@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * ProgressService - Tính toán tiến độ học tập
@@ -94,6 +95,7 @@ public class ProgressService {
         int completedCount = 0;
         int totalScore = 0;
         int maxTotalScore = 0;
+        Set<String> completedExerciseIds = new java.util.HashSet<>();
 
         for (ExerciseSubmission sub : submissions) {
             int score = sub.getScore() != null ? sub.getScore() : 0;
@@ -105,6 +107,7 @@ public class ProgressService {
             // Hoàn thành = status COMPLETED & score >= 50%
             if ("COMPLETED".equals(sub.getStatus()) && (maxScore > 0 && score >= maxScore * 0.5)) {
                 completedCount++;
+                completedExerciseIds.add(sub.getExerciseId());
             }
         }
 
@@ -149,6 +152,7 @@ public class ProgressService {
                 .totalScore(totalScore)
                 .maxTotalScore(maxTotalScore)
                 .totalXP(0)
+                .completedExerciseIds(completedExerciseIds)
                 .build();
     }
 

@@ -147,6 +147,17 @@
                         <iconify-icon icon="mdi:headphones" class="text-green-600 text-xl"></iconify-icon>
                         Listening - Luyện Nghe
                     </h2>
+                    <!-- Delete/Edit buttons for teachers -->
+                    <div sec:authorize="hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')" class="flex items-center gap-2">
+                        <button onclick="editAudio()" class="text-blue-600 hover:text-blue-700 transition-colors p-2 rounded-lg hover:bg-blue-50"
+                            title="Chỉnh sửa lại audio">
+                            <iconify-icon icon="mdi:pencil" class="text-lg"></iconify-icon>
+                        </button>
+                        <button onclick="deleteAudio()" class="text-red-600 hover:text-red-700 transition-colors p-2 rounded-lg hover:bg-red-50"
+                            title="Xoá audio này">
+                            <iconify-icon icon="mdi:trash-can" class="text-lg"></iconify-icon>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Audio Player with Enhanced Controls -->
@@ -157,7 +168,7 @@
                 </div>
 
                 <!-- Listening Tips -->
-                <div class="bg-white rounded-lg p-3 text-sm text-slate-600 border-l-4 border-green-500">
+                <div class="bg-white rounded-lg p-3 text-sm text-slate-600 border-l-4 border-green-500 mb-6">
                     <div class="font-medium text-slate-700 mb-1">💡 Mẹo luyện nghe:</div>
                     <ul class="list-disc list-inside space-y-1 text-xs text-slate-600">
                         <li>Nghe từ từ (sử dụng nút tốc độ 0.75x)</li>
@@ -165,6 +176,46 @@
                         <li>Tạm dừng và lặp lại các phần khó</li>
                         <li>Đọc kỹ nội dung bài học sau khi nghe</li>
                     </ul>
+                </div>
+
+                <!-- Listening Answer Section -->
+                <div class="bg-gradient-to-br from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-5">
+                    <textarea id="expected-audio-text" class="hidden" th:text="${lesson.audioText}"></textarea>
+                    <h3 class="text-base font-semibold text-slate-900 mb-4 flex items-center gap-2">
+                        <iconify-icon icon="mdi:pencil-outline" class="text-amber-600"></iconify-icon>
+                        Ghi lại kết quả nghe
+                    </h3>
+
+                    <!-- Listening Text Input -->
+                    <div class="mb-4">
+                        <label for="listening-answer" class="block text-sm font-medium text-slate-700 mb-2">
+                            Nhập những gì bạn nghe được:
+                        </label>
+                        <textarea id="listening-answer"
+                            class="w-full px-4 py-3 border border-amber-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-transparent resize-none"
+                            rows="4"
+                            placeholder="Ghi lại những từ/cụm từ bạn nghe được từ audio..."></textarea>
+                        <p class="text-xs text-slate-500 mt-1">Bạn có thể nghe lại audio nhiều lần trước khi kiểm tra</p>
+                    </div>
+
+                    <!-- Check Answer Button -->
+                    <div class="flex gap-3">
+                        <button type="button" onclick="checkListeningAnswer()"
+                            class="flex-1 bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                            <iconify-icon icon="mdi:check-circle-outline"></iconify-icon>
+                            Kiểm tra kết quả
+                        </button>
+                        <button type="button" onclick="clearListeningAnswer()"
+                            class="px-4 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold rounded-lg transition-colors">
+                            Xóa
+                        </button>
+                    </div>
+
+                    <!-- Answer Feedback -->
+                    <div id="listening-feedback" class="hidden mt-4 p-4 rounded-lg border">
+                        <div id="feedback-message"></div>
+                        <div id="comparison-details" class="mt-3 text-sm"></div>
+                    </div>
                 </div>
             </div>
 
@@ -186,7 +237,7 @@
                     <div sec:authorize="hasAnyAuthority('ROLE_TEACHER', 'ROLE_ADMIN')">
                         <p class="text-sm text-slate-500 mb-6">Bấm nút dưới để tạo audio từ nội dung bài học bằng AI Voice.</p>
                         
-                        <button data-action="generate-audio" th:data-lesson-id="${lesson.id}"
+                        <button type="button" id="create-audio-btn" th:data-lesson-id="${lesson.id}"
                             class="btn btn-primary btn-lg flex items-center gap-2 mx-auto">
                             <iconify-icon icon="mdi:microphone-plus-outline"></iconify-icon>
                             Tạo Audio Listening (AI Voice)
@@ -209,7 +260,8 @@
                 <div class="space-y-3">
                     <a th:each="ex : ${exercises}"
                         th:href="@{/dashboard/student/learn/exercises/{id}(id=${ex.id})}"
-                        class="group flex items-center justify-between bg-slate-50 hover:bg-emerald-50 border border-transparent hover:border-emerald-200 rounded-xl p-4 transition-all">
+                        th:classappend="${progress != null && progress.completedExerciseIds.contains(ex.id)} ? 'bg-green-50 border-green-300 hover:border-green-400' : 'bg-slate-50 hover:bg-emerald-50 border-transparent hover:border-emerald-200'"
+                        class="group flex items-center justify-between border rounded-xl p-4 transition-all">
                         <div>
                             <div class="font-medium text-slate-900 group-hover:text-emerald-700 transition-colors" th:text="${ex.title}">Bài tập</div>
                             <div class="text-xs text-slate-400 mt-0.5" th:text="${ex.instruction}">Hướng dẫn</div>
@@ -217,7 +269,10 @@
                         <div class="flex items-center gap-3 shrink-0">
                             <span class="text-xs text-slate-500" th:text="${ex.maxScore} + ' điểm'">100</span>
                             <span class="text-xs text-blue-600 font-medium" th:text="${ex.xpReward} + ' XP'">20 XP</span>
-                            <iconify-icon icon="mdi:chevron-right" class="text-slate-400 group-hover:text-emerald-500"></iconify-icon>
+                            <span th:if="${progress != null && progress.completedExerciseIds.contains(ex.id)}" class="text-xs text-green-600 font-medium flex items-center gap-1">
+                                <iconify-icon icon="mdi:check-circle-outline"></iconify-icon> Hoàn thành
+                            </span>
+                            <iconify-icon th:if="${!(progress != null && progress.completedExerciseIds.contains(ex.id))}" icon="mdi:chevron-right" class="text-slate-400 group-hover:text-emerald-500"></iconify-icon>
                         </div>
                     </a>
                 </div>
@@ -234,6 +289,108 @@
             </div>
         </div>
     </main>
+
+    <!-- MODAL: TẠO AUDIO LISTENING -->
+    <div id="create-audio-modal" class="hidden fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <!-- Header -->
+            <div class="flex items-center justify-between mb-6">
+                <h2 class="text-2xl font-bold text-slate-900 flex items-center gap-2">
+                    <iconify-icon icon="mdi:microphone-plus-outline" class="text-blue-600"></iconify-icon>
+                    Tạo Audio Listening
+                </h2>
+                <button onclick="closeAudioModal()" class="text-slate-400 hover:text-slate-600 transition-colors">
+                    <iconify-icon icon="mdi:close" class="text-2xl"></iconify-icon>
+                </button>
+            </div>
+
+            <!-- Form -->
+            <form id="create-audio-form" class="space-y-6">
+                <!-- Audio Content Text -->
+                <div>
+                    <label for="audio-text" class="block text-sm font-semibold text-slate-900 mb-2">
+                        Nội dung cần tạo audio <span class="text-red-500">*</span>
+                    </label>
+                    <textarea id="audio-text" name="audioText" rows="6"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="Nhập đoạn văn hoặc câu bạn muốn tạo audio..."
+                        required></textarea>
+                    <p class="text-xs text-slate-500 mt-1">Nội dung này sẽ được AI Voice đọc thành tiếng nói</p>
+                </div>
+
+                <!-- Voice Selection -->
+                <div>
+                    <label for="audio-voice" class="block text-sm font-semibold text-slate-900 mb-2">
+                        Chọn giọng nói
+                    </label>
+                    <select id="audio-voice" name="voice"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="en-US-AriaNeural">Aria (Nữ - US, thân thiện)</option>
+                        <option value="en-US-AmberNeural">Amber (Nữ - US, tươi vui)</option>
+                        <option value="en-US-AshleyNeural">Ashley (Nữ - US, trẻ trung)</option>
+                        <option value="en-US-CoraNeural">Cora (Nữ - US, tự tin)</option>
+                        <option value="en-GB-SoniaNeural">Sonia (Nữ - UK, chuẩn Anh)</option>
+                        <option value="en-GB-LibbyNeural">Libby (Nữ - UK, nhẹ nhàng)</option>
+                        <option value="en-US-GuyNeural">Guy (Nam - US, chuyên nghiệp)</option>
+                        <option value="en-US-BrianNeural">Brian (Nam - US, thân thiện)</option>
+                    </select>
+                </div>
+
+                <!-- Speed Control -->
+                <div>
+                    <label for="audio-rate" class="block text-sm font-semibold text-slate-900 mb-2">
+                        Tốc độ đọc
+                    </label>
+                    <select id="audio-rate" name="rate"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="-50%">Chậm (-50%)</option>
+                        <option value="-25%">Chậm bình thường (-25%)</option>
+                        <option value="+0%">Bình thường</option>
+                        <option value="+25%">Nhanh bình thường (+25%)</option>
+                        <option value="+50%">Nhanh (+50%)</option>
+                    </select>
+                </div>
+
+                <!-- Pitch Control -->
+                <div>
+                    <label for="audio-pitch" class="block text-sm font-semibold text-slate-900 mb-2">
+                        Cao độ giọng
+                    </label>
+                    <select id="audio-pitch" name="pitch"
+                        class="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="-20Hz">Thấp (-20Hz)</option>
+                        <option value="-10Hz">Thấp bình thường (-10Hz)</option>
+                        <option value="+0Hz">Bình thường</option>
+                        <option value="+10Hz">Cao bình thường (+10Hz)</option>
+                        <option value="+20Hz">Cao (+20Hz)</option>
+                    </select>
+                </div>
+
+                <!-- Form Buttons -->
+                <div class="flex items-center gap-4 pt-4 border-t border-slate-200">
+                    <button type="submit"
+                        class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center justify-center gap-2">
+                        <iconify-icon icon="mdi:cloud-upload-outline"></iconify-icon>
+                        Tạo Audio
+                    </button>
+                    <button type="button" onclick="closeAudioModal()"
+                        class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-semibold py-2 px-4 rounded-lg transition-colors">
+                        Hủy
+                    </button>
+                </div>
+
+                <!-- Loading State -->
+                <div id="audio-loading" class="hidden">
+                    <div class="flex items-center justify-center gap-3 py-4">
+                        <div class="animate-spin">
+                            <iconify-icon icon="mdi:loading" class="text-blue-600 text-2xl"></iconify-icon>
+                        </div>
+                        <span class="text-slate-600">Đang tạo audio...</span>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- SHARED STUDENT FOOTER -->
     <th:block th:replace="shared/student-footer :: student-footer"></th:block>
@@ -539,6 +696,329 @@
     <!-- Scripts for audio TTS generation and player controls -->
     <script th:src="@{/js/audio-generator.js}"></script>
     <script th:src="@{/js/audio-player.js}"></script>
+
+    <!-- CREATE AUDIO MODAL HANDLER -->
+    <script>
+        // Mở modal tạo audio
+        function openAudioModal() {
+            const modal = document.getElementById('create-audio-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+
+            // Khi tạo mới, luôn reset trạng thái chỉnh sửa.
+            if (!window.isEditingAudio) {
+                const input = document.getElementById('audio-text');
+                if (input) input.value = '';
+            }
+        }
+
+        // Đóng modal tạo audio
+        function closeAudioModal() {
+            const modal = document.getElementById('create-audio-modal');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            document.body.style.overflow = 'auto';
+            // Reset form
+            document.getElementById('create-audio-form').reset();
+            window.isEditingAudio = false;
+            // Ẩn loading state
+            document.getElementById('audio-loading').classList.add('hidden');
+        }
+
+        // Đóng modal nếu click vào background (màu đen bán trong)
+        document.getElementById('create-audio-modal')?.addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeAudioModal();
+            }
+        });
+
+        // Button "Tạo Audio Listening" click handler
+        document.addEventListener('DOMContentLoaded', function() {
+            window.isEditingAudio = false;
+
+            const generateButton = document.getElementById('create-audio-btn');
+            if (generateButton) {
+                generateButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.isEditingAudio = false;
+                    openAudioModal();
+                });
+            }
+
+            // Form submit handler
+            const form = document.getElementById('create-audio-form');
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+
+                    const audioText = document.getElementById('audio-text').value.trim();
+                    const voice = document.getElementById('audio-voice').value;
+                    const rate = document.getElementById('audio-rate').value;
+                    const pitch = document.getElementById('audio-pitch').value;
+                    const lessonId = '[[${lesson != null ? lesson.id : ""}]]';
+
+                    if (!audioText) {
+                        showToast('Vui lòng nhập nội dung audio', 'error');
+                        return;
+                    }
+
+                    if (!lessonId) {
+                        showToast('Lỗi: Không tìm thấy lesson ID', 'error');
+                        return;
+                    }
+
+                    // Show loading state
+                    document.getElementById('audio-loading').classList.remove('hidden');
+                    document.querySelector('button[type="submit"]').disabled = true;
+
+                    try {
+                        // Nếu là chỉnh sửa, xóa audio cũ trước khi tạo audio mới
+                        if (window.isEditingAudio) {
+                            console.log('Xóa audio cũ trước khi tạo audio mới...');
+                            try {
+                                await axios.delete(`/api/lessons/${lessonId}/audio`);
+                                window.isEditingAudio = false;  // Reset flag
+                            } catch (deleteError) {
+                                console.warn('Lỗi khi xóa audio cũ, tiếp tục tạo audio mới:', deleteError);
+                            }
+                        }
+
+                        // Call API to generate audio
+                        const response = await axios.post(`/api/lessons/${lessonId}/generate-audio`, {
+                            content: audioText,
+                            voice: voice,
+                            rate: rate,
+                            pitch: pitch
+                        });
+
+                        if (response.data.statusCode === 200 || response.data.statusCode === 201) {
+                            const expectedInput = document.getElementById('expected-audio-text');
+                            if (expectedInput) {
+                                expectedInput.value = audioText;
+                            }
+                            showToast('Tạo audio thành công! Tải lại trang để nghe', 'success');
+                            closeAudioModal();
+                            // Reload page sau 2 giây để hiển thị audio mới
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, 2000);
+                        } else {
+                            showToast('Lỗi: ' + (response.data.message || 'Không thể tạo audio'), 'error');
+                        }
+                    } catch (error) {
+                        console.error('Error generating audio:', error);
+                        const errorMsg = error.response?.data?.message || error.message || 'Lỗi khi tạo audio';
+                        showToast(errorMsg, 'error');
+                    } finally {
+                        // Hide loading state
+                        document.getElementById('audio-loading').classList.add('hidden');
+                        document.querySelector('button[type="submit"]').disabled = false;
+                    }
+                });
+            }
+        });
+
+        // ============ HÀM CHỈNH SỬA AUDIO ============
+        // Mở modal và cho phép giáo viên chỉnh sửa nội dung audio
+        function editAudio() {
+            const lessonId = '[[${lesson != null ? lesson.id : ""}]]';
+            if (!lessonId) {
+                showToast('Lỗi: Không tìm thấy lesson ID', 'error');
+                return;
+            }
+
+            // Mở modal để chỉnh sửa (không xóa ở đây, xóa sẽ được thực hiện khi form submit)
+            // Đặt flag để biết đây là chỉnh sửa (xóa audio cũ trước khi tạo audio mới)
+            window.isEditingAudio = true;
+
+            const expectedText = (document.getElementById('expected-audio-text')?.value || '').trim();
+            openAudioModal();
+            const input = document.getElementById('audio-text');
+            if (input) {
+                input.value = expectedText;
+                input.focus();
+                input.setSelectionRange(input.value.length, input.value.length);
+            }
+        }
+
+        // ============ HÀM XOÁ AUDIO ============
+        // Xóa audio đã tạo
+        async function deleteAudio(isEdit = false) {
+            if (!isEdit && !confirm('Bạn chắc chắn muốn xóa audio này? Sau đó bạn có thể tạo lại với nội dung khác.')) {
+                return;
+            }
+
+            const lessonId = '[[${lesson != null ? lesson.id : ""}]]';
+            if (!lessonId) {
+                showToast('Lỗi: Không tìm thấy lesson ID', 'error');
+                return;
+            }
+
+            try {
+                const response = await axios.delete(`/api/lessons/${lessonId}/audio`);
+
+                if (response.data.statusCode === 200) {
+                    showToast('Xóa audio thành công! Tải lại trang...', 'success');
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1500);
+
+                    // Nếu là chỉnh sửa, mở modal tạo audio mới sau khi xóa
+                    if (isEdit) {
+                        setTimeout(() => {
+                            openAudioModal();
+                        }, 1500);
+                    }
+                } else {
+                    showToast('Lỗi: ' + (response.data.message || 'Không thể xóa audio'), 'error');
+                }
+            } catch (error) {
+                console.error('Error deleting audio:', error);
+                const errorMsg = error.response?.data?.message || 'Lỗi khi xóa audio';
+                showToast(errorMsg, 'error');
+            }
+        }
+
+        // ============ HÀM KIỂM TRA KẾT QUẢ NGHE (LISTENING ANSWER CHECK) ============
+        // So sánh nội dung nghe của học sinh với text gốc
+        function checkListeningAnswer() {
+            const studentAnswer = document.getElementById('listening-answer').value.trim();
+            const expectedText = (document.getElementById('expected-audio-text')?.value || '').trim();
+
+            if (!studentAnswer) {
+                showToast('Vui lòng nhập nội dung bạn nghe được trước khi kiểm tra', 'error');
+                return;
+            }
+
+            if (!expectedText) {
+                showToast('Lỗi: Không tìm thấy nội dung gốc từ modal. Giáo viên hãy tạo lại audio bằng nội dung mong muốn.', 'error');
+                return;
+            }
+
+            // So sánh và tính similarity score
+            const similarity = calculateSimilarity(studentAnswer.toLowerCase(), expectedText.toLowerCase());
+            const feedbackDiv = document.getElementById('listening-feedback');
+            const feedbackMsg = document.getElementById('feedback-message');
+            const comparisonDetails = document.getElementById('comparison-details');
+
+            // Hiển thị kết quả dựa trên mức độ tương đồng
+            let result = '';
+            let score = Math.round(similarity * 100);
+            let icon = '';
+            let bgColor = '';
+
+            if (score >= 80) {
+                // Rất tốt (80-100%)
+                result = '✨ Tuyệt vời! Bạn nghe được rất chính xác!';
+                icon = '🎉';
+                bgColor = 'bg-green-50 border-green-300';
+                feedbackMsg.innerHTML = `<div class="text-green-700 font-semibold flex items-center gap-2">
+                    <span>${icon}</span>
+                    <span>${result}</span>
+                </div>`;
+            } else if (score >= 60) {
+                // Tốt (60-79%)
+                result = '👍 Khá tốt! Bạn nghe được phần lớn nội dung.';
+                icon = '😊';
+                bgColor = 'bg-blue-50 border-blue-300';
+                feedbackMsg.innerHTML = `<div class="text-blue-700 font-semibold flex items-center gap-2">
+                    <span>${icon}</span>
+                    <span>${result}</span>
+                </div>`;
+            } else if (score >= 40) {
+                // Trung bình (40-59%)
+                result = '📝 Còn cần luyện tập thêm. Hãy nghe lại.';
+                icon = '🤔';
+                bgColor = 'bg-amber-50 border-amber-300';
+                feedbackMsg.innerHTML = `<div class="text-amber-700 font-semibold flex items-center gap-2">
+                    <span>${icon}</span>
+                    <span>${result}</span>
+                </div>`;
+            } else {
+                // Yếu (< 40%)
+                result = '💪 Hãy nghe lại kỹ hơn và thử lại.';
+                icon = '👂';
+                bgColor = 'bg-orange-50 border-orange-300';
+                feedbackMsg.innerHTML = `<div class="text-orange-700 font-semibold flex items-center gap-2">
+                    <span>${icon}</span>
+                    <span>${result}</span>
+                </div>`;
+            }
+
+            // Hiển thị chi tiết so sánh
+            comparisonDetails.innerHTML = `
+                <div class="text-slate-600">
+                    <div class="mb-3">
+                        <p class="text-sm font-medium text-slate-700 mb-1">Độ chính xác: <span class="text-lg font-bold text-blue-600">${score}%</span></p>
+                        <div class="w-full bg-slate-200 rounded-full h-2 overflow-hidden">
+                            <div class="bg-blue-600 h-full transition-all duration-500 rounded-full" style="width: ${score}%"></div>
+                        </div>
+                    </div>
+                    <details class="cursor-pointer">
+                        <summary class="text-sm font-medium text-slate-700 hover:text-slate-900">
+                            Xem nội dung gốc
+                        </summary>
+                        <div class="mt-2 p-3 bg-white rounded-lg border border-slate-200 text-xs text-slate-600">
+                            <div class="mb-2">
+                                <p class="font-semibold text-slate-700 mb-1">Nội dung nghe (gốc):</p>
+                                <p class="italic text-slate-700">"${expectedText}"</p>
+                            </div>
+                            <div>
+                                <p class="font-semibold text-slate-700 mb-1">Bạn ghi lại:</p>
+                                <p class="italic text-slate-700">"${studentAnswer}"</p>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            `;
+
+            feedbackDiv.className = `${bgColor} mt-4 p-4 rounded-lg border`;
+            feedbackDiv.classList.remove('hidden');
+        }
+
+        // ============ HÀM TÍNH SIMILARITY (ĐỘ TƯƠNG ĐỒNG) ============
+        // Dùng Levenshtein distance để tính độ tương đồng giữa 2 string
+        function calculateSimilarity(str1, str2) {
+            const len1 = str1.length;
+            const len2 = str2.length;
+            const matrix = [];
+
+            for (let i = 0; i <= len1; i++) {
+                matrix[i] = [i];
+            }
+
+            for (let j = 0; j <= len2; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= len1; i++) {
+                for (let j = 1; j <= len2; j++) {
+                    const cost = str1[i - 1] === str2[j - 1] ? 0 : 1;
+                    matrix[i][j] = Math.min(
+                        matrix[i][j - 1] + 1,      // deletion
+                        matrix[i - 1][j] + 1,      // insertion
+                        matrix[i - 1][j - 1] + cost  // substitution
+                    );
+                }
+            }
+
+            const distance = matrix[len1][len2];
+            const maxLen = Math.max(len1, len2);
+            
+            // Tính similarity từ 0 đến 1 (1 = identical, 0 = completely different)
+            return maxLen > 0 ? 1 - (distance / maxLen) : 1;
+        }
+
+        // ============ HÀM XÓA KẾT QUẢ NGHE ============
+        // Xóa nội dung input và feedback
+        function clearListeningAnswer() {
+            document.getElementById('listening-answer').value = '';
+            const feedbackDiv = document.getElementById('listening-feedback');
+            feedbackDiv.classList.add('hidden');
+            showToast('Đã xóa nội dung', 'success');
+        }
+    </script>
 
 </body>
 </html>

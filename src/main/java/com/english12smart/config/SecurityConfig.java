@@ -212,7 +212,11 @@ public class SecurityConfig {
                                 "http://localhost:8080", // Spring Boot
                                 "http://127.0.0.1:8080", // Local
                                 "http://127.0.0.1:3000", // Local alt
-                                "https://yourdomain.com" // Production domain
+                                "http://localhost",      // Local without port
+                                "https://studyenglish12.site",      // Production domain
+                                "https://www.studyenglish12.site",  // Production www
+                                "http://studyenglish12.site",       // HTTP fallback
+                                "http://www.studyenglish12.site"    // HTTP www fallback
                 ));
 
                 // ========== Allowed HTTP Methods ==========
